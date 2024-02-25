@@ -174,6 +174,9 @@ class AreaSelection(Operator):
         global xcoords, ycoords
         xcoords = []
         ycoords = []
-        self.xcoords = np.array(xcoords)
-        self.ycoords = np.array(ycoords)
+        # self.xcoords = np.array(xcoords)
+        # self.ycoords = np.array(ycoords)
+        self.xcoords = xcoords
+        self.ycoords = ycoords
+
         cid = fig.canvas.mpl_connect('button_press_event', onclick)

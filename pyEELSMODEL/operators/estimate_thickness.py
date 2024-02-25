@@ -39,11 +39,12 @@ class ThicknessEstimator(Operator):
         if self.model_type == 'Mirrored':
             inelastic_sig = zlpremoval.mirror_inelastic.integrate((5., 2000.))
 
-            self.tlambda = (inelastic_sig / zlpremoval.mirror_zlp.multidata.sum(2))
+            # self.tlambda = (inelastic_sig / zlpremoval.mirror_zlp.multidata.sum(2))
+            self.tlambda = np.log(self.spectrum.multidata.sum(2)/zlpremoval.mirror_zlp.multidata.sum(2))
 
         else:
-            inelastic_sig = zlpremoval.inelastic.integrate((5., 2000.))
-            self.tlambda = (inelastic_sig/zlpremoval.zlp.multidata.sum(2))
+            # inelastic_sig = zlpremoval.inelastic.integrate((5., 2000.))
+            self.tlambda = np.log(self.spectrum.multidata.sum(2)/zlpremoval.zlp.multidata.sum(2))
 
 
     def zlp_integral(self):

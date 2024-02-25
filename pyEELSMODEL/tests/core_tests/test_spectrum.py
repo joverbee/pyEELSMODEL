@@ -188,8 +188,10 @@ def test_set_pppc():
     specshape = Spectrumshape(1, 200, 1024)
     data = np.arange(specshape.size)
     s0 = Spectrum(specshape, data=data)
-    s0.set_pppc(4)
-    assert s0.error.sum() == np.sqrt(data*4 ).sum()
+    s0.pppc = 4
+    
+    # assert np.all(s0.data == 4*data)
+    assert s0.error.sum() == np.sqrt(4*data).sum()
 
 def test_get_energy_index():
     specshape = Spectrumshape(1, 200, 1024)

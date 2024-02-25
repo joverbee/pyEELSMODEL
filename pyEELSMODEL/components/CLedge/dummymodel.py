@@ -5,7 +5,7 @@ import os
 class DummyEdge(CoreLossEdge):
     '''
     DummyEdge is a first approximation of the edge. This assumes each edge has
-    a different onset energy but the powerlaw value is -3. Note that the
+    a different onset energy but the powerlaw value is can be chosen. Note that the
     parameters E0, alpha, beta do not influence the dummy edge model.
 
 
@@ -35,17 +35,19 @@ class DummyEdge(CoreLossEdge):
     eshift: float [eV]
         The shift of the onset energy with respect to the literature value.
         (default: 0)
-
+    r: float
+        The powerlaw of the dummyedge. (default: 3)
 
     Returns
     -------
 
     '''
-    def __init__(self, specshape, A, E0, alpha, beta, element, edge, eshift=0):
+    def __init__(self, specshape, A, E0=300e3, alpha=1e-9, beta=10e-3, element=None, edge=None, eshift=0, r=3):
         # dir path should be defined before set_edge function is called
         # use relative paths
 
         super().__init__(specshape, A, E0, alpha, beta, element, edge, eshift=eshift)
+        self.r = r
 
     @classmethod
     def edge_by_onset(self, specshape, A, onset):
@@ -103,7 +105,7 @@ class DummyEdge(CoreLossEdge):
                 'Edge should be: K1, L1, L2, L3, M2, M3, M4, M5, N4, N5')
 
     def calculate_cross_section(self):
-        cross_section = self.prefactor*self.energy_axis**(-3)
+        cross_section = self.prefactor*self.energy_axis**(-self.r)
         scale = 1/cross_section[self.get_energy_index(self.onset_energy)]
         cross_section = cross_section*scale
         boolean = self.energy_axis<self.onset_energy

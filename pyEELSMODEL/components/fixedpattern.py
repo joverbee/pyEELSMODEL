@@ -2,6 +2,7 @@
 copyright University of Antwerp 2021
 author: Jo Verbeeck and Daen Jannis
 '''
+import numpy as np
 from pyEELSMODEL.core.component import Component
 from pyEELSMODEL.core.parameter import Parameter
 from pyEELSMODEL.core.spectrum import Spectrum, Spectrumshape
@@ -46,7 +47,7 @@ class FixedPattern(Component):
         super().__init__(specshape)
         p1 = Parameter('A', A)
         p1.setlinear(True)
-        p1.setboundaries(0, 1e20)
+        p1.setboundaries(-np.Inf, np.Inf)
         p1.sethasgradient(True)
         self._addparameter(p1)
 

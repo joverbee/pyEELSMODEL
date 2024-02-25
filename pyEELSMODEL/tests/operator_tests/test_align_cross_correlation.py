@@ -12,11 +12,11 @@ from pyEELSMODEL.core.spectrum import Spectrum, Spectrumshape
 from pyEELSMODEL.components.gaussian import Gaussian
 from pyEELSMODEL.components.lorentzian import Lorentzian
 from pyEELSMODEL.components.powerlaw import PowerLaw
-from pyEELSMODEL.components.CLedge.hs_coreloss_edgecombined import HSCoreLossEdgeCombined
 from pyEELSMODEL.components.CLedge.hydrogen_coreloss_edge import HydrogenicCoreLossEdge
-from pyEELSMODEL.operators.alignzeroloss import AlignZeroLoss
-from pyEELSMODEL.operators.fastalignzeroloss import FastAlignZeroLoss
-from pyEELSMODEL.operators.aligncrosscorrelation import AlignCrossCorrelation
+from pyEELSMODEL.operators.aligns.alignzeroloss import AlignZeroLoss
+from pyEELSMODEL.operators.aligns.fastalignzeroloss import FastAlignZeroLoss
+from pyEELSMODEL.operators.aligns.aligncrosscorrelation import AlignCrossCorrelation
+from pyEELSMODEL.operators.multispectrumvisualizer import MultiSpectrumVisualizer
 
 #Make a dataset where the centre changes.
 #Every column has a incremental increase and between every row there is a random offset
@@ -25,10 +25,9 @@ from pyEELSMODEL.operators.aligncrosscorrelation import AlignCrossCorrelation
 
 def make_artificial_dataset(start, end, model_type="Gaussian", return_shift=False):
     """
-    Make artificial datasets used to test the performance of the zero loss alignment
-    :param start: The start value of the centering
-    :param end:  The end value of the center
-    :return:
+    Make artificial datasets used to test the performance of the zero loss alignment.
+
+
     """
 
     ncol = 100  # number of columns
@@ -40,7 +39,7 @@ def make_artificial_dataset(start, end, model_type="Gaussian", return_shift=Fals
 
     centre_array = np.linspace(start * width, end * width, ncol)
     offs_array = 10 * np.random.rand(nrow)
-
+    offs_array = 10 * np.ones(nrow)
     sim_data = np.zeros((nrow, ncol, specshape.size))
     sim1_data = np.zeros(sim_data.shape)  # extra spectra which will be aligned using zl
     sim2_data = np.zeros(sim_data.shape)  # extra spectra which will be aligned using zl
@@ -62,9 +61,13 @@ def make_artificial_dataset(start, end, model_type="Gaussian", return_shift=Fals
             zl1.calculate()
             zl2.calculate()
 
-            sim_data[i, j] = np.random.poisson(zl.data)
-            sim1_data[i, j] = np.random.poisson(zl1.data)
-            sim2_data[i, j] = np.random.poisson(zl2.data)
+            # sim_data[i, j] = np.random.poisson(zl.data)
+            # sim1_data[i, j] = np.random.poisson(zl1.data)
+            # sim2_data[i, j] = np.random.poisson(zl2.data)
+            
+            sim_data[i, j] = zl.data
+            sim1_data[i, j] = zl1.data
+            sim2_data[i, j] = zl2.data
 
             real_shift[i, j] = centre_array[j] + offs_array[i]
 
@@ -80,181 +83,201 @@ def make_artificial_dataset(start, end, model_type="Gaussian", return_shift=Fals
 
 
 
-s, s1, s2, real_shift = make_artificial_dataset(-2, 2, return_shift=True)
-s.plot()
-align = AlignCrossCorrelation(s, cropping=True, signal_range=(-50, 50),interp=3)
-# align = AlignCrossCorrelation(s, cropping=True)
-# align.reference = s.multidata[0,50]
-# align.perform_alignment()
-align.determine_shift()
-align.align()
+# s, s1, s2, real_shift = make_artificial_dataset(2, 4, return_shift=True)
+# s.plot()
+# align = AlignCrossCorrelation(s, cropping=True, signal_range=(-50, 50), interp=3)
+# align.determine_shift()
+# align.align()
+
+# plt.figure()
+# plt.imshow(align.correlationmap)
 
 
 
-plt.figure()
-plt.plot(s.energy_axis, s.mean().data)
-plt.plot(align.aligned.energy_axis, align.aligned.mean().data)
-plt.plot(s.energy_axis, s.multidata[0,50])
+# plt.figure()
+# plt.plot(s.energy_axis, s.mean().data)
+# plt.plot(align.aligned.energy_axis, align.aligned.mean().data)
+# plt.plot(s.energy_axis, s.multidata[0,50])
 
-plt.figure()
-plt.plot(s.mean().get_interval((-50,50)).data)
-plt.plot(align.aligned.mean().data)
-plt.plot(align.reference)
+# plt.figure()
+# plt.plot(s.mean().get_interval((-50,50)).data)
+# plt.plot(align.aligned.mean().data)
+# plt.plot(align.reference)
 
-fast = FastAlignZeroLoss(s, cropping=True)
-fast.perform_alignment()
-fast.aligned.sum().plot()
-fast.show_shift()
+# fast = FastAlignZeroLoss(s, cropping=True)
+# fast.perform_alignment()
+# fast.aligned.sum().plot()
+# fast.show_shift()
 
-plt.figure()
-plt.plot(align.shift[0])
-plt.plot(fast.shift[0])
-
-
-# def test_init_other():
-#     s, _, _ = make_artificial_dataset(-2, 2)
-#
-#     #wrong dispersion
-#     mshape = MultiSpectrumshape(0.1,10,1024, s.xsize, s.ysize)
-#     s1 = MultiSpectrum(mshape)
-#     with pytest.raises(ValueError):
-#         AlignZeroLoss(s, other_spectra=[s1])
-#
-#     #wrong xsize
-#     mshape = MultiSpectrumshape(1,10,1024, s.xsize+20, s.ysize)
-#     s1 = MultiSpectrum(mshape)
-#     with pytest.raises(ValueError):
-#         AlignZeroLoss(s, other_spectra=[s1])
-#
-#     #wrong ysize
-#     mshape = MultiSpectrumshape(1,10,1024, s.xsize, s.ysize+20)
-#     s1 = MultiSpectrum(mshape)
-#     with pytest.raises(ValueError):
-#         AlignZeroLoss(s, other_spectra=[s1])
-#
-#     #wrong Esize
-#     mshape = MultiSpectrumshape(1,10,1024+20, s.xsize, s.ysize)
-#     s1 = MultiSpectrum(mshape)
-#     with pytest.raises(ValueError):
-#         AlignZeroLoss(s, other_spectra=[s1])
-#
-# def test_fast_align():
-#     shf_l = [[-2,2],[-4,-2],[2,4]]
-#     for i in range(len(shf_l)):
-#         s, s1, s2 = make_artificial_dataset(shf_l[i][0], shf_l[i][1])
-#         align = AlignZeroLoss(s)
-#         align.fast_align()
-#
-#         # every maximum value is at zero energy
-#         assert np.all(s.energy_axis[np.argmax(align.fast_aligned.multidata, axis=2)]== 0)
-#
-# def test_fast_align_other():
-#     s, s1, s2 = make_artificial_dataset(-2, 2)
-#     align = AlignZeroLoss(s, other_spectra=[s1,s2])
-#     align.fast_align()
-#
-#     assert s.energy_axis[np.argmax(align.fast_aligned_others[0].sum().data)] == 50
-#     assert s.energy_axis[np.argmax(align.fast_aligned_others[1].sum().data)] == 100
-#
-# def test_fast_align_crop():
-#     shf_l = [[-2,2],[-4,-2],[2,4]]
-#     for i in range(len(shf_l)):
-#         s, s1, s2 = make_artificial_dataset(shf_l[i][0], shf_l[i][1])
-#         align = AlignZeroLoss(s, other_spectra=[s1,s2], cropping=True)
-#         align.fast_align()
-#
-#         assert np.min(align.fast_aligned.multidata[:,:,0]) == 1
-#         assert np.max(align.fast_aligned.multidata[:,:,0]) == 1
-#         assert np.min(align.fast_aligned.multidata[:,:,-1]) == 5
-#         assert np.max(align.fast_aligned.multidata[:,:,-1]) == 5
-#
-#         assert np.min(align.fast_aligned_others[0].multidata[:,:,0]) == 1
-#         assert np.max(align.fast_aligned_others[0].multidata[:,:,0]) == 1
-#         assert np.min(align.fast_aligned_others[0].multidata[:,:,-1]) == 5
-#         assert np.max(align.fast_aligned_others[0].multidata[:,:,-1]) == 5
-#
-#         assert np.min(align.fast_aligned_others[1].multidata[:,:,0]) == 1
-#         assert np.max(align.fast_aligned_others[1].multidata[:,:,0]) == 1
-#         assert np.min(align.fast_aligned_others[1].multidata[:,:,-1]) == 5
-#         assert np.max(align.fast_aligned_others[1].multidata[:,:,-1]) == 5
-#
-#
-# def test_fit_align():
-#     shf_l = [[-2,2],[-4,-2],[2,4]]
-#     for i in range(len(shf_l)):
-#         s, s1, s2 = make_artificial_dataset(shf_l[i][0], shf_l[i][1])
-#         align = AlignZeroLoss(s)
-#         align.apply_shift()
-#
-#         # every maximum value is almost at zero
-#         assert np.all(np.abs(s.energy_axis[np.argmax(align.aligned.multidata, axis=2)]) < 2)
-#
-# def test_fit_align_lorentz():
-#     shf_l = [[-2,2],[-4,-2],[2,4]]
-#     for i in range(len(shf_l)):
-#         s, s1, s2 = make_artificial_dataset(shf_l[i][0], shf_l[i][1], model_type='Lorentzian')
-#         align = AlignZeroLoss(s, model_type='Lorentzian')
-#         align.apply_shift()
-#
-#         # every maximum value is almost at zero
-#         assert np.all(np.abs(s.energy_axis[np.argmax(align.aligned.multidata, axis=2)]) < 2)
-#
-#
-# def fit_align_other():
-#     s, s1, s2 = make_artificial_dataset(-2, 2)
-#     align = AlignZeroLoss(s, other_spectra=[s1, s2])
-#     align.apply_shift()
-#
-#     # every maximum value is almost at zero
-#     assert np.all(np.abs(s.energy_axis[np.argmax(align.aligned.multidata, axis=2)]) < 2)
-#     assert np.all(np.abs((s1.energy_axis[np.argmax(align.aligned_others[0].multidata, axis=2)])-50) < 2)
-#     assert np.all(np.abs((s2.energy_axis[np.argmax(align.aligned_others[1].multidata, axis=2)])-100) < 2)
-#
-#
-# def fit_align_crop():
-#     shf_l = [[-2,2],[-4,-2],[2,4]]
-#     for i in range(len(shf_l)):
-#         s, s1, s2 = make_artificial_dataset(shf_l[i][0], shf_l[i][1])
-#         align = AlignZeroLoss(s, other_spectra=[s1,s2], cropping=True)
-#         align.apply_shift()
-#
-#         assert np.min(align.aligned.multidata[:,:,0]) == 1
-#         assert np.max(align.aligned.multidata[:,:,0]) == 1
-#         assert np.min(align.aligned.multidata[:,:,-1]) == 5
-#         assert np.max(align.aligned.multidata[:,:,-1]) == 5
-#
-#         assert np.min(align.aligned_others[0].multidata[:,:,0]) == 1
-#         assert np.max(align.aligned_others[0].multidata[:,:,0]) == 1
-#         assert np.min(align.aligned_others[0].multidata[:,:,-1]) == 5
-#         assert np.max(align.aligned_others[0].multidata[:,:,-1]) == 5
-#
-#         assert np.min(align.aligned_others[1].multidata[:,:,0]) == 1
-#         assert np.max(align.aligned_others[1].multidata[:,:,0]) == 1
-#         assert np.min(align.aligned_others[1].multidata[:,:,-1]) == 5
-#         assert np.max(align.aligned_others[1].multidata[:,:,-1]) == 5
-#
-# def fit_align_given_shift():
-#     s, s1, s2, real_shift = make_artificial_dataset(-2, 2, return_shift=True)
-#     align = AlignZeroLoss(s, other_spectra=[s1, s2], cropping=True)
-#     align.apply_shift(shift=real_shift)
-#
-#     assert np.all(np.abs(align.aligned.energy_axis[np.argmax(align.aligned.multidata, axis=2)]) < 2)
-#
-#
-# def main():
-#     test_init_other()
-#     test_fast_align()
-#     test_fast_align_other()
-#     test_fast_align_crop()
-#     test_fit_align()
-#     test_fit_align_lorentz()
-#     fit_align_other()
-#     fit_align_crop()
-#     fit_align_given_shift()
-#
-# if __name__ == "__main__":
-#     main()
+# plt.figure()
+# plt.plot(align.shift[0])
+# plt.plot(fast.shift[0])
+# plt.plot(real_shift[0])
 
 
+
+
+def test_init_other():
+    s, _, _ = make_artificial_dataset(-2, 2)
+
+    #wrong dispersion
+    # disperison could also be different although this seems not to ever happen
+    # mshape = MultiSpectrumshape(0.1,10,1024, s.xsize, s.ysize)
+    # s1 = MultiSpectrum(mshape)
+    # with pytest.raises(ValueError):
+    #     AlignZeroLoss(s, other_spectra=[s1])
+
+    # #wrong xsize
+    mshape = MultiSpectrumshape(1,10,1024, s.xsize+20, s.ysize)
+    s1 = MultiSpectrum(mshape)
+    with pytest.raises(ValueError):
+        AlignZeroLoss(s, other_spectra=[s1])
+
+    # #wrong ysize
+    mshape = MultiSpectrumshape(1,10,1024, s.xsize, s.ysize+20)
+    s1 = MultiSpectrum(mshape)
+    with pytest.raises(ValueError):
+        AlignZeroLoss(s, other_spectra=[s1])
+
+    # #wrong Esize
+    # it should not be needed that the energy is exactly the same
+    # mshape = MultiSpectrumshape(1,10,1024+20, s.xsize, s.ysize)
+    # s1 = MultiSpectrum(mshape)
+    # with pytest.raises(ValueError):
+    #     AlignZeroLoss(s, other_spectra=[s1])
+
+def test_fast_align():
+    shf_l = [[-2,2],[-4,-2],[2,4]]
+    for i in range(len(shf_l)):
+        s, s1, s2 = make_artificial_dataset(shf_l[i][0], shf_l[i][1])
+        align = FastAlignZeroLoss(s)
+        align.perform_alignment()
+
+        p = align.aligned
+
+        # every maximum value is at zero energy
+        assert np.all(p.energy_axis[np.argmax(p.multidata, axis=2)]== 0)
+
+def test_fast_align_other():
+    s, s1, s2 = make_artificial_dataset(-2, 2)
+    align = FastAlignZeroLoss(s, other_spectra=[s1,s2])
+    align.perform_alignment()
+
+    p0 = align.aligned_others[0]
+    p1 = align.aligned_others[1]
+
+
+    assert p0.energy_axis[np.argmax(p0.sum().data)] == 50
+    assert p1.energy_axis[np.argmax(p1.sum().data)] == 100
+
+def test_fast_align_crop():
+    shf_l = [[-2,2],[-4,-2],[1,4]]
+    for i in range(len(shf_l)):
+        s, s1, s2, real_shift = make_artificial_dataset(shf_l[i][0], shf_l[i][1], return_shift=True)
+        align = FastAlignZeroLoss(s, other_spectra=[s1,s2], cropping=True)
+        align.perform_alignment()
+
+        new_size = s.size - int((real_shift.max()-real_shift.min())/s.dispersion) 
+
+        # print(new_size)
+        # print(align.aligned.size)
+
+        assert align.aligned.size == new_size
+        assert align.aligned_others[0].size == new_size
+        assert align.aligned_others[1].size == new_size
+
+
+
+def test_fit_align():
+    shf_l = [[-2,2],[-4,-2],[2,4]]
+    for i in range(len(shf_l)):
+        s, s1, s2 = make_artificial_dataset(shf_l[i][0], shf_l[i][1])
+        align = AlignZeroLoss(s)
+        align.perform_alignment()
+
+        # every maximum value is almost at zero
+        assert np.all(np.abs(s.energy_axis[np.argmax(align.aligned.multidata, axis=2)]) < 2)
+
+def test_fit_align_lorentz():
+    shf_l = [[-2,2],[-4,-2],[2,4]]
+    for i in range(len(shf_l)):
+        s, s1, s2 = make_artificial_dataset(shf_l[i][0], shf_l[i][1], model_type='Lorentzian')
+        align = AlignZeroLoss(s, model_type='Lorentzian')
+        align.perform_alignment()
+
+        # every maximum value is almost at zero
+        assert np.all(np.abs(s.energy_axis[np.argmax(align.aligned.multidata, axis=2)]) < 2)
+
+
+def test_fit_align_other():
+    s, s1, s2 = make_artificial_dataset(-2, 2)
+    align = AlignZeroLoss(s, other_spectra=[s1, s2])
+    align.perform_alignment()
+
+    # every maximum value is almost at zero
+    assert np.all(np.abs(s.energy_axis[np.argmax(align.aligned.multidata, axis=2)]) < 2)
+    assert np.all(np.abs((s1.energy_axis[np.argmax(align.aligned_others[0].multidata, axis=2)])-50) < 2)
+    assert np.all(np.abs((s2.energy_axis[np.argmax(align.aligned_others[1].multidata, axis=2)])-100) < 2)
+
+
+def test_fit_align_crop():
+    shf_l = [[-2,2],[-4,-2],[2,4]]
+    for i in range(len(shf_l)):
+        s, s1, s2, real_shift = make_artificial_dataset(shf_l[i][0], shf_l[i][1], return_shift=True)
+        align = AlignZeroLoss(s, other_spectra=[s1,s2], cropping=True)
+        align.perform_alignment()
+
+        
+
+        new_size = s.size - int(np.abs(real_shift.max()-real_shift.min())/s.dispersion)
+
+        print(new_size)
+        print(align.aligned.size)
+
+        assert align.aligned.size == new_size
+        assert align.aligned_others[0].size == new_size
+        assert align.aligned_others[1].size == new_size
+
+def test_align_crosscor():
+    shf_l = [[-2,2],[-4,-2],[2,4]]
+    for i in range(len(shf_l)):
+        s, s1, s2, real_shift = make_artificial_dataset(shf_l[i][0], shf_l[i][1], return_shift=True)
+        align = AlignCrossCorrelation(s, other_spectra=[s1,s2], cropping=True)
+        align.perform_alignment()
+
+        max_en = s.energy_axis[np.argmax(align.aligned.multidata, axis=2)]
+
+        assert np.all(np.isclose(max_en, max_en[0,0]))
+
+def test_align_crosscor_zlp():
+    shf_l = [[-2,2],[-4,-2],[2,4]]
+    for i in range(len(shf_l)):
+        s, s1, s2, real_shift = make_artificial_dataset(shf_l[i][0], shf_l[i][1], return_shift=True)
+        align = AlignCrossCorrelation(s, other_spectra=[s1,s2], cropping=True, is_zlp=True)
+        align.perform_alignment()
+
+
+        max_en = align.aligned.energy_axis[np.argmax(align.aligned.multidata, axis=2)]
+        max_en1 = align.aligned_others[0].energy_axis[np.argmax(align.aligned_others[0].multidata, axis=2)]
+        max_en2 = align.aligned_others[1].energy_axis[np.argmax(align.aligned_others[1].multidata, axis=2)]
+
+        assert np.all(np.isclose(max_en, 0))
+        assert np.all(np.isclose(max_en1, 50))
+        assert np.all(np.isclose(max_en2, 100))
+
+def main():
+    test_init_other()
+    test_fast_align()
+    test_fast_align_other()
+    test_fast_align_crop()
+    test_fit_align()
+    test_fit_align_lorentz()
+    test_fit_align_other()
+    test_fit_align_crop()
+    test_align_crosscor()
+    test_align_crosscor_zlp()
+
+if __name__ == "__main__":
+    main()
 
 

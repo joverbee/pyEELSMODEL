@@ -6,3 +6,5 @@ __pycache__/
 build/
 database/
 .eggs
+
+data/*.py

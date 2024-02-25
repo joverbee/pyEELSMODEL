@@ -97,7 +97,9 @@ class MultiSpectrum(Spectrum):
                                     multispectrumshape.offset,
                                     multispectrumshape.Esize)
 
+
         super().__init__(spectrumshape, acq_time=acq_time)
+
         self.xsize = multispectrumshape.xsize
         self.ysize = multispectrumshape.ysize
         self.currentspectrumid = (0, 0)
@@ -107,12 +109,13 @@ class MultiSpectrum(Spectrum):
             self.multidata = np.zeros((self.xsize, self.ysize, self.size)) #hold all spectral data
 
         else:
-            if data.shape != (self.xsize, self.ysize, self.size):
+            if data.shape != (self.xsize, self.ysize, multispectrumshape.Esize):
                 raise ValueError('data needs to be same size as spectrum.')
             # if type(float(data[0,0,0]))!= float: #this throws a ValueError before the raise
             if not np.issubdtype(data.dtype, np.floating):
                 raise TypeError('data needs to be convertible to float.')
             self.multidata = data
+
 
         self.setcurrentspectrum(self.currentspectrumid)
         self.setcurrentmeanspectrum(self.currentspectrumid, 1, 1)
@@ -697,6 +700,8 @@ class MultiSpectrum(Spectrum):
 
         else:
             raise TypeError('Input should be spectrum object, float or int')
+
+
 
     def get_interval(self, interval, even_size=True):
         """

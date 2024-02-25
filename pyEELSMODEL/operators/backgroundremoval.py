@@ -283,7 +283,7 @@ class BackgroundRemoval(Operator):
             indic = [self.indices[0], self.indices[1]]
 
         if self.model_type == 'Powerlaw' or self.model_type == 'Exponential':
-            print(indic)
+            # print(indic)
             self.model.getcomponents()[0].autofit(self.spectrum, indic[0], indic[1])
             # self.model.getcomponents()[0].autofit1(self.spectrum, indic[0], indic[1])
 
@@ -593,17 +593,38 @@ class BackgroundRemoval(Operator):
         comp_elements.append(ZezhongCoreLossEdgeCombined(specshape, 1, E0,
                                                          alpha, beta, element,
                                                          edge))
-        if ll is not None:
-            comp_elements.append(MscatterFFT(specshape, ll))
 
-        mod = Model(specshape, components=comp_elements)
-        mod.calculate()
 
-        calc_int = mod.integrate(integration_range)
+        if isinstance(ll, MultiSpectrum):
+            shape = (self.spectrum.xsize, self.spectrum.ysize)
+            calc_int = np.zeros(shape)
 
-        if self.result is None:
-            print('uses the fast calculated background fit')
-            return None
+            for index in tqdm(np.ndindex(shape)):
+                islice = np.s_[index]
+                ll0 = ll[islice[0],islice[1],:]
+                llcomp = MscatterFFT(specshape, ll0)
+                mod = Model(specshape, components=comp_elements+[llcomp])
+                mod.calculate()
+                calc_int[islice] = mod.integrate(integration_range)
+
+        else:
+            if ll is not None:
+                comp_elements.append(MscatterFFT(specshape, ll))
+
+            mod = Model(specshape, components=comp_elements)
+            mod.calculate()
+
+            if isinstance(self.spectrum, MultiSpectrum):
+                shape = (self.spectrum.xsize, self.spectrum.ysize)
+                calc_int = np.zeros(shape)
+                calc_int[:,:] = mod.integrate(integration_range)
+            else:
+                calc_int = mod.integrate(integration_range)
+
+
+            if self.result is None:
+                print('uses the fast calculated background fit')
+                return None
 
         exp_int = self.result.integrate(integration_range)
         abundance = exp_int / calc_int
