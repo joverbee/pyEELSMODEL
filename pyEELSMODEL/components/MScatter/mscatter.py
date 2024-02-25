@@ -27,8 +27,8 @@ class Mscatter(Component):
 
 
         elif self.size > llspectrum.size:
-            print('low loss spectrum has to have same size as model')
-            print('the low loss will be zero padded to have the same size')
+            # print('low loss spectrum has to have same size as model')
+            # print('the low loss will be zero padded to have the same size')
             llspectrum = self.padding(specshape, llspectrum)
 
         self._setcanconvolute(False)  # meaningless in this case
@@ -53,17 +53,17 @@ class Mscatter(Component):
         size_dif = specshape.size - llspectrum.size
         before = size_dif//2
         after = size_dif - before
-        print('padding is done')
-        print(llspectrum)
+        # print('padding is done')
+        # print(llspectrum)
         if type(llspectrum) is Spectrum:
-            print('low loss is spectrum')
+            # print('low loss is spectrum')
             pad_data = np.pad(llspectrum.data, pad_width=(before, after))
             noffset = llspectrum.offset - llspectrum.dispersion * before
             sph = Spectrumshape(llspectrum.dispersion, noffset, pad_data.size)
             s = Spectrum(sph, data=pad_data)
 
         elif type(llspectrum) is MultiSpectrum:
-            print('low loss is multispectrum')
+            # print('low loss is multispectrum')
             pad_data = np.pad(llspectrum.multidata, pad_width=((0,0),(0,0),(before, after)))
             noffset = llspectrum.offset - llspectrum.dispersion*before
             sph = MultiSpectrumshape(llspectrum.dispersion, noffset, pad_data.shape[-1],

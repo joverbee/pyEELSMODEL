@@ -4,6 +4,8 @@ from pyEELSMODEL.components.CLedge.kohl_coreloss_edge import KohlLossEdge
 import numpy as np
 import logging
 import h5py
+import os
+from pyEELSMODEL import __file__
 
 logger = logging.getLogger(__name__)
 
@@ -49,15 +51,18 @@ class KohlLossEdgeCombined(CoreLossEdge):
     Returns
     -------
     """
-    def __init__(self, specshape, A, E0, alpha, beta, element, edge, eshift=0, q_steps=100):
+    def __init__(self, specshape, A, E0, alpha, beta, element, edge, eshift=0, q_steps=100, dir_path=None):
 
-
-        self.onset_path = r'C:\Users\DJannis\Documents\KohlCrossSection\onset_energies.hdf5'
+        if dir_path == None:
+            self.dir_path = os.path.dirname(
+                os.path.dirname(__file__) + "/../database/Segger_Guzzinati_Kohl/"
+            )
+        self.onset_path = os.path.dirname(os.path.dirname(__file__) + "/../pyEELSMODEL/")
         self.xsectionlist = []
         max_edge = self.check_maximum_edge(element, edge)
 
         if edge == 'K':
-            xsectionK = KohlLossEdge(specshape, A, E0, alpha, beta, element, 'K1', eshift=eshift, q_steps=q_steps)
+            xsectionK = KohlLossEdge(specshape, A, E0, alpha, beta, element, 'K1', eshift=eshift, q_steps=q_steps,dir_path=self.dir_path)
             self.xsectionlist.append(xsectionK)
             super().__init__(specshape, A, E0, alpha, beta, element, 'K1', q_steps=100)
             name = element + ' K edge: ' + str(self.onset_energy) + ' eV'
@@ -66,13 +71,13 @@ class KohlLossEdgeCombined(CoreLossEdge):
         elif (edge == 'L') | (edge == 'M') | (edge == 'N') | (edge == 'O') :
             start_edge = edge+str(max_edge)
             xsection_op = KohlLossEdge(specshape, A, E0, alpha, beta, element, start_edge,
-                                         eshift=eshift, q_steps=q_steps)
+                                         eshift=eshift, q_steps=q_steps,dir_path=self.dir_path)
             self.xsectionlist.append(xsection_op)
             for i in range(max_edge-1):
                 try:
                     next_edge = edge+str(max_edge-i-1)
                     xsection = KohlLossEdge(specshape, A, E0, alpha, beta, element, next_edge,
-                                             eshift=eshift, q_steps=q_steps)
+                                             eshift=eshift, q_steps=q_steps,dir_path=self.dir_path)
                     xsection.parameters[0].couple(xsection_op.parameters[0])
                     xsection.parameters[1].couple(xsection_op.parameters[1])
                     xsection.parameters[2].couple(xsection_op.parameters[2])
@@ -113,11 +118,9 @@ class KohlLossEdgeCombined(CoreLossEdge):
 
         """
 
-
-        with h5py.File(self.onset_path, 'r+') as f:
+        file = os.path.join(self.onset_path, 'element_info.hdf5')
+        with h5py.File(file, 'r') as f:
             edges = list(f[element].keys())
-
-
 
         sub_edges = []
         for char in edges:

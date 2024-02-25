@@ -133,7 +133,7 @@ class ZezhongCoreLossEdgeCombined(CoreLossEdge):
                     xsection.parameters[2].couple(xsection_op.parameters[2])
                     xsection.parameters[3].couple(xsection_op.parameters[3])
                     self.xsectionlist.append(xsection)
-                    print(next_edge + " is used")
+                    #print(next_edge + " is used")
 
                 except:
                     print(next_edge + " is NOT implemented")
@@ -177,7 +177,7 @@ class ZezhongCoreLossEdgeCombined(CoreLossEdge):
         """
         filename = os.path.join(self.dir_path, element + ".hdf5")
         with h5py.File(filename, "r") as f:
-            print('file is opened')
+            # print('file is opened')
             edges = list(f[element].keys())
             onset_energy_list = list(
                 f["metadata"]["edges_info"][i].attrs["onset_energy_guess"]

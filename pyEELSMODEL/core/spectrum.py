@@ -787,7 +787,7 @@ class Spectrum:
         if p<0:
             raise ValueError('pppc should be >=0')
         self._pppc = p
-        self.data = self.data/p
+        # self.data = self.data*p
         self.init_poisson_error()
 
     def init_poisson_error(self):
@@ -802,7 +802,7 @@ class Spectrum:
 
         """
         mask = self.data > 0
-        self.error = np.sqrt(self.data*self.pppc*mask) #only makes sense for positive data
+        self.error = np.sqrt(self.pppc*self.data*mask) #only makes sense for positive data
 
     def get_energy_index(self, E):
         """

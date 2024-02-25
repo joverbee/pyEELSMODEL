@@ -41,7 +41,7 @@ class Plasmon(Component):
         p4.sethasgradient(False)
         self._addparameter(p4) 
 
-        p5 = Parameter('tlamda',tlambda, changeallowed=False)
+        p5 = Parameter('tlambda',tlambda, changeallowed=False)
         p5.sethasgradient(False)
         self._addparameter(p5) 
 

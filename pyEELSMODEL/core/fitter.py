@@ -424,7 +424,9 @@ class Fitter:
 
         """
         self.model.calculate() #calculate the newest model
-        ndata = np.copy(self.model.data)
+
+        #do not fully understand why **(-1) but it seems to fit
+        ndata = self.spectrum.pppc**(-1) * np.copy(self.model.data)
         # ndata[ndata < 1.] = 1. #small values will blow up lambda_m
 
 
@@ -881,9 +883,9 @@ class Fitter:
                 tempplt.plot(self.model.energy_axis, comp.data, label=comp.name,
                              **kwargs)
 
-            print(comp.name)
-            print(np.sum(comp.data))
-            print('- - - - - ')
+            # print(comp.name)
+            # print(np.sum(comp.data))
+            # print('- - - - - ')
 
         tempplt.plot(self.model.energy_axis, self.model.data,label='Model',
                      **kwargs)  # and the total spectrum
@@ -1042,6 +1044,28 @@ class Fitter:
         return jump_ratio, comp_int, bkg_int, sig_bkg, sig_comp
 
 
+    def get_map(self, param):
+        """
+        Returns the fitted coefficients of the parameter param. This only
+        work if a multispectrum is used to fit.
 
+        Parameters
+        ----------
+        param : Parameter
+              A parameter which is optimized and from which the resulting
+              map is requested.
+
+        Returns
+        ----------
+        param_map: 2d numpy array
+            The coefficient map of the given parameters
+
+        """
+        index = self.get_param_index(param)
+        if index is None:
+            print('Parameter is not optimized during the fit')
+            return None
+        param_map = self.coeff_matrix[:,:,index]
+        return param_map
 
 

@@ -12,7 +12,7 @@ from pyEELSMODEL.components.gaussian import Gaussian
 
 from pyEELSMODEL.fitters.lsqfitter import LSQFitter
 from pyEELSMODEL.fitters.minimizefitter import MinimizeFitter
-from pyEELSMODEL.operators.align import Align
+from pyEELSMODEL.operators.aligns.align import Align
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)

@@ -11,7 +11,9 @@ logger = logging.getLogger(__name__)
 class Polynomial(Component):
     """
     A Polynomial component. The constant value of the polynomials
-    are all set to 1 as initial value.
+    are all set to 1 as initial value. The coefficients of the powers are
+    normalized since they produce numerical results because the x-axis
+    is useually expressed in eV.
 
     Parameters
     ----------

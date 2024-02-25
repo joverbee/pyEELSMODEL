@@ -21,14 +21,17 @@ class Align(Operator):
     '''
     def __init__(self, multispectrum, other_spectra, cropping,
                  signal_range=None, zero_index=None):
-        self.multispectrum = multispectrum
 
+
+
+        self.multispectrum = multispectrum
 
         if other_spectra is None:
             self.other_spectra = []
         else:
             if self.check_valid_other_spectra(other_spectra):
                 self.other_spectra= other_spectra
+        self.update_multispectra()
 
 
         self.cropping = cropping
@@ -203,6 +206,21 @@ class Align(Operator):
             #                      r'the other spectra')
 
         return True
+
+    def update_multispectra(self):
+        """
+        If the zero loss is not centered around the zero energy then we cut
+        too much of when cropping. This is resolved by doing a first quick
+        update on the offset energy of the multispectrum by taking the median
+        value of the energy at maximum intensity.
+        """
+        zlp_pos = self.multispectrum.energy_axis[np.argmax(self.multispectrum.multidata[:,:], axis=(2))]
+        zlp_med = np.median(zlp_pos)
+
+        self.multispectrum.offset -= zlp_med
+
+        for spec in self.other_spectra:
+            spec.offset -= zlp_med
 
 
     def fast_align(self):

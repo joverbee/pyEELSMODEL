@@ -19,9 +19,16 @@ from pyEELSMODEL.fitters.lsqfitter import LSQFitter
 #operators which are useful
 from pyEELSMODEL.operators.backgroundremoval import BackgroundRemoval
 from pyEELSMODEL.operators.aligns.fastalignzeroloss import FastAlignZeroLoss
+from pyEELSMODEL.operators.aligns.alignzeroloss import AlignZeroLoss
+from pyEELSMODEL.operators.aligns.aligncrosscorrelation import\
+    AlignCrossCorrelation
 from pyEELSMODEL.operators.multispectrumvisualizer import \
     MultiSpectrumVisualizer
 
+from pyEELSMODEL.operators.simulator.coreloss_simulator import\
+    CoreLossSimulator
+from pyEELSMODEL.operators.quantification.elemental_quantification import\
+    ElementalQuantification
 
 
 

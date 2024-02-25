@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from scipy import interpolate
 import logging
 
-from pyEELSMODEL.operators.align import Align
+from pyEELSMODEL.operators.aligns.align import Align
 from pyEELSMODEL.core.multispectrum import MultiSpectrum, MultiSpectrumshape
 
 from tqdm import tqdm
@@ -20,7 +20,7 @@ class AlignCrossCorrelation(Align):
     """
     Aligns the dataset using the maximum from the cross correlation of the given spectra with the
     reference. At this point the reference is taken as the spectrum which is set in the multi-
-    spectrum. This alignemnt method will only work if an edge or zero loss is the same over the
+    spectrum. This alignment method will only work if an edge or zero loss is the same over the
     entire scan.
 
     Parameters
@@ -35,22 +35,24 @@ class AlignCrossCorrelation(Align):
     cropping: bool
         Indicates if the edges of the signal are cropped out when aligning the zero loss peak.
         (default: False)
-    zero_index: float
-
     interp: int >1
         The interpolation used for subpixel accuracy (default: 1)
+    is_zlp: boolean
+        Inidicates if the aligned spectrum is a zero loss peak. If so,
+        the offset is modified at the end to put maximum value at zero energy
 
     """
-    def __init__(self, multispectrum, other_spectra=[], signal_range=None, cropping=False,
-                 zero_index=None, interp=1, subpixel=False):
+    def __init__(self, multispectrum, other_spectra=[], signal_range=None,
+                 cropping=False, interp=1, subpixel=False, is_zlp=False):
         super().__init__(multispectrum, other_spectra, cropping, signal_range=signal_range,
-                         zero_index=zero_index)
+                         zero_index=None)
         self._reference = np.copy(self.multispectrum.data)
         self._reference = self._reference - self._reference.mean() #normalization of reference
         self.interp = interp
         self.interpolation_kind = 'linear' #also other interpolation kinds can be used.
         self.subpixel = subpixel
         self.method = 'Cross correlation'
+        self.is_zlp = is_zlp
 
     @property
     def reference(self):
@@ -173,6 +175,16 @@ class AlignCrossCorrelation(Align):
         '''
         self.determine_shift()
         self.align()
+
+        if self.is_zlp:
+            zlp_pos = self.aligned.energy_axis[
+                np.argmax(self.aligned.mean().data)]
+
+            self.aligned.offset -= zlp_pos
+
+            for spec in self.aligned_others:
+                spec.offset -= zlp_pos
+
         # if self.subpixel:
         #     self.align()
         # else:

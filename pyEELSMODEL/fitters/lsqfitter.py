@@ -122,7 +122,7 @@ class LSQFitter(Fitter):
             bounds = (-np.Inf), np.Inf
 
         resLS = least_squares(self.estimator, x0, args=argo, method=self.method,
-                              bounds=bounds)
+                              bounds=bounds, max_nfev=100)
 
         self.coeff = resLS.x
         self.error = resLS.cost

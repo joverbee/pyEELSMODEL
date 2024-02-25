@@ -273,7 +273,7 @@ class LinearFitter(Fitter):
             The partial derivative for the given parameter.
         """
 
-        if not self.model.hasconvolutor():
+        if self.model.hasconvolutor():
             A_matrix = self.convolute_A_matrix()
         else:
             A_matrix = self.A_matrix

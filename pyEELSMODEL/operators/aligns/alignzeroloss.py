@@ -18,17 +18,20 @@ from pyEELSMODEL.components.lorentzian import Lorentzian
 
 from pyEELSMODEL.fitters.lsqfitter import LSQFitter
 from pyEELSMODEL.fitters.minimizefitter import MinimizeFitter
-from pyEELSMODEL.operators.align import Align
+from pyEELSMODEL.operators.aligns.align import Align
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
 class AlignZeroLoss(Align):
     """
-    AlignZeroLoss is a class which aligns the zero loss peak and other spectra can be
-    added which also need to be aligned.
-    The zero loss is fitted to a model (Gaussian or Lorentzian) and this paramter will
-    be used to align the zero loss.
+    AlignZeroLoss is a class which aligns the zero loss peak and other spectra
+    can be added which also need to be aligned.
+    The zero loss is fitted to a model (Gaussian or Lorentzian) and this
+    parameter will be used to align the zero loss. Note that some interpolation
+    step is used to shift the data. This could introduce differences
+    in noise properties when wanting to perform the most accurate statistics
+    on it.
 
     Parameters
     ----------

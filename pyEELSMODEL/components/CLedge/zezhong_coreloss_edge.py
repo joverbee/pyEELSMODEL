@@ -1,6 +1,5 @@
 from pyEELSMODEL.misc import hs_gdos as hsdos
 from pyEELSMODEL.components.CLedge.coreloss_edge import CoreLossEdge
-from pyEELSMODEL.misc.elements_list import elements
 import os
 import h5py
 
@@ -48,11 +47,13 @@ class ZezhongCoreLossEdge(CoreLossEdge):
     def __init__(self, specshape, A, E0, alpha, beta, element, edge, eshift=0, q_steps=100,dir_path=None):
         # dir path should be defined before set_edge function is called
         # use relative paths
-        # self.dir_path = r'..\H-S GOS Tables'
+        # self.dir_path = r'..\H-S GOS Tables
+        #
         if dir_path==None:
             self.set_dir_path(r'C:\Users\DJannis\PycharmProjects\pyEELSmodel\database\Dirac')
         else:
-            self.set_dir_path(dir_path)
+            self.set_dir_path(dir_path
+                              )
         # self.set_onset_path(r'C:\Users\DJannis\Documents\KohlCrossSection\onset_energies.hdf5')
 
         if edge == 'K':

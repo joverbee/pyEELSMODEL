@@ -17,17 +17,24 @@ logger = logging.getLogger(__name__)
 class MultiSpectrumVisualizer(Operator):
 
     """
-    Class which uses user input to return an average area of a multispectrum
-    Parameters
-    ----------
-    spectrum: Spectrum
-        The spectrum used for the calibration
-    other_spectra: List of Spectra of MultiSpectra
-        List on which returns the averaged spectrum of the same area
-
+    Class which visualizes the multspectrum.
     """
     def __init__(self, multispectra = [], input_map=None, labels=None):
+        """
+        Class which visualizes the multspectrum.
+        Parameters
+        ----------
+        multispectra: list of MultiSpectrums
+            A list of multispectrum
+        input_map: 2d numpy array
+            An 2d array which can be used to visualize the regions. For
+            instance the ADF acquired simultaneously can be used. If None,
+            then the sum of the spectrum at each probe positions will be
+            used.
+        labels: List of strings
+            A label to indicate which spectrum is visualized with which color
 
+        """
         self.multispectra = multispectra
         self.is_line=False
         if self.multispectra[0].xsize == 1 or self.multispectra[0].ysize == 1:
@@ -77,10 +84,10 @@ class MultiSpectrumVisualizer(Operator):
             ax[0].axis("tight")  # fill window space
             xmin, xmax = ax[0].get_xlim()
             self.w = self.multispectra[0].size
-            self.rect = Rectangle((self.sx, self.sy - 1), self.w, self.h, fill=False, edgecolor='red',
+            self.rect = Rectangle((self.sx - 0.5, self.sy - 0.5), self.w, self.h, fill=False, edgecolor='red',
                                   linewidth=self.linewidth)
         else:
-            self.rect = Rectangle((self.sx, self.sy - 1), self.w, self.h, fill=False, edgecolor='red',
+            self.rect = Rectangle((self.sx - 0.5,  self.sy - 0.5), self.w, self.h, fill=False, edgecolor='red',
                                   linewidth=self.linewidth)
 
             ax[0].axis("image")  # square pixels
@@ -90,7 +97,7 @@ class MultiSpectrumVisualizer(Operator):
 
     def updaterect(self):
         # print(self.get_indextitle(self.sx, self.sy, self.w, self.h))
-        self.rect.set_xy((self.sx, self.sy - 1))
+        self.rect.set_xy((self.sx-0.5, self.sy -0.5))
         self.rect.set_width(self.w)
         self.rect.set_height(self.h)
         self.rect.figure.canvas.draw()
@@ -113,7 +120,7 @@ class MultiSpectrumVisualizer(Operator):
             # print('initialize')
             self.plotline.append(plotline)
         ax[1].legend()
-        ax[1].set_title(self.get_indextitle(self.sx, self.sy, self.h, self.w))
+        ax[1].set_title(self.get_indextitle(self.sy, self.sx, self.h, self.w))
         self.xlim = ax[0].get_xlim()
         self.ylim = ax[0].get_ylim()
 
@@ -150,7 +157,7 @@ class MultiSpectrumVisualizer(Operator):
             self.sy = int(max(0, y0 - dy))
 
         if event.key == 'down':
-            self.sy = int(min(self.ylim[0] - 0.5 - h, y0 + dy))
+            self.sy = int(min(self.ylim[0] + 0.5 - h, y0 + dy))
 
         if event.key == 'left' and self.is_line == False:
             self.sx = int(max(0, x0 - dx))
@@ -197,7 +204,7 @@ class MultiSpectrumVisualizer(Operator):
         contains, attrd = self.rect.contains(event)
         if not contains:
             return
-        print('event contains', self.rect.xy)
+        # print('event contains', self.rect.xy)
         self.press = self.rect.xy, (event.xdata, event.ydata)
 
     def on_motion(self, event):
@@ -239,31 +246,14 @@ class MultiSpectrumVisualizer(Operator):
         miny = 0
         maxy = 0
         for plotline, spectra, label in zip(self.plotline, self.multispectra, self.labels):
-            # self.rect.figure.axes[1].plot(spectra.energy_axis,
-            #                               spectra.multidata[int(x0):int(x0+w), int(y0):int(y0+h), :].mean((0,1)))
-
-            # ax[1].plot(spectra.energy_axis,
-            #            spectra.multidata[self.sx:self.sx+self.h, self.sy:self.sy+self.w, :].mean((0,1)),
-            #            label=label)
-            print(spectra.multidata.shape)
             mydata = spectra.multidata[self.sy:self.sy+self.h, self.sx:self.sx+self.w, :].mean((0,1))
             plotline[0].set_ydata(mydata)
             miny = min(mydata.min(), miny)
             maxy = max(mydata.max(), maxy)
             # print('hello')
-        ax[1].set_title(self.get_indextitle(self.sx, self.sy, self.w, self.h))
+        ax[1].set_title(self.get_indextitle(self.sy, self.sx, self.w, self.h))
 
         ax[1].set_ylim([miny, maxy])
-        #
-        #     if self.xlim_eels is None:
-        #         pass
-        #     else:
-        #         self.rect.figure.axes[1].set_xlim(self.xlim_eels)
-        #
-        # self.rect.figure.axes[1].legend()
-        # self.rect.figure.axes[1].set_title(self.get_indextitle(x0, y0, self.rect.get_width(),
-        #
-        #                                                        self.rect.get_height()))
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
 
