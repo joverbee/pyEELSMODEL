@@ -4,7 +4,6 @@ __pycache__/
 *.pyo
 *.egg-info
 build/
-database/
 .eggs
 
 # Pyton derived notebook files
