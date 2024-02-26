@@ -50,7 +50,7 @@ class ZezhongCoreLossEdge(CoreLossEdge):
         # self.dir_path = r'..\H-S GOS Tables
         #
         if dir_path==None:
-            self.set_dir_path(r'C:\Users\DJannis\PycharmProjects\pyEELSmodel\database\Dirac')
+            self.set_dir_path(r'C:\Users\DJannis\PycharmProjects\pyEELSmodel\database\Zhang')
         else:
             self.set_dir_path(dir_path
                               )
