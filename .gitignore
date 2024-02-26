@@ -7,4 +7,12 @@ build/
 database/
 .eggs
 
+# Pyton derived notebook files
 examples/*.py
+
+#GOS tables
+database/Zhang/*.hdf5
+database/Segger_Guzzinati_Kohl/*.gosh
+
+# Sphinx documentation
+doc/_build/
