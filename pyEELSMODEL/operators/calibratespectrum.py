@@ -10,29 +10,35 @@ from matplotlib.backend_bases import MouseButton
 import logging
 
 from pyEELSMODEL.core.operator import Operator
-from pyEELSMODEL.misc.elements_list import elements
 from pyEELSMODEL.core.multispectrum import MultiSpectrum, MultiSpectrumshape
-
+from pyEELSMODEL.components.CLedge.coreloss_edge import CoreLossEdge
 
 logger = logging.getLogger(__name__)
 
 class CalibrateSpectrum(Operator):
-
     """
-    Parameters
-    ----------
-    spectrum: Spectrum
-        The spectrum used for the calibration
-    element_list: List of str
-        List which contains the different elemtens seen on the EEL spectrum
-    edge_list: List of str
-        List which contains the different edges seen on the EEL spectrum
-    other_spectra: List of Spectra of MultiSpectra
-        List on which the same type of correction should be applied
-
+    The CalibrateSpectrum class provides a workflow to change the energy axis
+    which is sometimes wrong. It does this by performing a linear fit between
+    the measured onset energies (defined by user) and values obtained from
+    literature.
     """
+
     def __init__(self, spectrum, element_list, edge_list, other_spectra=[]):
+        """
+        Creates CalibrateSpectrum object.
 
+        Parameters
+        ----------
+        spectrum: Spectrum
+            The spectrum used for the calibration
+        element_list: List of str
+            List which contains the different elemtens seen on the EEL spectrum
+        edge_list: List of str
+            List which contains the different edges seen on the EEL spectrum
+        other_spectra: List of Spectra of MultiSpectra
+            List on which the same type of correction should be applied
+
+        """
         self.spectrum = spectrum.copy()
         self.element_list = element_list
         self.edge_list = edge_list
@@ -49,14 +55,14 @@ class CalibrateSpectrum(Operator):
 
     def set_onset_edge_energies(self):
         """
-        Returns a list of all the edge energies visible
-
-        :return:
+        Calculates the list of tabulated onset energies of the edges.
         """
         self.onset_edge_energies = []
+
+        sh = self.spectrum.get_spectrumshape()
         for elem, edge in zip(self.element_list, self.edge_list):
-            el = elements[elem]['Atomic_properties']['Binding_energies']
-            self.onset_edge_energies.append(el[edge]['onset_energy (eV)'])
+            core = CoreLossEdge(sh, 1, 1, 1, 1, elem, edge)
+            self.onset_edge_energies.append(core.onset_energy)
 
 
 
@@ -130,11 +136,6 @@ class CalibrateSpectrum(Operator):
         """
         Calibrates the energy axis using the input energies.
 
-        Parameters
-        ----------
-        deg: int
-
-        :return:
         """
         if len(self.coords) != len(self.onset_edge_energies):
             print('Run the determine_edge_positions function again to define the edges')

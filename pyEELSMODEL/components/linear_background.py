@@ -1,7 +1,7 @@
-'''
+"""
 copyright University of Antwerp 2021
 author: Jo Verbeeck and Daen Jannis
-'''
+"""
 from pyEELSMODEL.core.component import Component
 from pyEELSMODEL.core.parameter import Parameter
 import numpy as np
@@ -73,9 +73,9 @@ class LinearBG(Component):
         return signal
 
     def getgradient(self, parameter):
-        '''calculate the analytical partial derivative wrt parameter j
+        """calculate the analytical partial derivative wrt parameter j
         returns true if succesful, gradient is stored in component.gradient
-        '''
+        """
         #todo implement the analytical gradient
         for ii, param in enumerate(self.parameters):
             if param is parameter:

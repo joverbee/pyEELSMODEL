@@ -1,7 +1,7 @@
-'''
+"""
 copyright University of Antwerp 2021
 author: Jo Verbeeck and Daen Jannis
-'''
+"""
 import numpy as np
 import matplotlib.pyplot as plt
 import time
@@ -14,14 +14,14 @@ from pyEELSMODEL.components.MScatter.mscatter import Mscatter
 
 
 class LinearFitter(Fitter):
-    '''
+    """
     A linear fitter class which uses as input a Spectrum or Multispectrum and
     Model.
-    '''
+    """
 
     def __init__(self, spectrum, model, method='ols', use_weights=False):
 
-        '''
+        """
         Initialises a LinearFitter instance. Two different methods can be
         used which is the ordinary least squares (ols) or the non-negative
         least squares (nnls). The nnls makes that the values of the fitted
@@ -45,7 +45,7 @@ class LinearFitter(Fitter):
         -------
         An instance of a LinearFitter.
 
-        '''
+        """
         #model can only be check if it is add
         if not model.islinear():
             raise ValueError(r'There are non-linear parameters in the model')

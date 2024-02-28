@@ -6,7 +6,7 @@ import numpy as np
 
 
 class AfterGlow(Component):
-    '''
+    """
     Component which can add a afterglow if it is observed in the experimental
     data.
     Simple approximation which uses the same zlp for each spectrum whereas
@@ -15,17 +15,19 @@ class AfterGlow(Component):
 
     #todo find a generic way to handle the afterglow with any need of Epos
 
-    Parameters
-    ----------
-    specshape : Spectrumshape
-        The spectrum shape used to model
-    zlp : numpy array
-        The zlp array which is best taken to be the average.
-    Epos: energy position of the peak of the afterglow
-
-
-    '''
+    """
     def __init__(self, specshape, zlp, Epos, A=1):
+        """
+        Initiates the Afterglow component
+
+        Parameters
+        ----------
+        specshape : Spectrumshape
+            The spectrum shape used to model
+        zlp : numpy array
+            The zlp array which is best taken to be the average.
+        Epos: energy position of the peak of the afterglow
+        """
         super().__init__(specshape)
         p1 = Parameter('A', A)
         p1.setlinear(True)
@@ -42,6 +44,16 @@ class AfterGlow(Component):
         self.calculate()
 
     def set_fixeddata(self, zlp, Epos):
+        """
+        Sets the component using the zlp data and the energy where it is seen.
+        Parameters
+        ----------
+        specshape : Spectrumshape
+            The spectrum shape used to model
+        zlp : numpy array
+            The zlp array which is best taken to be the average.
+        Epos: energy position of the peak of the afterglow
+        """
         index = self.get_energy_index(Epos)
 
         shift = np.argmax(zlp) - index

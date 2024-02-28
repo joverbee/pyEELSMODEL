@@ -1,7 +1,7 @@
-'''
+"""
 copyright University of Antwerp 2021
 author: Jo Verbeeck and Daen Jannis
-'''
+"""
 import numpy as np
 from scipy.optimize import minimize
 
@@ -10,12 +10,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 class MinimizeFitter(Fitter):
-    '''
+    """
     Fitter class which uses the minimization algorithms of scipy for
     finding the optimal parameters. Mainly for the maximum likelihood
     estimator but others can also be implemented.
 
-    '''
+    """
 
     def __init__(self, spectrum, model, method='nelder-mead', estimator='ML'):
         super().__init__(spectrum, model)

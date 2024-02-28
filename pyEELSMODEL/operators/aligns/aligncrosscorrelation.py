@@ -63,10 +63,10 @@ class AlignCrossCorrelation(Align):
 
     @reference.setter
     def reference(self, ref):
-        '''
+        """
         Sets the reference data which is also normalized to use in the cross
         correlation
-        '''
+        """
         ind0 = self.multispectrum.get_energy_index(self.signal_range[0])
         ind1 = self.multispectrum.get_energy_index(self.signal_range[1])
         if self.subpixel:
@@ -126,7 +126,7 @@ class AlignCrossCorrelation(Align):
 
 
     def determine_shift(self):
-        '''
+        """
         Sets the index_shift and shift attribute by finding the maximum value
         of the cross correlation between each spectrum and the reference spectrum.
         Reference spectrum is fixed and should be chosen beforehand.
@@ -135,7 +135,7 @@ class AlignCrossCorrelation(Align):
         -------
         None.
 
-        '''
+        """
         ind0 = self.multispectrum.get_energy_index(self.signal_range[0])
         ind1 = self.multispectrum.get_energy_index(self.signal_range[1])
         shape = (self.multispectrum.xsize, self.multispectrum.ysize)
@@ -164,7 +164,7 @@ class AlignCrossCorrelation(Align):
         self.correlationmap = correlation_map
 
     def perform_alignment(self):
-        '''
+        """
         Performs the alignment procedure by first calculating the shift and then applying
         it to the spectra. The roll method is chosen to perform the alignment.
 
@@ -172,7 +172,7 @@ class AlignCrossCorrelation(Align):
         -------
         None.
 
-        '''
+        """
         self.determine_shift()
         self.align()
 

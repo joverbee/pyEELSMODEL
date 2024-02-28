@@ -1,7 +1,7 @@
-'''
+"""
 copyright University of Antwerp 2021
 author: Jo Verbeeck and Daen Jannis
-'''
+"""
 from pyEELSMODEL.core.component import Component
 from pyEELSMODEL.core.parameter import Parameter
 import numpy as np
@@ -63,9 +63,9 @@ class FastBG2(Component):
         return mask*(A1 * E ** (-r1) + A2 * E ** (-r2))
 
     def getgradient(self, parameter):
-        '''calculate the analytical partial derivative wrt parameter j
+        """calculate the analytical partial derivative wrt parameter j
         returns true if succesful, gradient is stored in component.gradient
-        '''
+        """
         p0 = self.parameters[0]
         p1 = self.parameters[1]
         p2 = self.parameters[2]
@@ -161,9 +161,9 @@ class FastBG3(Component):
         # return mask * (A1 * (E) ** (-r1) + A2 * (E) ** (-r2) + A3 * (E) ** (-r3))
 
     def getgradient(self, parameter):
-        '''calculate the analytical partial derivative wrt parameter j
+        """calculate the analytical partial derivative wrt parameter j
         returns true if succesful, gradient is stored in component.gradient
-        '''
+        """
         p0 = self.parameters[0]
         p1 = self.parameters[1]
         p2 = self.parameters[2]

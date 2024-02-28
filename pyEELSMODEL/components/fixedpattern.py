@@ -1,7 +1,7 @@
-'''
+"""
 copyright University of Antwerp 2021
 author: Jo Verbeeck and Daen Jannis
-'''
+"""
 import numpy as np
 from pyEELSMODEL.core.component import Component
 from pyEELSMODEL.core.parameter import Parameter

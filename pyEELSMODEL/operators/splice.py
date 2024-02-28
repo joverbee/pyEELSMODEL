@@ -1,7 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-from scipy import interpolate
 from tqdm import tqdm
 from pyEELSMODEL.core.operator import Operator
 from pyEELSMODEL.core.spectrum import Spectrum, Spectrumshape
@@ -10,12 +7,16 @@ from pyEELSMODEL.core.multispectrum import MultiSpectrum, MultiSpectrumshape
 
 
 class Splice(Operator):
-    '''
-    This class splines multiple spectra into each other. At this point the spectra should still overlap
-    The average is taken of the multiple spectra at this point. Even though they have different noise
-    properties
-    '''
+    """
+    This class splines multiple spectra into each other. At this point the
+    spectra should still overlap.
+    The average is taken of the multiple spectra at this point. Even though
+    they have different noise properties.
+    """
     def __init__(self, spectra, weights=None):
+        """
+
+        """
         self.spectra = spectra
 
         if isinstance(spectra[0], MultiSpectrum):
@@ -75,10 +76,9 @@ class Splice(Operator):
 
     def get_overlapping_region(self, ind0, ind1):
         """
-        Find the overlapping region for the two spectra which are in the list with index ind0 and ind1.
-        :param ind0:
-        :param ind1:
-        :return:
+        Find the overlapping region for the two spectra which are in the list
+        with index ind0 and ind1.
+
         """
         s0 = self.spectra[ind0]
         s1 = self.spectra[ind1]
@@ -107,7 +107,6 @@ class Splice(Operator):
         """
         Function which makes a spectrum of the enery axis.
         This is needed in the way the function is implemented in spectrum
-        :return:
         """
         xsize = self.spectra[0].xsize
         ysize = self.spectra[0].ysize
@@ -119,8 +118,8 @@ class Splice(Operator):
 
     def splice_spectra(self):
         """
-        Multiple spectra can be spliced together. This only works for spectra and not multispectra
-        :return:
+        Multiple spectra can be spliced together. This only works for spectra
+        and not multispectra
         """
         E = self.get_new_energy_axis()
         spectrum, sshape = self._get_spectrum_from_energy_axis(E)

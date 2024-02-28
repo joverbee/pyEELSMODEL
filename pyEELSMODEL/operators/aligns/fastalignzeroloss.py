@@ -38,7 +38,7 @@ class FastAlignZeroLoss(Align):
         self.method = 'ZLP Index Maximum'
 
     def determine_fast_shift(self):
-        '''
+        """
         Sets the index_shift and shift attribute by finding the maximum value
         in each spectrum.
 
@@ -46,7 +46,7 @@ class FastAlignZeroLoss(Align):
         -------
         None.
 
-        '''
+        """
         ind0 = self.multispectrum.get_energy_index(self.signal_range[0])
         ind1 = self.multispectrum.get_energy_index(self.signal_range[1])
         shift = -1*(np.argmax(self.multispectrum.multidata[:,:,ind0:ind1], axis=(2))+ind0)
@@ -54,7 +54,7 @@ class FastAlignZeroLoss(Align):
         self.index_shift = shift
 
     def perform_alignment(self):
-        '''
+        """
         Performs the alignment procedure by first calculating the shift and then applying
         it to the spectra. The roll method is chosen to perform the alignment
 
@@ -62,7 +62,7 @@ class FastAlignZeroLoss(Align):
         -------
         None.
 
-        '''
+        """
         self.determine_fast_shift()
         self.fast_align()
         # self.align()

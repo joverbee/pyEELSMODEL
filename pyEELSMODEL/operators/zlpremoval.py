@@ -78,9 +78,9 @@ class ZLPRemoval(Operator):
 
     @model.setter
     def model(self, m0):
-        '''
+        """
         Sets the attribute model to the given model.
-        '''
+        """
         self._model = m0
 
     @property
@@ -95,11 +95,11 @@ class ZLPRemoval(Operator):
         self._fitter = fit
 
     def make_zeroloss_model(self):
-        '''
+        """
         Creates a model for the zero loss peak, this depends on which model_type
         is chosen when creating the background object. The model is stored in the model
         attribute
-        '''
+        """
         specshape = self.spectrum.get_spectrumshape()
         m0 = Model(specshape)
         if self.model_type == 'Gaussian':
@@ -161,22 +161,22 @@ class ZLPRemoval(Operator):
 
 
     def set_indices(self):
-        '''
+        """
         Calculates the indices used which are excluded in the fit.
         These indices are also used to determine a first guess of the
         background model. The result is stored in the indices attribute
 
-        '''
+        """
 
         ind1 = [self.spectrum.get_energy_index(self.signal_range[0]),
                 self.spectrum.get_energy_index(self.signal_range[1])]
         self.indices = ind1
 
     def include_areas(self):
-        '''
+        """
         Sets the exlude of the spectrum such that only the integration
         range is taken into account.
-        '''
+        """
         self.spectrum.set_include_region(self.indices[0], self.indices[1])
 
 

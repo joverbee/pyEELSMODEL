@@ -1,7 +1,7 @@
-'''
+"""
 copyright University of Antwerp 2021
 author: Jo Verbeeck and Daen Jannis
-'''
+"""
 from pyEELSMODEL.core.component import Component
 from pyEELSMODEL.core.parameter import Parameter
 import numpy as np
@@ -14,7 +14,7 @@ import pyEELSMODEL.misc.hydrogen_gdos as hdos
 
 
 class CoreLossEdge(Component):
-    '''
+    """
     CoreLossEdge generic component class to derive core loss edge
     implementations from.
 
@@ -52,7 +52,7 @@ class CoreLossEdge(Component):
     Returns
     -------
 
-    '''
+    """
     def __init__(self, specshape, A, E0, alpha, beta, element, edge, eshift=0, q_steps=100):
         super().__init__(specshape)
         """
@@ -93,15 +93,15 @@ class CoreLossEdge(Component):
         return os.path.join(self.elements_dir, self.elements_name)
 
     def get_elements(self):
-        '''
+        """
         Returns a list of allowed element names
-        '''
+        """
         with h5py.File(self.get_elements_dir(), 'r') as f:
             elem_list = list(f.keys())
         return elem_list
     
     # def get_edge_list(self):
-    #     '''
+    #     """
     #     Returns a list of tuples containing all
     #     element, edge, onset combinations that are available.
     #     This function can be used for the HSCoreLossEdges
@@ -111,7 +111,7 @@ class CoreLossEdge(Component):
     #     edgelist: list
     #         List containing element, edge and onset energy of all the edges.
     #
-    #     '''
+    #     """
     #
     #     edgelist=[]
     #     for elementname,element in elements.items():
@@ -163,8 +163,18 @@ class CoreLossEdge(Component):
 
 
     def set_edge(self, edge):
-        print('if you see this you have called set_edge on a coreloss edge '
-              'that didnt implement set_edge')
+        """
+        Checks if the given edge is valid and adds the directories of the
+        :param edge:
+        :return:
+        """
+        edge_list = ['K1', 'L1', 'L2', 'L3', 'M1','M2', 'M3', 'M4', 'M5', 'N1','N2', 'N3', 'N4', 'N5', 'N6', 'N7']
+        if not isinstance(edge, str):
+            raise TypeError('Edge should be a string: K1, L1, L2, L3, M2, M3, M4, M5, N4, N5', 'N6', 'N7')
+        if edge in edge_list:
+            self.edge = edge
+        else:
+            raise ValueError('Edge should be: K1, L1, L2, L3, M2, M3, M4, M5, N4, N5', 'N6', 'N7')
 
     def calculate_cross_section(self):
         print('if you see this you have called calculate_cross section '

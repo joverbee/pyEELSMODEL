@@ -297,7 +297,7 @@ class Fitter:
 
 
     def CRLB_ratio(self, par1, par2, index=(0,0)):
-        '''
+        """
         Returns the CRLB bound of the ratio between par1 and par2 (par1/par2).
         The results for the different spectra can be modified by inputting
         another index.
@@ -317,7 +317,7 @@ class Fitter:
         error: float
             The CRLB bound calculated for the ratio between two parameters.
 
-        '''
+        """
 
         if isinstance(self.spectrum, MultiSpectrum):
             self.setcurrentfit(self, index=index)
@@ -544,7 +544,7 @@ class Fitter:
         return partial
 
     def set_start_parameters(self):
-        '''
+        """
         Gets the start parameters of the model as initial parameters for the
         fitting. This function is used when starting values need to be
         added to the fit.
@@ -554,7 +554,7 @@ class Fitter:
         start_param: List
             A list containing the starting values for the fitting
 
-        '''
+        """
         start_param = []
         for param in self.model.getfreeparameters():
             start_param.append(param.getvalue())
@@ -844,7 +844,7 @@ class Fitter:
 
 
     def plot(self, index=None, externalplt=None, non_components=[], **kwargs):
-        '''
+        """
         Plots the fitter
 
         Parameters
@@ -857,7 +857,7 @@ class Fitter:
         ----------
         fig: Figure
         
-        '''
+        """
         tempplt = plt
         if type(externalplt) == type(plt):
             tempplt = externalplt

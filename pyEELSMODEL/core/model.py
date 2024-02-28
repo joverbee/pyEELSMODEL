@@ -11,27 +11,28 @@ from pyEELSMODEL.components.MScatter.mscatter import Mscatter
 import logging
 logger = logging.getLogger(__name__)
 
-"""
-Model class
 
-A Model is a Spectrum that can calculate itself based on a number of Components
-which each depend on a number of Parameters.
-
-Note that all actions like convolving with low loss, adding or multiplying 
-stuff is encoded in the Components, some of which are special types which tells
-the model how to treat them to come up with a single model result.
-
-Philosphy of Model: a model with a number of parameters mimicking an EELS 
-experiment. Everything that happens in experiments needs to be modelled somehow 
-by the components in the model. The model doesnt care whether the spectrum it 
-simulates is a single spectrum or an SI. It is the task of the fitter to deal 
-with the parameters for each position in an SI (different from cpp EELSMODEL!)
-
-"""
 class Model(Spectrum):
+    """
+    Model class
+
+    A Model is a Spectrum that can calculate itself based on a number of Components
+    which each depend on a number of Parameters.
+
+    Note that all actions like convolving with low loss, adding or multiplying
+    stuff is encoded in the Components, some of which are special types which tells
+    the model how to treat them to come up with a single model result.
+
+    Philosophy of Model: a model with a number of parameters mimicking an EELS
+    experiment. Everything that happens in experiments needs to be modelled somehow
+    by the components in the model. The model doesnt care whether the spectrum it
+    simulates is a single spectrum or an SI. It is the task of the fitter to deal
+    with the parameters for each position in an SI (different from cpp EELSMODEL!)
+
+    """
 
     def __init__(self, spectrumshape, components=None):
-        
+
         """
         Instantiate a Model object.
 

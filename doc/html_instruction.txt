@@ -1,0 +1,8 @@
+pip install sphinx
+pip install sphinx_rtd_theme
+
+pip install nbsphinx
+
+Install pandoc via msi, do not know if this is necessary?
+
+pip install py-pandoc

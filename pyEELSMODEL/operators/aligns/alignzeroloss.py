@@ -77,9 +77,9 @@ class AlignZeroLoss(Align):
 
     @model.setter
     def model(self, m0):
-        '''
+        """
         Sets the attribute model to the given model.
-        '''
+        """
         self._model=m0
 
     @property
@@ -124,23 +124,23 @@ class AlignZeroLoss(Align):
         self.start_parameters = start_param
 
     def set_indices(self):
-        '''
+        """
         Calculates the indices used which are excluded in the fit.
         These indices are also used to determine a first guess of the
         background model. The result is stored in the indices attribute
 
-        '''
+        """
 
         ind1 = [self.multispectrum.get_energy_index(self.signal_range[0]),
                 self.multispectrum.get_energy_index(self.signal_range[1])]
         self.indices = ind1
 
     def make_zeroloss_model(self):
-        '''
+        """
         Creates a model for the zero loss peak, this depends on which model_type
         is chosen when creating the background object. The model is stored in the model
         attribute
-        '''
+        """
         specshape = self.multispectrum.get_spectrumshape()
         m0 = Model(specshape)
         if self.model_type == 'Gaussian':
@@ -163,21 +163,21 @@ class AlignZeroLoss(Align):
         self.model = m0
 
     def include_areas(self):
-        '''
+        """
         Sets the exlude of the spectrum such that only the integration
         range is taken into account.
-        '''
+        """
         self.multispectrum.set_include_region(self.indices[0], self.indices[1])
 
 
 
 
     def calculate_model(self):
-        '''
+        """
         Fits the model to the data. The fitting region is resetted as it initially was
         after the fit.
 
-        '''
+        """
 
         prev_exclude = self.multispectrum.exclude[:]
         self.multispectrum.exclude =  np.ones(self.multispectrum.size, dtype=bool)
@@ -200,7 +200,7 @@ class AlignZeroLoss(Align):
 
 
     def perform_alignment(self):
-        '''
+        """
         Performs the alignment procedure by first calculating the shift and then applying
         it to the spectra.
 
@@ -208,7 +208,7 @@ class AlignZeroLoss(Align):
         -------
         None.
 
-        '''
+        """
         self.calculate_model()
         self.align()
 

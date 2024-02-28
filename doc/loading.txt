@@ -1,0 +1,18 @@
+.. _loading:
+
+
+Loading data
+============
+
+Two different types of data are used in pyEELSMODEL.
+
+* Spectrum: Contains information on a single spectrum
+* MultiSpectrum: Contains information on STEM-EELS map.
+
+Following example  shows how to load a single spectrum.
+.. code-block:: python
+
+    >>> import pyEELSMODEL.api as em
+    >>> filename = '.\examples\data\hl.msa'
+    >>> s = em.Spectrum.load(filename)
+    >>> s.plot()
