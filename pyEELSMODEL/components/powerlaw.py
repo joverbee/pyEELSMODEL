@@ -1,7 +1,7 @@
-'''
+"""
 copyright University of Antwerp 2021
 author: Jo Verbeeck and Daen Jannis
-'''
+"""
 from pyEELSMODEL.core.component import Component
 from pyEELSMODEL.core.parameter import Parameter
 import numpy as np
@@ -61,9 +61,9 @@ class PowerLaw(Component):
         return A*(self.energy_axis/self.Estart)**(-r)
 
     def getgradient(self,parameter):
-        '''calculate the analytical partial derivative wrt parameter
+        """calculate the analytical partial derivative wrt parameter
         returns a reference to the gradient
-        '''
+        """
         if not parameter.hasgradient:
             return None    
         p1=self.parameters[0]
@@ -85,7 +85,7 @@ class PowerLaw(Component):
             return None
 
     def autofit_(self,spectrum,istart,istop):
-        '''
+        """
         Performs a first guess of the parameters from the Powerlaw fit.
         It checks if the obtained values are reasonable and will apply
         them to the components parameters. The procedure is explained
@@ -105,7 +105,7 @@ class PowerLaw(Component):
         -------
         None.
 
-        '''
+        """
 
         #powerlaw fit to autodetermine the A and r parameter.
         if istart>=istop:
@@ -163,7 +163,7 @@ class PowerLaw(Component):
         self.calculate()
 
     def autofit(self, spectrum, istart, istop):
-        '''
+        """
         Performs a first guess of the parameters from the Powerlaw fit.
         It checks if the obtained values are resonable and will apply
         them to the components parameters. The procedure is explained
@@ -183,7 +183,7 @@ class PowerLaw(Component):
         -------
         None.
 
-        '''
+        """
 
         # powerlaw fit to autodetermine the A and r parameter.
         if istart >= istop:
@@ -234,7 +234,7 @@ class PowerLaw(Component):
         self.calculate()
 
     def autofit1(self, spectrum, istart, istop):
-        '''
+        """
         Performs a first guess of the parameters from the Powerlaw fit.
         It checks if the obtained values are resonable and will apply
         them to the components parameters. The procedure is explained
@@ -254,7 +254,7 @@ class PowerLaw(Component):
         -------
         None.
 
-        '''
+        """
 
         # powerlaw fit to autodetermine the A and r parameter.
         if istart >= istop:
@@ -339,7 +339,7 @@ class PowerLaw(Component):
 
 
     def autofit_twowindow(self, spectrum, istart, istop):
-        '''
+        """
         Performs a first guess of the parameters from the Powerlaw fit.
         It checks if the obtained values are resonable and will apply
         them to the components parameters. The procedure is explained
@@ -363,7 +363,7 @@ class PowerLaw(Component):
         -------
         None.
 
-        '''
+        """
 
         # powerlaw fit to autodetermine the A and r parameter.
         if istart >= istop:
@@ -404,7 +404,7 @@ class PowerLaw(Component):
 
 
     def autofit_areas(self, spectrum,istart,istop):
-        '''
+        """
         Performs a first guess of the parameters from the Powerlaw fit.
         It checks if the obtained values are resonable and will apply
         them to the components parameters. The procedure is explained
@@ -424,7 +424,7 @@ class PowerLaw(Component):
         -------
         None.
 
-        '''
+        """
         boolean = (istart+istop)%2 == 0
         if not boolean:
             istop -= 1

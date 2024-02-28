@@ -1,7 +1,7 @@
-'''
+"""
 copyright University of Antwerp 2021
 author: Jo Verbeeck and Daen Jannis
-'''
+"""
 import numpy as np
 from pyEELSMODEL.core.spectrum import Spectrum,Spectrumshape
 from pyEELSMODEL.core.parameter import Parameter
@@ -9,17 +9,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-'''
-Component class
 
-A Component is a Spectrum that can calculate itself from a number of parameters
-
-Base class from which all components can be derived with specific functionality
-
-'''
 class Component(Spectrum):
+    """
+    A Component is a Spectrum that can calculate itself from a number of parameters.
+    Base class from which all components can be derived with specific functionality
+
+    """
     def __init__(self, spectrumshape, params=None):
-        '''
+        """
         Instantiate a Component object
 
         Parameters
@@ -36,7 +34,7 @@ class Component(Spectrum):
         -------
         None.
 
-        '''
+        """
         super().__init__(spectrumshape)
         self.parameters=[]
         self.gradient=[]
@@ -65,7 +63,7 @@ class Component(Spectrum):
        
     
     def _addparameter(self,parameter):
-        '''
+        """
         Add parameter to a component and indicate if the component
         provides an analytical gradient for this parameter.
         This is an internal function meant to be used only in the init of a specific component
@@ -79,7 +77,7 @@ class Component(Spectrum):
         -------
         None.
 
-        '''
+        """
         self.parameters.append(parameter)
         self.gradient.append(Spectrum(self.spectrumshape))
         
@@ -93,7 +91,7 @@ class Component(Spectrum):
         
         
     def setvisible(self,b):
-        '''
+        """
         Sets the visible state of the component. Can indicate whether in a model spectrum
         showing individual components, this component needs to be visible or not.
         default True.
@@ -107,12 +105,12 @@ class Component(Spectrum):
         -------
         None.
 
-        '''
+        """
         self.visible=b
         self.show() #show it if it was set to true
         
     def _setname(self,name):
-        '''
+        """
         Sets the name of the component.
         This name needs to be unique for each component as it will be used to load 
         components from file when loading a model.
@@ -126,12 +124,12 @@ class Component(Spectrum):
         -------
         None.
 
-        '''
+        """
         self.name=name
         super().setname(name) #also give that name to the spectrum that is at the base of the component 
  
     def setdisplayname(self,name):
-        '''
+        """
         Sets the displayed name of the component. This name can differ from the actual name of the 
         component and allows the user to change the name to a more meaningful name without affecting
         the official name that should not change.
@@ -145,13 +143,13 @@ class Component(Spectrum):
         -------
         None.
 
-        '''
+        """
         self.displayname=name
         super().setname(name)
 
 
     def setdescription(self,description):
-        '''
+        """
         Set the description string of the component. 
         This is typically the business of the component itself, but can be changed by the user.
         The description can be used e.g. inthe UI to provide help explaining the function of the component
@@ -166,11 +164,11 @@ class Component(Spectrum):
         -------
         None.
 
-        '''
+        """
         self.description=description
 
     def getname(self):
-        '''
+        """
         Get the official and fixed name of a component. This name is a unique identifier of 
         the type of component. This name should not be changed by the user.
 
@@ -179,12 +177,12 @@ class Component(Spectrum):
         string
             Unque identifier name of the component.
 
-        '''
+        """
         return self.name
 
 
     def getdisplayname(self):
-        '''
+        """
         Get the friendly name of a component. This name can be changed by the user and will
         typically be used for designating the component in eg. a user interface.
 
@@ -193,12 +191,12 @@ class Component(Spectrum):
         string
             A name describing this component.
 
-        '''
+        """
         return self.displayname
 
 
     def getdescription(self):
-        '''
+        """
         Get a string describing the functionality of the component. Can be used in e.g. 
         help or tooltips in the UI.
 
@@ -207,16 +205,16 @@ class Component(Spectrum):
         string
             String describing the functionality.
 
-        '''
+        """
         return self.description
 
     
     def _setparameters(self, params):
-        '''
+        """
         Set the list of Parameter relevant to this component. Note that typically a component has
         a well defined set of parameters and the user should not need to tamper with these.
         This function is used when loading a component from file and sending it a previously defined
-        list of paramters.
+        list of parameters.
 
         Parameters
         ----------
@@ -227,7 +225,7 @@ class Component(Spectrum):
         -------
         None.
 
-        '''
+        """
         if params is None:
             return
         else:
@@ -235,19 +233,19 @@ class Component(Spectrum):
                 self._addparameter(p) #this also reserves space for gradients
             
     def print_parameter_values(self):
-        '''
+        """
         Print all paramaters of a component as name : value
 
         Returns
         -------
         None.
 
-        '''
+        """
         for p in self.parameters:
             print(p.getname(), ' : ', p.getvalue())
             
     def setunchanged(self):
-        '''
+        """
         Set all parameters of a Component as unchanged. This is typically done internally after
         a component.calculate() but can also be called externally to avoid that a component will
         be recalculated if fiddling with some parameters externally. Note however that if you call
@@ -258,12 +256,12 @@ class Component(Spectrum):
         -------
         None.
 
-        '''
+        """
         for p in self.parameters:
             p.setunchanged()
 
     def setchanged(self):
-        '''
+        """
         Mark all parameters as changed. This notifies the component that on the next component.calculate()
         call, the full component needs to be recalculated.
         Note that it even marks unchangeable Parameters as changed even though their value doesnt.
@@ -272,7 +270,7 @@ class Component(Spectrum):
         -------
         None.
 
-        '''
+        """
         for p in self.parameters:
             p.setchanged()
     
@@ -283,7 +281,7 @@ class Component(Spectrum):
         return changed
 
     def has_parameter(self, p):
-        '''
+        """
         Search if Parameter p is one of the parameters in the parameter list of this component.
 
         Parameters
@@ -301,7 +299,7 @@ class Component(Spectrum):
         bool
             True if parameter p indeed is one of the parameters of this component, False otherwise.
 
-        '''
+        """
         if isinstance(p, Parameter):
             return p in self.parameters
         else:
@@ -309,7 +307,7 @@ class Component(Spectrum):
 
 
     def _setcanconvolute(self, b):
-        '''
+        """
         Set the canconvolute state of the component. Default=True
         This indicates whether this Component
         should be modified by Convoluter type components when calculating the result of a Model.
@@ -326,11 +324,11 @@ class Component(Spectrum):
         -------
         None.
 
-        '''
+        """
         self.canconvolute=b
 
     def getcanconvolute(self):
-        '''
+        """
         Gets wether this component can be convoluted
 
         Parameters
@@ -341,11 +339,11 @@ class Component(Spectrum):
         -------
         None.
 
-        '''
+        """
         return self.canconvolute
 
     def _setshifter(self,b):
-        '''
+        """
         Sets whether this component is a Shifter type component (b=True). Default is False.
         A shifter Component can alter the energy values of the model to mimick the effect of 
         experimental energy drift or eg. nonlinearity of the dispersion. All 'normal' components
@@ -361,11 +359,11 @@ class Component(Spectrum):
         -------
         None.
 
-        '''
+        """
         self.isshifter=b
         
     def getshifter(self):
-        '''
+        """
         Get whether this is a shifter component
 
         Returns
@@ -373,13 +371,13 @@ class Component(Spectrum):
         bool
             True if shifter type component.
 
-        '''
+        """
         return self.isshifter
     
 
 
     def calculate(self):
-        '''
+        """
         This calculates the spectral data of the component. Each derived class from Component
         will need to implement its own functionality here.
 
@@ -387,13 +385,13 @@ class Component(Spectrum):
         -------
         None.
 
-        '''
+        """
         logger.warning('if you see this you have called calculate on a component that didnt implement calculate')
         #raise NotImplementedError() #this forces a derived class to implement it
         
   
     def seteshift(self,eshift):
-        '''
+        """
         Sets an energy shift for this component which shifts its energy values with respect
         to the energy axis given when instantiating the component. This can be used to mimick
         experimental energy drift. In order to make sure the component gets a full recalculation
@@ -408,12 +406,12 @@ class Component(Spectrum):
         -------
         None.
 
-        '''
+        """
         super().seteshift(eshift) #shift the energy of the underlying spectrum
         self.setchanged() #make sure to recalculate as the energy values have changed
     
     def getparameter(self,index):
-        '''
+        """
         Return the parameter with index.
 
         Parameters
@@ -432,7 +430,7 @@ class Component(Spectrum):
         Parameter
             Reference to the requested Parameter in the params list.
 
-        '''
+        """
         if self.indexOK(index):
             return self.parameters[index]
         else:
@@ -440,7 +438,7 @@ class Component(Spectrum):
             return None
 
     def indexOK(self,index):
-        '''
+        """
         Check if index is within range of params list
 
         Parameters
@@ -453,12 +451,12 @@ class Component(Spectrum):
         bool
             True: index is good,, False otherwise.
 
-        '''
+        """
         return 0 <= index < len(self.parameters)
   
 
     def getmultiplier(self):
-        '''
+        """
         Return a reference to a Multiplier Component if one is attached to this component.
         Otherwise returns None.
         Multiplier components can be used e.g. to mimick effect of gain variation of a camera.
@@ -473,7 +471,7 @@ class Component(Spectrum):
         multiplier : Component
             Reference to another component which is indicated to be a multiplier of this component.
 
-        '''
+        """
         if self._hasmultiplier==False:
             return None 
         try:
@@ -492,7 +490,7 @@ class Component(Spectrum):
         
     
     def setmultiplier(self,component):
-        '''
+        """
         Set a multiplier component to this component. The component needs to be of the multiplier type
         The multiplier component will take the output of this component and multiply it with its content
         
@@ -510,7 +508,7 @@ class Component(Spectrum):
         -------
         None.
 
-        '''
+        """
         dummy=False;
         try:
             dummy=component.get_ismultiplier();
@@ -547,7 +545,7 @@ class Component(Spectrum):
         self.multiplier=None
       
     def _pullparameter(self):
-        '''
+        """
         Pull last parameter from parameter list and releases that parameter.
         This effectively reduces the number of parameters of a component
         
@@ -557,7 +555,7 @@ class Component(Spectrum):
         -------
         None.
 
-        '''   
+        """   
         #remove last parameter from the parameter list
         try:
             p=self.parameters.pop()
@@ -570,21 +568,21 @@ class Component(Spectrum):
        
 
     def show(self):
-        '''
+        """
         Plot component contents if the component has isvisible==True
 
         Returns
         -------
         None.
 
-        '''
+        """
         if self.visible:
             self.plot()
             
             
      
     def getgradient(self,parameter):
-        '''
+        """
         Get a reference to the gradient of this component with respect to parameter, if
         an analytical gradient is available.
         This function needs to be overoaded for every specific component
@@ -601,7 +599,7 @@ class Component(Spectrum):
         indeed a parameter of this component and has an analytical gradient defined gradient.
         None in all other cases.
 
-        '''
+        """
         return None
 
 
@@ -626,31 +624,3 @@ class Component(Spectrum):
         return
 
 
-
-
-'''
-
-void Component::showequalizer(){
-    //shows an equalizer window to graphically control the parameter values
-    if (myequalizer!=0){
-        //delete old one if already exists
-        delete(myequalizer);
-        }
-    std::ostringstream namestream;
-    if (this->getdisplayname()!=""){
-        if ((namestream << "Equalizer:"<< this->getdisplayname())){ //converting an int to a string in c++ style rather than unsafe c-style
-	     // conversion worked
-	     std::string caption=namestream.str();
-	     myequalizer=new Equalizer(getworkspaceptr(),caption.c_str(),this);
-        }
-    }
-        else{
-         if ((namestream << "Equalizer:"<< this->getname())){ //converting an int to a string in c++ style rather than unsafe c-style
-	     // conversion worked
-	     std::string caption=namestream.str();
-	     myequalizer=new Equalizer(getworkspaceptr(),caption.c_str(),this);
-        }
-    }
-}
-
-'''

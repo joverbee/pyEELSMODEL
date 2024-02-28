@@ -1,7 +1,7 @@
-'''
+"""
 copyright University of Antwerp 2021
 author: Jo Verbeeck and Daen Jannis
-'''
+"""
 import sys
 import copy
 
@@ -274,7 +274,7 @@ class Parameter():
         self.changed = True #even if a slave is unchangeable...
         
     def setboundaries(self, lb, ub, force=False):
-        '''
+        """
         Sets numerical boundaries to the parameter but only if the current
         value fits within those boundaries. The boundaries are inclusive >=
         and <=. Swapping lower for upper boundary is allowed and will
@@ -299,7 +299,7 @@ class Parameter():
         bool
             True if bound, False otherwise.
 
-        '''
+        """
         #check if value fits in range, if not, don't set the boundaries
         #return false if bounds are not set
         self.bound=True
@@ -356,7 +356,7 @@ class Parameter():
         self.lowerbound = lb
         
     def boundaryOK(self, x, lb, ub):
-        '''
+        """
         Check if a proposed value x is within the bounds given by lower bound
         (lb) and upper bound (ub).
 
@@ -375,11 +375,11 @@ class Parameter():
             returns True if x is within bounds OR if the parameter is not
             bound.
 
-        '''
+        """
         return not (self.bound) or ((x >= lb) and (x <= ub))
     
     def getupperbound(self):
-        '''
+        """
         Returns the current upper bound.
 
         Returns
@@ -387,11 +387,11 @@ class Parameter():
         float
             upper bound value.
 
-        '''
+        """
         return self.upperbound
     
     def getlowerbound(self):
-        '''
+        """
         Returns the current lower bound.
 
         Returns
@@ -399,7 +399,7 @@ class Parameter():
         float
             lower bound value.
 
-        '''
+        """
         return self.lowerbound
     
     def setchangeable(self, b):
@@ -478,7 +478,7 @@ class Parameter():
             return self.changed
         
     def ischangeable(self):
-        '''
+        """
         Returns wether a parameter is changeable with setvalue().
 
         Returns
@@ -486,14 +486,14 @@ class Parameter():
         bool
             True if parameter can be changed, False otherwise.
 
-        '''
+        """
         if self.iscoupled():
             return False #this parameter cant'be changed
         else:
             return self.changeable
     
     def isbound(self):
-        '''
+        """
         Returns whether a parameter has active bounds.
 
         Returns
@@ -501,11 +501,11 @@ class Parameter():
         bool
             True if parameter is bound, False otherwise.
 
-        '''
+        """
         return self.bound
     
     def iscoupled(self):
-        '''
+        """
         Returns whether a parameter is coupled to another parameter. Checks are
         performed to see if the coupled parameter is still valid.
 
@@ -514,7 +514,7 @@ class Parameter():
         bool
             True if coupled, False otherwise.
 
-        '''
+        """
         if self.coupled and self.coupled_parameter != None:
             try: 
                 if not self.coupled_parameter.valid:
@@ -670,7 +670,7 @@ class Parameter():
         return self.couple_fraction
     
     # def setmonitor(self, monitor):
-    #     '''
+    #     """
     #     Attach a Monitor instance to this parameter. A monitor will be warned about e.g. 
     #     value changes.
 
@@ -686,7 +686,7 @@ class Parameter():
     #     bool.
     #         True if succesful, False otherwise.
 
-    #     '''    	
+    #     """    	
     #     self.monitor=monitor
     #     self.monitored=True
     #     try:
@@ -701,43 +701,43 @@ class Parameter():
     
 	  	# 
     # def getmonitor(self):
-    #     '''
+    #     """
     #     Returns a reference to a Monitor instance if this parameter is being monitored, return None otherwise.
 
     #     Returns
     #     -------
     #     reference to Monitor instance or None
         
-    #     '''
+    #     """
     #     if self.monitored==True:
     #         return monitorptr
     #     else:
     #         return None
 
     # def ismonitored(self):
-    #     '''
+    #     """
     #     Returns whether this Parameter is monitored by a Monitor instance.
 
     #     Returns
     #     -------
     #     boolean 
 
-    #     '''
+    #     """
     #     return self.monitored
     
     # def iswatched(self):
-    #     '''
+    #     """
     #     Returns whether this Parameter is watched by a Watcher instance.
 
     #     Returns
     #     -------
     #     boolean 
 
-    #     '''
+    #     """
     #     return self.watched
     
     # def setwatched(self, watcher):
-    #     '''
+    #     """
     #     Attaches a Watcher instance to this parameter that wathces its value
     #     and might do some calculations with it, like determining the ratio between 
     #     2 parameters, in that case the watcher will watch both parameters and use their value to 
@@ -747,7 +747,7 @@ class Parameter():
     #     -------
     #     None. 
 
-    #     '''
+    #     """
     #     watched=True
     #     watcher=watcher
        
@@ -898,7 +898,7 @@ class Parameter():
                             'float.')
             
     # def releasemonitor(self):
-    #     '''
+    #     """
     #     Warns a monitor linked to this parameter that it should unlink
     #     as we might dissapear. Typically called within Parameter.release()
 
@@ -906,7 +906,7 @@ class Parameter():
     #     -------
     #     None.
 
-    #     '''
+    #     """
     #     if ((self.ismonitored())and(self.monitor!=None)):
     #         try:
     #             self.monitor.release()
@@ -917,7 +917,7 @@ class Parameter():
     #             self.monitor=None
     #             return
     # def releasewatcher(self):
-    #     '''
+    #     """
     #     Warns a watcher that might be watching this parameter that it should stop doing so
     #     as we might dissapear. Typically called within Parameter.release()
 
@@ -925,7 +925,7 @@ class Parameter():
     #     -------
     #     None.
 
-    #     '''
+    #     """
     #     if ((self.iswatched())and(self.watcher!=None)):
     #         try:
     #             self.watcher.release()

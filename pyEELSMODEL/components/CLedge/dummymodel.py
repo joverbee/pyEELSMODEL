@@ -3,7 +3,7 @@ import h5py
 import os
 
 class DummyEdge(CoreLossEdge):
-    '''
+    """
     DummyEdge is a first approximation of the edge. This assumes each edge has
     a different onset energy but the powerlaw value is can be chosen. Note that the
     parameters E0, alpha, beta do not influence the dummy edge model.
@@ -41,7 +41,7 @@ class DummyEdge(CoreLossEdge):
     Returns
     -------
 
-    '''
+    """
     def __init__(self, specshape, A, E0=300e3, alpha=1e-9, beta=10e-3, element=None, edge=None, eshift=0, r=3):
         # dir path should be defined before set_edge function is called
         # use relative paths

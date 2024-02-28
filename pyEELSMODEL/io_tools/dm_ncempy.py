@@ -370,7 +370,7 @@ class fileDM:
         else:  # this file only contains tags (such as a GTG file)
             self.thumbnail = False
 
-        ''' Determine useful meta data UNTESTED
+        """ Determine useful meta data UNTESTED
         self.metaData = {}
         for kk,ii in self.allTags.items():
             prefix1 = 'ImageList.{}.ImageTags.'.format(md.numObjects)
@@ -401,7 +401,7 @@ class fileDM:
                 elif jj.find('Device.Parameters')>-1:
                     del self.metaData[jj]
         return metaData
-        '''
+        """
 
     def _readTagGroup(self):
         """Read a tag group in a DM file.

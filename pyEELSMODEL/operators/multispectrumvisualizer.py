@@ -19,7 +19,8 @@ class MultiSpectrumVisualizer(Operator):
     """
     Class which visualizes the multspectrum.
     """
-    def __init__(self, multispectra = [], input_map=None, labels=None):
+    def __init__(self, multispectra = [], input_map=None, labels=None,
+                 logscale=False):
         """
         Class which visualizes the multspectrum.
         Parameters
@@ -33,9 +34,13 @@ class MultiSpectrumVisualizer(Operator):
             used.
         labels: List of strings
             A label to indicate which spectrum is visualized with which color
+        logscale: bool
+            Indicates if the y axis should be visualized as a log scale
+            (default: False)
 
         """
         self.multispectra = multispectra
+        self.logscale = logscale
         self.is_line=False
         if self.multispectra[0].xsize == 1 or self.multispectra[0].ysize == 1:
             self.is_line = True
@@ -123,6 +128,10 @@ class MultiSpectrumVisualizer(Operator):
         ax[1].set_title(self.get_indextitle(self.sy, self.sx, self.h, self.w))
         self.xlim = ax[0].get_xlim()
         self.ylim = ax[0].get_ylim()
+
+        if self.logscale:
+            ax[1].set_ylim([1,None])
+            ax[1].set_yscale('log')
 
         for key, value in kwargs.items():
             if key == 'xlim':

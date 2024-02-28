@@ -6,8 +6,13 @@ __pycache__/
 build/
 .eggs
 
+#virtual python env
+venv/
+
 # Pyton derived notebook files
 examples/*.py
+examples/.ipynb_checkpoints/
+
 
 #GOS tables
 database/Zhang/*.hdf5

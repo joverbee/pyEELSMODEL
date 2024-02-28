@@ -1,7 +1,7 @@
-'''
+"""
 copyright University of Antwerp 2021
 author: Jo Verbeeck and Daen Jannis
-'''
+"""
 import numpy as np
 from scipy.optimize import least_squares
 
@@ -10,12 +10,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 class LSQFitter(Fitter):
-    '''
+    """
 
-    '''
+    """
 
     def __init__(self, spectrum, model, use_bounds=False, method='lm'):
-        '''
+        """
         Initialises a Least Squares Fitter instance.
 
         Parameters
@@ -32,7 +32,7 @@ class LSQFitter(Fitter):
         -------
         An instance of a LSQFitter.
 
-        '''
+        """
 
         super().__init__(spectrum, model)
         self.estimator = self.residuals

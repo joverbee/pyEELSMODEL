@@ -27,39 +27,44 @@ logger = logging.getLogger(__name__)
 
 class BackgroundRemoval(Operator):
     """
-    BackgroundRemoval is a class which needs a spectrum and signal range. Using this type of
-    information it can remove the background eels signal. Different types of background models
-    are implemented.
-    Parameters
-    ----------
-    spectrum: Spectrum
-        The spectrum from which the background should be removed
-    signal_range: tuple
-        Indicates the region on which the background fitting should be performed.
-        This object can perform the fitting on two area and then two tuples should be
-        given.
-    model_type: str
-        Indicates which model is used to perform the background fitting. At this point
-        Powerlaw, FastBG, Exponential en Polynomial is implemented. (default: Powerlaw)
-    linear_fitting: bool
-        Indicates if a linear fitting procedure is used to determine the background. This
-        can only work if the model only includes linear parameters such as for FastBG or
-        Polynomial.
-        (default: False)
-    order: int
-        If the model_type is 'Polynomial', the order value indicates the order of the
-        polynomial. (default:2)
-    non_linear_fitter: 'ML' or 'LSQ'
-        The type of nonlinear fitter used in the fit. ML is default since this is optimized
-        for Poisson noise and the LSQ not. (default: LSQ)
-    r_values: tuple of ints
-        When the background model is the FastBG, the r values can be chosen. (default: (2,3))
-
-
+    BackgroundRemoval is a class which needs a spectrum and signal range.
+    This class provides a workflow on going extracting the elemental map
+    of one edge.
     """
+
     def __init__(self, spectrum, signal_range, model_type='Powerlaw',
                  linear_fitting=False, order=2,
                  non_linear_fitter='LSQ', r_values=(2,3)):
+        """
+        Initiates the BackgroundRemoval object
+
+        Parameters
+        ----------
+        spectrum: Spectrum
+            The spectrum from which the background should be removed
+        signal_range: tuple
+            Indicates the region on which the background fitting should be
+            performed. This object can perform the fitting on two area and
+            then two tuples should be given.
+        model_type: str
+            Indicates which model is used to perform the background fitting.
+            At this point Powerlaw, FastBG, Exponential en Polynomial is
+            implemented. (default: Powerlaw)
+        linear_fitting: bool
+            Indicates if a linear fitting procedure is used to determine the
+            background. This can only work if the model only includes linear
+            parameters such as for FastBG or Polynomial.
+            (default: False)
+        order: int
+            If the model_type is 'Polynomial', the order value indicates the
+            order of the polynomial. (default:2)
+        non_linear_fitter: 'ML' or 'LSQ'
+            The type of nonlinear fitter used in the fit. (default: LSQ)
+        r_values: tuple of ints
+            When the background model is the FastBG, the r values can be chosen. (default: (2,3))
+
+        """
+
 
         self.spectrum = spectrum
         self.signal_range = signal_range
@@ -195,7 +200,7 @@ class BackgroundRemoval(Operator):
         self._fitter = fit
 
     def set_indices(self):
-        '''
+        """
         Calculates the indices used which are excluded in the fit.
         These indices are also used to determine a first guess of the
         background model.
@@ -207,7 +212,7 @@ class BackgroundRemoval(Operator):
         -------
         None
 
-        '''
+        """
         if self.two_area:
             ind1 = [self.spectrum.get_energy_index(self.signal_range[0][0]),
                     self.spectrum.get_energy_index(self.signal_range[0][1])]
@@ -221,7 +226,7 @@ class BackgroundRemoval(Operator):
 
 
     def make_background_model(self):
-        '''
+        """
         Creates a model for the background, this depends on which model_type
         is chosen when creating the background object.
         The model will be set and given as an attribute to this object.
@@ -234,7 +239,7 @@ class BackgroundRemoval(Operator):
         -------
         None
 
-        '''
+        """
         specshape = self.spectrum.get_spectrumshape()
         m0 = Model(specshape)
         if self.model_type == 'Powerlaw':
@@ -330,7 +335,7 @@ class BackgroundRemoval(Operator):
 
 
     def include_areas(self):
-        '''
+        """
         Sets the exlude of the spectrum such that only the integration
         range is taken into account. It depends on the type of integration,
         it can be two area or just one area before the edge onset.
@@ -343,7 +348,7 @@ class BackgroundRemoval(Operator):
         -------
         None
 
-        '''
+        """
         self.spectrum.exclude = np.ones(self.spectrum.size, dtype=bool)
         if self.two_area:
             self.spectrum.set_include_region(self.indices[0][0], self.indices[0][1])
@@ -370,7 +375,7 @@ class BackgroundRemoval(Operator):
         self.fitter = fit
 
     def calculate(self):
-        '''
+        """
         Returns the background subtracted spectrum. The exclude of the spectrum will
         be set the same as it was before this function was called.
         A least squares approach is used to fit the background.
@@ -382,7 +387,7 @@ class BackgroundRemoval(Operator):
         self.results: Spectrum
             The background subtracted spectrum
 
-        '''
+        """
         prev_exclude = self.spectrum.exclude[:]
         self.set_indices()
         self.include_areas()

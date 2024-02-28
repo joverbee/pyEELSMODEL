@@ -62,7 +62,7 @@ class MscatterFFT(Mscatter):
 
 
  
-'''
+"""
   //make sure the spectrum starts with y=0 and ends with y=0
   //use linear interpolation between both end
   //this is required when CCD problems occured
@@ -122,5 +122,5 @@ for (int i=0;i<n;i++){
 }
 
    
-'''         
+"""         
             

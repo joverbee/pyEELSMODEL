@@ -4,19 +4,23 @@ This software uses the model-based approach to quantify EEL spectra.
 
 Installing
 ----------
-The easiest way is installing pyEELSMODEL via pip:
-```bash
-pip install pyEELSMODEL
-```
-If you want to install the development version of pyEELSMODEL, you can 
-install it from source. The first step is to clone the repository using:
+At this point, pyEELSMODEL is installed by cloning this repository to your
+computer via:
 ``` bash
 git clone https://github.com/joverbee/pyEELSMODEL.git
 ```
-Navigate to the pyEELSMODEL directory and install pyEELSMODEL:
+The next step is to navigate to the pyEELMODEL directory and type 
+following into the command line:
+``` bash
+pip install .
+```
+If you want to create an editable install one needs to do following:
 ``` bash
 pip install -e .
 ```
+**In the future, the package will be published on PyPI simplifying the
+installation procedure.** 
+
 After installation, the generalized oscillator strengths (GOS) tables should be imported.
 The GOS tables are necessary to perform EEL quantification since they are used
 to calculate the atomic cross sections. Two different GOS tables can be used for quantification:
@@ -55,11 +59,12 @@ data_array = np.random.random(size)
 s = em.Spectrum(specshape, data=data_array)
 s.plot() 
 ```
-For more examples on how to use pyEELSMODEL, check the ./examples folder. 
+**For more examples on how to use pyEELSMODEL, check the ./examples folder.**\
+This folder has many examples on how to use the pyEELSMODEL package.  
 
 License
 -------
-The project is licensed under the GPLv3 license
+The project is licensed under the GPL-3.0 license
 
 
 

@@ -12,7 +12,7 @@ class DummyEdgeCombined(CoreLossEdge):
     # core loss edge with L3,L2,L1 combined in one edge w fixed ratios
 
     def __init__(self, specshape, A, E0, alpha, beta, element, edge, eshift=0):
-        '''
+        """
         DummyEdge is a first approximation of the edge. This assumes each edge has
         a different onset energy but the powerlaw value is -3. Note that the parameters
         E0, alpha, beta do not influence the dummyedge model.
@@ -46,7 +46,7 @@ class DummyEdgeCombined(CoreLossEdge):
 
         Returns
         -------
-        '''
+        """
 
         self.xsectionlist = []
         if edge == 'K':

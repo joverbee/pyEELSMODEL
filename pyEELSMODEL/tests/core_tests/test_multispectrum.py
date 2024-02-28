@@ -1,7 +1,7 @@
-'''
+"""
 copyright University of Antwerp 2021
 author: Jo Verbeeck and Daen Jannis
-'''
+"""
 import sys
 sys.path.append("..")  # Adds higher directory to python modules path.
 from pyEELSMODEL.core.spectrum import Spectrum, Spectrumshape

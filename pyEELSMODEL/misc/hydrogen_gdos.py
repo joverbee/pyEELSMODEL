@@ -21,7 +21,7 @@ def get_EK():
     return EK
 
 def gdos_k(E, qa0sq, Z):
-    '''
+    """
     Calculates the hydrogenic GDOS for the k edge of an atom with atomic number
     Z.
 
@@ -36,7 +36,7 @@ def gdos_k(E, qa0sq, Z):
     Returns
     -------
         GDOS
-    '''
+    """
     Zs = pc.Zs_k(Z)
     Q = (qa0sq/Zs**2)
     kHsq = E/(Zs**2*pc.R())-1
@@ -63,7 +63,7 @@ def gdos_k(E, qa0sq, Z):
     return df_dE
 
 def gdos_l(E, qa0sq, Z):
-    '''
+    """
      Calculates the hydrogenic GDOS for the l edge of an atom with atomic number
      Z.
 
@@ -78,7 +78,7 @@ def gdos_l(E, qa0sq, Z):
      Returns
      -------
          GDOS
-     '''
+     """
     if Z == 6:
         #small test for the L edge of oxygen
         EL3 = 5

@@ -3,7 +3,7 @@ from pyEELSMODEL.components.CLedge.coreloss_edge import CoreLossEdge
 
 
 class HydrogenicCoreLossEdge(CoreLossEdge):
-    '''
+    """
       Calculates the core loss cross-section using the hydrogenic wave function.
       The cross-sections can be calculated for the K and L edges.
 
@@ -41,7 +41,7 @@ class HydrogenicCoreLossEdge(CoreLossEdge):
       Returns
       -------
 
-      '''
+      """
     def __init__(self, specshape, A, E0, alpha, beta, element, edge, eshift=0,
                  q_steps=100):
         super().__init__(specshape, A, E0, alpha, beta, element, edge,

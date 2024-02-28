@@ -118,10 +118,10 @@ def test_fast_align():
         assert np.all(align.aligned.energy_axis[np.argmax(align.aligned.multidata, axis=2)]== 0)
 
 def test_fast_align_1():
-    '''
+    """
     Align the fast zero loss using the align function which does the interpolation instead of roll
     :return:
-    '''
+    """
     shf_l = [[-2,2],[-4,-2],[2,4]]
     for i in range(len(shf_l)):
         s, s1, s2 = make_artificial_dataset(shf_l[i][0], shf_l[i][1])

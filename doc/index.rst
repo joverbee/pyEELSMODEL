@@ -7,7 +7,12 @@ Welcome to pyEELSMODEL's documentation!
 =======================================
 
 .. toctree::
-   :maxdepth: 2
+   pyEELSMODEL
+   installing
+   Tutorial.ipynb
+   api
+   core
+   :maxdepth: 1
    :caption: Contents:
 
 

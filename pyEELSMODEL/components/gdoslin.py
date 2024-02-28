@@ -252,7 +252,7 @@ class GDOSLin(Component):
 
 
 
-'''
+"""
 
 
 
@@ -798,4 +798,4 @@ void GDoslin::show(){
 
 
 
-'''
+"""

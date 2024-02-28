@@ -13,12 +13,12 @@ logger = logging.getLogger(__name__)
 
 
 class Align(Operator):
-    '''
+    """
     This class is the super class of different types of alignment procedures.
     For instance the zero loss alignment using the maximum value or model based
     fitting with Gaussian/Lorentzian. Also other methods of alignment such as
     the cross correlation can be used as child class
-    '''
+    """
     def __init__(self, multispectrum, other_spectra, cropping,
                  signal_range=None, zero_index=None):
 

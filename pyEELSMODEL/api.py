@@ -24,6 +24,12 @@ from pyEELSMODEL.operators.aligns.aligncrosscorrelation import\
     AlignCrossCorrelation
 from pyEELSMODEL.operators.multispectrumvisualizer import \
     MultiSpectrumVisualizer
+from pyEELSMODEL.operators.areaselection import \
+    AreaSelection
+from pyEELSMODEL.operators.calibratespectrum import \
+    CalibrateSpectrum
+
+
 
 from pyEELSMODEL.operators.simulator.coreloss_simulator import\
     CoreLossSimulator
