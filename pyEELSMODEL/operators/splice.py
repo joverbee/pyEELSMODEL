@@ -10,11 +10,32 @@ class Splice(Operator):
     """
     This class splines multiple spectra into each other. At this point the
     spectra should still overlap.
-    The average is taken of the multiple spectra at this point. Even though
-    they have different noise properties.
+    The splicing first calculates a new energy axis which conveys each
+    spectrum added to the spectra list.
+    Then each spectrum is interpolated to the new axis and the weighted
+    average is calcualted with the information on the acquisition time.
+    This assumes that each spectrum is acquired with the
+    same current.
+    It is not needed for the dispersion to be the same. When this happens it
+    uses the highest dispersion (lowest value) for the interpolation.
+
+
     """
-    def __init__(self, spectra, weights=None):
+    def __init__(self, spectra, acq_times=None):
         """
+        Initializes the Splice object.
+
+        Parameters
+        ----------
+        spectra: list of Spectrums or MultiSpectrums
+            The list containing the spectra which need to be spliced together.
+            If Multispectrums are used then it is important that the xsize and
+            ysize are the same.
+        acq_times: list
+            A list of the acquisition times. The acquistion times do not need
+            to be in absolute units (such as seconds) but the ratios should be
+            conserved.
+
 
         """
         self.spectra = spectra
@@ -26,10 +47,10 @@ class Splice(Operator):
             self.has_multispectra = False
 
 
-        self.weights = weights
+        self.acq_times = acq_times
+        self.weights = self.acq_times
 
 
-        #todo check if the spectra which are given have the same x, y size and dispersion. Energy does not need to be the same
 
     @property
     def weights(self):
@@ -59,6 +80,18 @@ class Splice(Operator):
 
 
     def get_new_energy_axis(self):
+        """
+        Determines the lowest energy, highest energy and highest dispersion
+        from the list of spectra provided. From this information it
+        calculates a new energy axis E
+
+        Returns
+        -------
+        E: 1d numpy array
+            The new energy axis on which each spectrum will be interpolated.
+
+        """
+
         for i in range(len(self.spectra)-1):
             if i == 0:
                 offset = min(self.spectra[i].offset, self.spectra[i+1].offset)
@@ -73,31 +106,11 @@ class Splice(Operator):
         E = np.arange(offset, end_E, dispersion)
         return E
 
-
-    def get_overlapping_region(self, ind0, ind1):
-        """
-        Find the overlapping region for the two spectra which are in the list
-        with index ind0 and ind1.
-
-        """
-        s0 = self.spectra[ind0]
-        s1 = self.spectra[ind1]
-
-        dispersion = min(s0.dispersion, s1.dispersion)
-        offset = min(s0.offset, s1.offset)
-        end_E = max(s0.energy_axis[-1], s1.energy_axis[-1])
-
-        E = np.arange(offset, end_E, dispersion)
-        data = np.zeros(E.size)
-        data[:s0.size] = s0.data
-
-        return E, data
-
     def _get_spectrum_from_energy_axis(self, energy_axis):
         """
         Function which makes a spectrum of the enery axis.
         This is needed in the way the function is implemented in spectrum
-        :return:
+
         """
         sh = Spectrumshape(np.diff(energy_axis)[0], energy_axis[0], energy_axis.size)
         s = Spectrum(sh)
@@ -133,29 +146,28 @@ class Splice(Operator):
         for ii, spec in enumerate(self.spectra):
             intspec = spec.interp_to_other_energy_axis(spectrum, constant_values=(np.nan, np.nan))
             boolean = np.invert(np.isnan(intspec.data))
-            ndata[ii, boolean] = intspec.data[boolean]
-            weight_array[ii, boolean] = self.weights[ii]
+            ndata[ii, boolean] = intspec.data[boolean]/self.acq_times[ii]
+            # weight_array[ii, boolean] = self.weights[ii]
 
-        res = (ndata * weight_array).sum(0)/weight_array.sum(0)
+        res = (ndata * self.weight_array).sum(0)/self.weight_array.sum(0)
 
         return res
 
-    def _avg_interpolate(self, spectrum):
-        ndata = np.zeros(spectrum.size)
-        weigth_array = np.zeros(ndata.size)
+    def _calculate_weight_array(self, spectrum):
+
+        weight_array = np.zeros((len(self.spectra), spectrum.size))
         for ii, spec in enumerate(self.spectra):
             intspec = spec.interp_to_other_energy_axis(spectrum, constant_values=(np.nan, np.nan))
             boolean = np.invert(np.isnan(intspec.data))
-            ndata[boolean] += intspec.data[boolean]
-            weigth_array[boolean] = 1
+            weight_array[ii, boolean] = self.weights[ii]
 
-        return ndata/weigth_array
-
+        self.weight_array = weight_array
 
 
     def splice_multispectra(self):
         E = self.get_new_energy_axis()
         multispectrum, sshape = self._get_multispectrum_from_energy_axis(E)
+        self._calculate_weight_array(multispectrum)
         shape = (multispectrum.xsize, multispectrum.ysize)
         for index in tqdm(np.ndindex(shape)):
             islice = np.s_[index]

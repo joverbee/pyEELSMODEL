@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import logging
 from pyEELSMODEL.core.operator import Operator
-from pyEELSMODEL.operators.deconvolution import Deconvolution
+from pyEELSMODEL.operators.deconvolutions.deconvolution import Deconvolution
 from pyEELSMODEL.components.gaussian import Gaussian
 from pyEELSMODEL.core.model import Model
 from pyEELSMODEL.core.multispectrum import MultiSpectrum, MultiSpectrumshape
@@ -24,16 +24,40 @@ def ifft_phys(data):
     return np.fft.ifftshift(np.fft.ifft(np.fft.fftshift(data)))
 
 class GaussianModifier(Deconvolution):
+    """
+    The gaussian modifier deconvolution as described in
+    10.1016/j.ultramic.2009.06.010.
+    """
+    def __init__(self, spectrum, llspectrum, factor=None):
+        """
+        Parameters
+        ----------
+        spectrum: Spectrum or MultiSpectrum
+            The spectrum which needs to be deconvolved. Best practice is to
+            remove the background before deconvolving.
+        llspectrum: Spectrum or MultiSpectrum
+            The low loss which is used for the deconvolution
+        factor: uint
+            This determines the width of the gaussian used. The fhwm
+            of the gaussian is factor * dispersion. If factor is None, the 2*fwhm
+            of the zero-loss peak is used.
 
-    def __init__(self, spectrum, llspectrum, factor=4):
-
+        """
         super().__init__(spectrum, llspectrum)
         self.restored = None
-        self.factor = factor
+        self.restored = None
+
+        if factor is None:
+            self.factor = 2*llspectrum.get_numerical_fwhm()/llspectrum.dispersion
+        else:
+            self.factor = factor #
         self.plotting=False #debugging feature and to optimize gaussian filter
 
 
     def gaussianmodifier(self, signal, psf, centre, fwhm, plotting=False):
+        """
+        The gaussian modfier algorithm.
+        """
         g = Gaussian(self.spectrum.get_spectrumshape(), A=1, centre=centre, fwhm=fwhm)
         g.calculate()
 
@@ -42,7 +66,6 @@ class GaussianModifier(Deconvolution):
         co = np.argmax(psf)
         rol_co = int(psf.size/2) - co
 
-
         if plotting:
             plt.figure()
             plt.plot(np.abs(np.fft.rfft(gdata)),label='FFT Gaussian')
@@ -50,18 +73,17 @@ class GaussianModifier(Deconvolution):
             plt.legend()
 
         O_f = np.fft.rfft(gdata)*np.fft.rfft(signal)/np.fft.rfft(psf)
-        # O_f = np.fft.fft(gdata)*np.fft.fft(signal)/np.fft.fft(psf)
 
         O_E = np.roll((np.fft.irfft(O_f)), -rol_co)
-        # O_E = np.real(np.fft.ifft(O_f))
 
-
-        # plt.figure()
-        # plt.plot(np.angle(O_f))
 
         return O_E
 
     def multi_deconvolve(self):
+        """
+        Performs the deconvolution on the  multispectrum
+        """
+
         shape = (self.spectrum.xsize, self.spectrum.ysize)
         ms = self.spectrum.copy()
         centre = self.spectrum.energy_axis[int(self.spectrum.size/2)]
@@ -81,32 +103,18 @@ class GaussianModifier(Deconvolution):
 
     def deconvolve(self):
         centre = self.spectrum.energy_axis[int(self.spectrum.size/2)]
-        sigma = self.spectrum.dispersion*self.factor
+        fwhm = self.spectrum.dispersion*self.factor
         psf = self.llspectrum.data/self.llspectrum.data.sum()
-
-
-        # if not isinstance(self.spectrum, MultiSpectrum):
-        #     s = Spectrum(self.spectrum.get_spectrumshape(), data=restore)
-        #     self.restored = s
-        #     return s
-        #
-        # else:
-        #     return restore
 
         if type(self.spectrum) is MultiSpectrum:
             s = self.multi_deconvolve()
             self.restored = s
         else:
-            restore = self.gaussianmodifier(self.spectrum.data, psf, centre, sigma,
-                                            plotting=self.plotting)
+            restore = self.gaussianmodifier(self.spectrum.data, psf, centre,
+                                            fwhm, plotting=self.plotting)
             s = Spectrum(self.spectrum.get_spectrumshape(), data=restore)
             self.restored = s
         return s
-
-    def apply_nothing(self):
-        print('how the hell does this work')
-
-
 
 
 

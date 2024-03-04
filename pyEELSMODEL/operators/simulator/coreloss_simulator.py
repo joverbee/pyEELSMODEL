@@ -80,12 +80,14 @@ class CoreLossSimulator(Operator):
         #of reality.
         # to validate the CRLB, it is usefull to know the exact shape of the
         # background so this convolution can be turned off.
-
+        self.noise = 1 #noise level
 
         #shift settings
         self.use_shift = False
 
-        #detector
+        #detector + noise
+        self.add_poisson = True #indicates if poisson noise needs to be added
+
 
 
     def make_lowloss(self):
@@ -206,7 +208,7 @@ class CoreLossSimulator(Operator):
 
         shape = self.scan_size + (self.spectrumshape.size,)
         cldata = np.zeros(shape)
-        noise=1
+
         for index in tqdm(np.ndindex(self.scan_size)):
             islice = np.s_[index]
             llcomp = MscatterFFT(self.spectrumshape, self.ll[islice])
@@ -215,12 +217,17 @@ class CoreLossSimulator(Operator):
             for jj, comps in enumerate(self.element_components):
                 comps.parameters[0].setvalue(self.maps[jj][islice])
 
-            mod = Model(self.spectrumshape, components=[bg]+self.element_components+[llcomp])
-            # mod = Model(self.spectrumshape, components=self.element_components+[llcomp])
-            mod.calculate()
-            cldata[islice] = np.random.poisson(noise * mod.data)
+            self.mod = Model(self.spectrumshape, components=[bg]+self.element_components+[llcomp])
+            # self.mod = Model(self.spectrumshape, components=self.element_components+[llcomp])
+            self.mod.calculate()
+            if self.add_poisson:
+                cldata[islice] = np.random.poisson(self.noise * self.mod.data)
+            else:
+                cldata[islice] = self.noise * self.mod.data
 
-        s = MultiSpectrum.from_numpy(cldata, mod.energy_axis)
+
+
+        s = MultiSpectrum.from_numpy(cldata, self.mod.energy_axis)
         self.multispectrum = s
 
     def add_shift(self):

@@ -21,7 +21,7 @@ def make_rectangular_mask(xco, yco, width, height, shape):
 def simulate_data():
     """
     Small function which simulates a typical STEM-EELS map.
-    :return:
+
     """
     elements = ['C', 'N', 'O', 'Fe']
     edges = ['K', 'K', 'K', 'L']

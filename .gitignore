@@ -12,7 +12,8 @@ venv/
 # Pyton derived notebook files
 examples/*.py
 examples/.ipynb_checkpoints/
-
+examples/RealExample.ipynb
+examples/data/*_test.hdf5
 
 #GOS tables
 database/Zhang/*.hdf5

@@ -286,11 +286,6 @@ def get_qmin_max(E, E0, beta, alpha=1e-9, return_q=False):
     Returns the minimum and maximum q vector over which to integrate to
     get the cross section.
 
-    :param E:
-    :param E0:
-    :param beta:
-    :param alpha:
-    :return:
     """
     qa0sq_min = E**2/(4*pc.R()*pc.T(E0))+(E**3)/(8*pc.gamma(E0)**3*pc.R()*pc.T(E0)**2)
     qa0sq_max = qa0sq_min+4*pc.gamma(E0)**2*(pc.T(E0)/pc.R())*(np.sin((beta+alpha)/2))**2
