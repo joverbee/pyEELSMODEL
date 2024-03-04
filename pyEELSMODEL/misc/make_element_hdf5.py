@@ -7,7 +7,6 @@ database of Zezhong Zhang.
 import h5py
 import os
 from glob import glob
-from mendeleev import element
 
 
 database_path = r'C:\Users\DJannis\PycharmProjects\pyEELSmodel\database\Dirac'

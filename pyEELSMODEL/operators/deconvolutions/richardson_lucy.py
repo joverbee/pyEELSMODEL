@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import logging
 from pyEELSMODEL.core.operator import Operator
-from pyEELSMODEL.operators.deconvolution import Deconvolution
+from pyEELSMODEL.operators.deconvolutions.deconvolution import Deconvolution
 from pyEELSMODEL.core.model import Model
 from pyEELSMODEL.core.multispectrum import MultiSpectrum, MultiSpectrumshape
 from pyEELSMODEL.core.spectrum import Spectrum, Spectrumshape
@@ -17,23 +17,26 @@ from tqdm import tqdm
 logger = logging.getLogger(__name__)
 
 class RichardsonLucyDeconvolution(Deconvolution):
+    """
+    Richardson lucy deconvolution as described in
+    10.1016/j.ultramic.2009.06.010.
 
+    """
     def __init__(self, spectrum, llspectrum, iterations=5):
+        """
+        Parameters
+        ----------
+        spectrum: Spectrum or MultiSpectrum
+            The spectrum which needs to be deconvolved. Best practice is to
+            remove the background before deconvolving.
+        llspectrum: Spectrum or MultiSpectrum
+            The low loss which is used for the deconvolution
+        iterations: uint
+            The number of iterations used in the Richardson Lucy deconvolution
+            (default: 5).
 
+        """
         super().__init__(spectrum, llspectrum)
-        # if isinstance(spectrum, MultiSpectrum):
-        #     self.spectrum.multidata = self.spectrum.multidata.astype(float)
-        #
-        # self.spectrum.data = self.spectrum.data.astype(float)
-        # self.llspectrum.data = self.llspectrum.data.astype(float)
-        #
-        # if self.spectrum.size > self.llspectrum.size:
-        #     print('low loss spectrum has to have same size as model')
-        #     print('the low loss will be zero padded to have the same size')
-        #     llspectrum = self.padding(spectrum.get_spectrumshape(), llspectrum)
-        #     self.llspectrum = llspectrum
-
-
         self.iterations = iterations
         self.restored = None
 
@@ -46,6 +49,9 @@ class RichardsonLucyDeconvolution(Deconvolution):
         self._iterations = n_iter
 
     def richardsonlucy(self,signal, psf, iterations):
+        """
+        RichardsonLucy algorithm
+        """
         imax = psf.argmax()
         result = np.array(signal).copy()
         mimax = psf.size - 1 - imax
@@ -106,10 +112,6 @@ class RichardsonLucyDeconvolution(Deconvolution):
             s = Spectrum(self.spectrum.get_spectrumshape(), data=restore)
             self.restored = s
         return s
-
-
-    def apply_nothing(self):
-        print('how the hell does this work')
 
 
 

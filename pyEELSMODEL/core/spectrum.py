@@ -18,6 +18,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Spectrumshape():
+
     """
     Spectrumshape is a class holding the main parameters of a spectrum in order
     to compactly create several spectra with the same size by providing an
@@ -40,6 +41,10 @@ class Spectrumshape():
 
 
 class Spectrum:
+    """
+    Spectrum object which contains the experimental data.
+
+    """
     def __init__(self, spectrumshape, data=None, acq_time=1, pppc=1):
 
         """
@@ -97,7 +102,7 @@ class Spectrum:
 
         self.exclude = np.zeros(self.size, dtype=bool) #Array which points to exclude
         self.pppc = pppc
-        self.name='a spectrum'
+        self.name = 'a spectrum'
         self.acq_time = acq_time
 
         logger.debug('Spectrum init succeeded')
@@ -232,6 +237,11 @@ class Spectrum:
 
     @property
     def acq_time(self):
+        """
+        The acquisition time used for spectra. Can be usefull when splicing
+        multiple spectra together.
+
+        """
         return self._acq_time
 
     @acq_time.setter
@@ -1331,10 +1341,8 @@ class Spectrum:
         """
         Small function which calculates the fwhm of a spectrum numerically
         by subtracting halve of the maximum from the spectrum and finding the
-        smallest values.
-
-        . Note that the
-        zero loss peak should be present else the result will be garbage
+        smallest values. Note that the zero loss peak should be present else
+         the result will be garbage.
 
         Returns
         -------

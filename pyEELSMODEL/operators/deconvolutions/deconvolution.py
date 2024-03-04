@@ -17,14 +17,22 @@ logger = logging.getLogger(__name__)
 
 class Deconvolution(Operator):
     """
-    Parameters
-    ----------
-    spectrum: Spectrum
-        The spectrum from which the background should be removed
+    Parten class for the deconvolution methods.
     """
 
 
     def __init__(self, spectrum, llspectrum):
+        """
+        Parameters
+        ----------
+        spectrum: Spectrum or MultiSpectrum
+            The spectrum which needs to be deconvolved. Best practice is to
+            remove the background before deconvolving.
+        llspectrum: Spectrum or MultiSpectrum
+            The low loss which is used for the deconvolution
+
+
+        """
         self.spectrum = spectrum
         self.llspectrum = llspectrum
 
@@ -46,7 +54,17 @@ class Deconvolution(Operator):
 
 
     def padding(self, specshape, llspectrum):
-        #todo has not been properly tested
+        """
+        Zero padds the low loss if the size is smaller than the core-loss
+
+        Parameters
+        ----------
+        specshape: Spectrumshape
+            The spectrum shape of the core-loss
+        llspectrum: Spectrum or MultiSpectrum
+            The low loss which is used for the deconvolution
+
+        """
 
         size_dif = specshape.size - llspectrum.size
         before = size_dif//2

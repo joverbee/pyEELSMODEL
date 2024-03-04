@@ -21,6 +21,29 @@ def powerlaw(x, A, r):
 
 
 def getinterpolatedgos(E, q, E_axis, q_axis, GOSmatrix, swap_axes=False):
+    """
+    Gets the interpolated value of the GOS from the E and q value.
+
+
+    Parameters
+    ----------
+    E: float
+        The energy from which the GOS should be interpolated
+    q: float
+        The q from the GOS should be interpolated
+    E_axis: numpy array
+        The energy axis on which the GOS is calculated
+    q_axis: numpy array
+        The q axis on which the GOS is calculated
+    swap_axes: boolean
+        Indicates if the axes for q and E should be swapped. There is a
+        difference between the GOS from Segger and Zhang.
+
+    Returns
+    -------
+    interpolated GOS matrix
+
+    """
     index_q = np.searchsorted(q_axis, q, side='left')
     index_E = np.searchsorted(E_axis, E, side='left')
 
@@ -55,8 +78,34 @@ def getinterpolatedgos(E, q, E_axis, q_axis, GOSmatrix, swap_axes=False):
     return r0+r1+r2+r3
 
 
-def get_powerLaw_extrapolation(rel_energy_axis, q_axis, GOSmatrix, E0, dispersion, beta, alpha,
+def get_powerLaw_extrapolation(rel_energy_axis, q_axis, GOSmatrix, E0, beta, alpha,
                                q_steps=100, swap_axes=False):
+    """
+    If the energy axis for the cross section extends the range of calculated
+    GOS then the last two point are used to extrapolate a power-law from.
+
+
+    Parameters
+    ----------
+    rel_energy_axis: float
+        The energy from which the GOS should be interpolated
+    q: float
+        The q from the GOS should be interpolated
+    E_axis: numpy array
+        The energy axis on which the GOS is calculated
+    q_axis: numpy array
+        The q axis on which the GOS is calculated
+    swap_axes: boolean
+        Indicates if the axes for q and E should be swapped. There is a
+        difference between the GOS from Segger and Zhang.
+
+    Returns
+    -------
+    A: float
+        The amplitude of the power-law
+    r: float
+        The power of the power-law
+    """
     E_axis = rel_energy_axis[-2:]
     dsigma_dE = np.zeros(E_axis.size)
     R = pc.R()
@@ -98,42 +147,84 @@ def get_powerLaw_extrapolation(rel_energy_axis, q_axis, GOSmatrix, E0, dispersio
 
 
 def dsigma_dE_HS(energy_axis, Z, ek, E0, beta, alpha, filename, q_steps=100):
+    """
+    Calculates the cross section from the Hartree-Slater cross sections
+    from Rez. They are not used since they are not open-access.
+
+    """
 
     with open(filename) as f:
         GOS_list = f.read().replace('\r', '').split()
     R = pc.R()
     # Map the parameters
-    info1_1 = float(GOS_list[2])
-    info1_2 = float(GOS_list[3])
+    q_1 = float(GOS_list[2])
+    q_2 = float(GOS_list[3])
     ncol = int(GOS_list[5])
-    info2_1 = float(GOS_list[6])
-    info2_2 = float(GOS_list[7])
+    E_1 = float(GOS_list[6])
+    E_2 = float(GOS_list[7])
     nrow = int(GOS_list[8])
     gos_array = np.array(GOS_list[9:], dtype=np.float64)
-    # The division by R is not in the equations, but it seems that
-    # the the GOS was tabulated this way
+    #careful data is stored per rydberg and we want per eV to be compatible with sigmak
     GOSmatrix = gos_array.reshape(nrow, ncol) / R
 
-    rel_energy_axis = getgosenergy(info2_1, info2_2, nrow)+ek
-    q_axis = getgosq(info1_1, info1_2, ncol)
+    rel_energy_axis = getgosenergy(E_1, E_2, nrow)+ek
+    q_axis = getgosq(q_1, q_2, ncol)
     dsigma_dE = dsigma_dE_from_GOSarray(energy_axis, rel_energy_axis, ek, E0, beta, alpha, q_axis,
                                         GOSmatrix, q_steps=q_steps)
     return dsigma_dE
 
 def dsigma_dE_from_GOSarray(energy_axis, rel_energy_axis, ek, E0, beta, alpha,
                             q_axis, GOSmatrix, q_steps=100, swap_axes=False):
+    """
+    Calculates the cross section from the GOS array. The integral over q-axis
+    is done on a logarithmic scale.
+    Note the speed of the calculation is not super-fast and could be improved
+    by a better implementation of the interpolation and integration.
+
+    Parameters
+    ----------
+    energy_axis: 1d numpy array
+        The energy axis on which the cross section is calculated. [eV]
+    rel_energy_axis: 1d numpy array
+        The energy axis on which the GOS table is calculated. [eV]
+    ek: float
+        The onset energy of the calculated edge [eV]
+    E0: float
+        The acceleration voltage of the incoming electrons [V]
+    alpha: float
+        The convergence angle of the incoming probe [rad]
+    beta:
+        The collection angle of the outgoing electrons [rad]
+    q_axis: 1d numpy array
+        The momentum on which the GOS table are calculated. [kg m /s]?
+    GOSmatrix: 2d numpy array
+        The GOS
+    q_steps: uint
+        The number of q points used to numerically calculate the integral
+        over the q direction. (default: 100)
+    swap_axes: boolean
+        The two GOS tables from Segger and Zhang have different axes. So
+        for one, the energy axis is the first one and for the other it is
+        the q-axis. Hence by swapping the axes we can use the same function
+        for both. (default: False)
+
+    Returns
+    -------
+    dsigma_dE: 1d numpy array
+        The calculated cross section in m^2
+
+    """
     R = pc.R()
     T = pc.T(E0)
     gamma = pc.gamma(E0)
 
-    dispersion = energy_axis[1] - energy_axis[0]
     dsigma_dE = np.zeros(energy_axis.size)
 
     # check if there are energies larger then the max energy
     if energy_axis[-1] > rel_energy_axis[-1]:
     # then calculate a power law dependence of the cross sections
         powA, powr = get_powerLaw_extrapolation(rel_energy_axis, q_axis, GOSmatrix,
-                                                E0, dispersion, beta, alpha, q_steps=q_steps,
+                                                E0, beta, alpha, q_steps=q_steps,
                                                 swap_axes=swap_axes)
 
 

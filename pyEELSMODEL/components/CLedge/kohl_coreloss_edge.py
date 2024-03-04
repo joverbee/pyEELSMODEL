@@ -105,7 +105,7 @@ class KohlLossEdge(CoreLossEdge):
 
     def calculate_cross_section(self):
         """
-        Calculates the cross section in barns
+        Calculates the cross section in barns (1e-28 m^2)
 
 
         """

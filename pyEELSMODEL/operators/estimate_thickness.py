@@ -24,7 +24,7 @@ class ThicknessEstimator(Operator):
 
     def log_ratio_method(self):
         """
-        Calculates the
+        Calculates the inelastic mean free path by esitmating the zero loss peak
         """
         if self.model_type=='Mirrored':
             zlpremoval = ZLPRemoval(self.spectrum, self.signal_range)
