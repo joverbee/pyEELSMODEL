@@ -55,7 +55,7 @@ class KohlLossEdgeCombined(CoreLossEdge):
 
         if dir_path == None:
             self.dir_path = os.path.dirname(
-                os.path.dirname(__file__) + "/../database/Segger_Guzzinati_Kohl/"
+                os.path.dirname(__file__) + "/../pyEELSMODEL/database/Segger_Guzzinati_Kohl/"
             )
         self.onset_path = os.path.dirname(os.path.dirname(__file__) + "/../pyEELSMODEL/")
         self.xsectionlist = []
