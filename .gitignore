@@ -19,5 +19,8 @@ examples/data/*_test.hdf5
 database/Zhang/*.hdf5
 database/Segger_Guzzinati_Kohl/*.gosh
 
+pyEELSMODEL/database/Zhang/*.hdf5
+pyEELSMODEL/database/Segger_Guzzinati_Kohl/*.gosh
+
 # Sphinx documentation
 doc/_build/
