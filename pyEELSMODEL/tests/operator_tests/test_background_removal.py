@@ -10,8 +10,6 @@ from pyEELSMODEL.components.polynomial import Polynomial
 
 from pyEELSMODEL.core.spectrum import Spectrumshape, Spectrum
 from pyEELSMODEL.core.multispectrum import MultiSpectrum, MultiSpectrumshape
-from pyEELSMODEL.core.model import Model
-from pyEELSMODEL.components.CLedge.hs_coreloss_edgecombined import HSCoreLossEdgeCombined
 from pyEELSMODEL.operators.backgroundremoval import BackgroundRemoval
 import numpy as np
 from pyEELSMODEL.fitters.lsqfitter import LSQFitter
@@ -169,109 +167,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-    #test if the exclude is resetted after the fit
-
-# def test_reset_exclude_after_multifit():
-
-
-
-
-
-
-
-
-# E0 = 300e3
-# alpha = 5e-3
-# beta = 20e-3
-# specshape = Spectrumshape(1, 175, 2048)
-# N_Ti = 5
-#
-# Ti_L = HSCoreLossEdgeCombined(specshape, A=N_Ti, E0=E0, alpha=alpha, beta=beta, element='Ti', edge='L')
-# fbg = PowerLaw(specshape, A=10014, r=3.257)
-#
-# mod = Model(specshape)
-# mod.addcomponent(Ti_L)
-# mod.addcomponent(fbg)
-#
-# ### Fitting with one spectrum
-# s = Spectrum(specshape, data = np.random.poisson(mod.data))
-#
-# method_list = ['Powerlaw', 'FastBG', 'Polynomial', 'Exponential']
-# order = 3
-#
-# model_data = np.zeros((len(method_list), s.size))
-# lin_l = [False, True, True, False]
-# for i in range(len(method_list)):
-#     backTi = BackgroundRemoval(s, signal_range=(380,450), model_type=method_list[i],
-#                                order=3, linear_fitting=lin_l[i], non_linear_fitter='LSQ')
-#     specTi = backTi.calculate()
-#     mTi = backTi.model
-#     model_data[i] = mTi.data
-#
-# plt.figure()
-# plt.plot(s.energy_axis, s.data)
-# for i in range(model_data.shape[0]):
-#     plt.plot(s.energy_axis, model_data[i], label=method_list[i])
-# plt.legend()
-#
-# #Comparing the ML fit with the LSQ fit
-# backLSQ = BackgroundRemoval(s, signal_range=(380, 450), model_type=method_list[0],
-#                            order=3, linear_fitting=lin_l[0], non_linear_fitter='LSQ')
-# specLSQ = backLSQ.calculate()
-# mLSQ = backLSQ.model
-#
-# backML = BackgroundRemoval(s, signal_range=(380, 450), model_type=method_list[0],
-#                            order=3, linear_fitting=lin_l[0], non_linear_fitter='ML')
-# specML = backML.calculate()
-# mML = backML.model
-#
-# print('For ML A: '+str(np.round(mML.getfreeparameters()[0].getvalue(),2))+', r: '+str(np.round(mML.getfreeparameters()[1].getvalue(),2)))
-# print('For LSQ A: '+str(np.round(mLSQ.getfreeparameters()[0].getvalue(),2))+', r: '+str(np.round(mLSQ.getfreeparameters()[1].getvalue(),2)))
-#
-# plt.figure()
-# plt.plot(s.energy_axis, s.data)
-# plt.plot(s.energy_axis, mML.data, label='ML')
-# plt.plot(s.energy_axis, mLSQ.data, label='LSQ')
-#
-# ### Fitting using a multispectrum
-# multi_data = np.zeros((5,5,s.size))
-# count = 3
-# delta = 3
-# plt.figure()
-# for i in range(multi_data.shape[0]):
-#     for j in range(multi_data.shape[1]):
-#          parTi = mod.getfreeparameters()[0]
-#          parTi.setvalue(count)
-#
-#          count += delta
-#          mod.calculate()
-#          multi_data[i,j] = np.random.poisson(mod.data)
-#
-#          plt.plot(s.energy_axis, multi_data[i,j])
-#
-#
-# multi_specshape = MultiSpectrumshape(specshape.dispersion,specshape.offset, specshape.size,
-#                                      multi_data.shape[0], multi_data.shape[1])
-#
-# s_mult = MultiSpectrum(multi_specshape, data=multi_data)
-#
-# #Background removal from the multispectrum
-# back_obj = BackgroundRemoval(s_mult, signal_range=(380, 450), model_type=method_list[0], linear_fitting=lin_l[0], non_linear_fitter='ML')
-# back_obj.determine_fast_fit_parameters()
-#
-# fast_back = back_obj.fast_calculate_multi()
-#
-# s_back = back_obj.calculate_multi()
-#
-# fast_back.sum().plot()
-#
-# s_back.sum().plot()
-
-
-
-
-
-
-
 

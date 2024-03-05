@@ -9,7 +9,6 @@ import pytest
 
 from pyEELSMODEL.components.fast_background import FastBG2
 import matplotlib.pyplot as plt
-from pyEELSMODEL.components.CLedge.hs_coreloss_edge import HSCoreLossEdge
 from pyEELSMODEL.fitters.linear_fitter import LinearFitter
 from pyEELSMODEL.components.linear import Linear
 from pyEELSMODEL.components.gaussian import Gaussian
