@@ -70,7 +70,7 @@ class ZezhongCoreLossEdgeCombined(CoreLossEdge):
     ):
         if dir_path == None:
             self.dir_path = os.path.dirname(
-                os.path.dirname(__file__) + "/../database/Zhang/"
+                os.path.dirname(__file__) + "/../pyEELSMODEL/database/Zhang/"
             )
 
 
