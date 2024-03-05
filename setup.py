@@ -27,11 +27,12 @@ setup(
        "matplotlib",
        "scipy",
        "tqdm",
-       "fpdf"
+       "fpdf",
+       "pyqt5",
+       "jupyter notebook"
    ],
    setup_requires=['flake8'],
    test_requires=['pytest'],
-
-
+   package_data={'': ['pyEELSMODEL/element_info.hdf5']},
 
 )
