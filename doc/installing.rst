@@ -54,7 +54,7 @@ Zhang Z.
 
 1. Download the **Dirac_GOS_database.zip** file
 2. Unzip the file
-3. Copy the **.hdf5 files** in the folder to the **.\\database\\Zhang** folder which is found in the pyEELSMODEL folder
+3. Copy the **.hdf5 files** in the folder to the **.pyEELSMODEL\\database\\Zhang** folder which is found in the pyEELSMODEL folder
 
 **The GOS tables from Zhang Z. are used as default in the quantification workflows.**
 
@@ -64,6 +64,6 @@ Following steps explain on how the properly setup the GOS array of
 Segger L:
 
 1. Download the **Segger_Guzzinati_Kohl_1.5.0.gosh** (depends on version) file
-2. Copy the **.gosh file** to **.\\database\\Segger_Guzzinati_Kohl** folder which is found in the pyEELSMODEL folder
+2. Copy the **.gosh file** to **.pyEELMODEL\\database\\Segger_Guzzinati_Kohl** folder which is found in the pyEELSMODEL folder
 
 **Both cross sections are used in the notebook examples hence both need to be incorporated**
