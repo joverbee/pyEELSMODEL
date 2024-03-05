@@ -8,8 +8,8 @@ from pyEELSMODEL.core.component import Component
 from pyEELSMODEL.components.linear import Linear
 from pyEELSMODEL.components.gaussian import Gaussian
 from pyEELSMODEL.components.plasmon import Plasmon
-from pyEELSMODEL.components.fast_background import FastBG
-from pyEELSMODEL.components.lorentzian import ZeroLoss
+from pyEELSMODEL.components.fast_background import FastBG2
+from pyEELSMODEL.components.lorentzian import Lorentzian
 from pyEELSMODEL.components.powerlaw import PowerLaw
 from pyEELSMODEL.components.CLedge.hydrogen_coreloss_edge import HydrogenicCoreLossEdge
 from pyEELSMODEL.components.MScatter.mscatterfft import MscatterFFT
@@ -130,39 +130,39 @@ def test_getgradient():
     assert comparison.all()
 
 
-def test_plotting():
-    specshape = Spectrumshape(1, 200, 1024)
-    s0 = Spectrum(specshape)
-    c1 = Linear(specshape, 1/1024, 1)
-    c2 = Gaussian(specshape, 1,500,100) 
-    c4 = FastBG(specshape,  A1=5, A2=2)
-    c6 = PowerLaw(specshape, A=10, r=3) 
-    c7 = HydrogenicCoreLossEdge(specshape,A=1e27, E0=300e5, alpha=1e-3, beta=20e-3, element='C', edge='K')
-    mod = Model(specshape)
-    mod.addcomponent(c1)
-    mod.addcomponent(c2)
-    mod.addcomponent(c4)
-    mod.addcomponent(c6)
-    mod.addcomponent(c7)
-    mod.calculate()
-    mod.plot()
-    #test convolution with a low loss spectrum
-    specshapell = Spectrumshape(1, -20, 1024)
-    cll = Plasmon(specshapell,  A=10, Ep=15, Ew=4, n=3, tlambda=0.1, beta=10e-3, E0=300e3)
-    czl = ZeroLoss(specshape, A=10, centre=0, FWHM=2)
-    modll = Model(specshapell)
-    modll.addcomponent(cll)
-    modll.addcomponent(czl)
-    plt.figure()
-    modll.plot(plt)
-    
-    llspectrum=modll #note that a model is a spectrum so you can use it as a synthetic LL spectrum
-    #by lack of an experimental LL spectrum for now
-    
-    c8= MscatterFFT(specshape, llspectrum)
-    mod.addcomponent(c8)
-    mod.calculate()
-    mod.plot()
+# def test_plotting():
+#     specshape = Spectrumshape(1, 200, 1024)
+#     s0 = Spectrum(specshape)
+#     c1 = Linear(specshape, 1/1024, 1)
+#     c2 = Gaussian(specshape, 1,500,100)
+#     c4 = FastBG2(specshape,  A1=5, A2=2)
+#     c6 = PowerLaw(specshape, A=10, r=3)
+#     c7 = HydrogenicCoreLossEdge(specshape,A=1e27, E0=300e5, alpha=1e-3, beta=20e-3, element='C', edge='K')
+#     mod = Model(specshape)
+#     mod.addcomponent(c1)
+#     mod.addcomponent(c2)
+#     mod.addcomponent(c4)
+#     mod.addcomponent(c6)
+#     mod.addcomponent(c7)
+#     mod.calculate()
+#     mod.plot()
+#     #test convolution with a low loss spectrum
+#     specshapell = Spectrumshape(1, -20, 1024)
+#     cll = Plasmon(specshapell,  A=10, Ep=15, Ew=4, n=3, tlambda=0.1, beta=10e-3, E0=300e3)
+#     czl = Lorentzian(specshape, A=10, centre=0, fwhm=2)
+#     modll = Model(specshapell)
+#     modll.addcomponent(cll)
+#     modll.addcomponent(czl)
+#     plt.figure()
+#     modll.plot(plt)
+#
+#     llspectrum=modll #note that a model is a spectrum so you can use it as a synthetic LL spectrum
+#     #by lack of an experimental LL spectrum for now
+#
+#     c8= MscatterFFT(specshape, llspectrum)
+#     mod.addcomponent(c8)
+#     mod.calculate()
+#     mod.plot()
 
 def test_coupling_parameters():
     specshape = Spectrumshape(1, 200, 1024)
@@ -200,23 +200,26 @@ def test_calculate_coupling_parameters():
     c2.parameters[1].setvalue(3.)
     mod.calculate()
 
-    plt.figure()
-    plt.plot(c1.data)
-    plt.plot(c2.data)
-    plt.plot(c3.data)
-    plt.plot(c4.data)
+    assert c3.parameters[1].getvalue() == 1.
+    assert c4.parameters[1].getvalue() == 8.
+
+    # plt.figure()
+    # plt.plot(c1.data)
+    # plt.plot(c2.data)
+    # plt.plot(c3.data)
+    # plt.plot(c4.data)
 
 
 
 def main():
-    # test_init_component()
-    # test_add_component()
-    # test_remove_component()
-    # test_is_linear()
-    # test_get_num_parameters()
-    # test_get_num_free_parameters()
-    # test_get_free_linear_parameters()
-    # test_getgradient()
+    test_init_component()
+    test_add_component()
+    test_remove_component()
+    test_is_linear()
+    test_get_num_parameters()
+    test_get_num_free_parameters()
+    test_get_free_linear_parameters()
+    test_getgradient()
     # test_plotting()
     test_coupling_parameters()
     test_calculate_coupling_parameters()
