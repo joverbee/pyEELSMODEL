@@ -1,1 +1,0 @@
-Folder in which GOS tables can be added.
