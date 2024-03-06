@@ -20,7 +20,15 @@ def test_polynomial():
     bkg.calculate()
 
     E = bkg.energy_axis
-    poly = -0.1*E**3+20*E**2+5*E+3
+
+    norm3 = (E**3).sum()
+    norm2 = (E**2).sum()
+    norm1 = (E**1).sum()
+    norm0 = (E**0).sum()
+
+    poly = -(0.1/norm3)*E**3+(20/norm2)*E**2+(5/norm1)*E+3/norm0
+
+
     assert np.all(np.abs(poly-bkg.data)<1e-6)
 
 def test_polynomial_gradient():
