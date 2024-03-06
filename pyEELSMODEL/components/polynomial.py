@@ -6,7 +6,9 @@ from pyEELSMODEL.core.component import Component
 from pyEELSMODEL.core.parameter import Parameter
 import numpy as np
 import logging
+
 logger = logging.getLogger(__name__)
+
 
 class Polynomial(Component):
     """
@@ -37,8 +39,8 @@ class Polynomial(Component):
         self.order = order + 1
 
         for i in range(self.order):
-            name = 'x'+str(self.order-i-1)
-            #changed
+            name = 'x' + str(self.order - i - 1)
+            # changed
             p = Parameter(name, 1)
             p.setlinear(True)
             p.sethasgradient(True)
@@ -46,36 +48,34 @@ class Polynomial(Component):
 
         self._setname('Polynomial')
 
-
     def calculate(self):
         is_changed = False
         for param in self.parameters:
             if param.ischanged():
-                is_changed=True
+                is_changed = True
 
         if is_changed:
             coeff = []
             for param in self.parameters:
                 coeff.append(param.getvalue())
 
-            #normalize the coefficients since they will produce numerical problems
+            # normalize the coefficients since they will produce
+            # numerical problems
             coeffn = np.zeros(len(coeff))
             for i in range(coeffn.size):
-                coeffn[i] = coeff[i]/(self.energy_axis**(self.order-i-1)).sum()
+                coeffn[i] = coeff[i] / (
+                            self.energy_axis ** (self.order - i - 1)).sum()
 
             p = np.poly1d(coeffn)
             self.data = p(self.energy_axis)
         self.setunchanged()  # put parameters to unchanged
 
-    def getgradient(self,parameter):
+    def getgradient(self, parameter):
         for index, param in enumerate(self.parameters):
             if param is parameter:
-                param_order = len(self.parameters)-(index+1)
+                param_order = len(self.parameters) - (index + 1)
 
         if param_order is None:
             logger.info('Parameter is non existing in this component')
 
-        return self.energy_axis**(param_order)
-
-
-
+        return self.energy_axis ** (param_order)

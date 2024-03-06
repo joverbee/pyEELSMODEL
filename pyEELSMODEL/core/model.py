@@ -5,30 +5,28 @@ author: Jo Verbeeck and Daen Jannis
 import numpy as np
 import matplotlib.pyplot as plt
 
-from pyEELSMODEL.core.spectrum import Spectrum,Spectrumshape
+from pyEELSMODEL.core.spectrum import Spectrum
 from pyEELSMODEL.core.component import Component
 from pyEELSMODEL.components.MScatter.mscatter import Mscatter
 import logging
+
 logger = logging.getLogger(__name__)
 
 
 class Model(Spectrum):
     """
     Model class
-
-    A Model is a Spectrum that can calculate itself based on a number of Components
-    which each depend on a number of Parameters.
-
+    A Model is a Spectrum that can calculate itself based on a number of
+    Components which each depend on a number of Parameters.
     Note that all actions like convolving with low loss, adding or multiplying
-    stuff is encoded in the Components, some of which are special types which tells
-    the model how to treat them to come up with a single model result.
-
+    stuff is encoded in the Components, some of which are special types which
+    tells the model how to treat them to come up with a single model result.
     Philosophy of Model: a model with a number of parameters mimicking an EELS
-    experiment. Everything that happens in experiments needs to be modelled somehow
-    by the components in the model. The model doesnt care whether the spectrum it
-    simulates is a single spectrum or an SI. It is the task of the fitter to deal
-    with the parameters for each position in an SI (different from cpp EELSMODEL!)
-
+    experiment. Everything that happens in experiments needs to be modelled
+    somehow by the components in the model. The model doesnt care whether the
+    spectrum it simulates is a single spectrum or an SI. It is the task of the
+    fitter to deal with the parameters for each position in an SI
+    (different from cpp EELSMODEL!)
     """
 
     def __init__(self, spectrumshape, components=None):
@@ -42,7 +40,7 @@ class Model(Spectrum):
             Shape of the spectrum the model should mimick (see Spectrum
             documentation).
         components : list of Components, optional
-            List of Components the model is made of, allows to load the model 
+            List of Components the model is made of, allows to load the model
             from a file. The default is None in which case the model will be
             empty to start.
 
@@ -57,23 +55,23 @@ class Model(Spectrum):
         else:
             self.components = components
 
-        self.allparameters=[]
-        self.freeparameters=[]
-        self.freelinparameter=[]
-        self.freenonlinparameters=[]
-        self.locked=False
-        self.changed=True
+        self.allparameters = []
+        self.freeparameters = []
+        self.freelinparameter = []
+        self.freenonlinparameters = []
+        self.locked = False
+        self.changed = True
         self.prepare()
-    
+
     def release(self):
         for comp in self.components:
             comp.release()
-    
-    def lock(self,b):
+
+    def lock(self, b):
         """
-        Set the locked state of the model. If the model is locked, no components
-        can be added or removed. This is useful during fitting where the model
-        structure should not change.
+        Set the locked state of the model. If the model is locked, no
+        components can be added or removed. This is useful during fitting
+        where the model structure should not change.
 
         Parameters
         ----------
@@ -85,22 +83,25 @@ class Model(Spectrum):
         None.
 
         """
-        self.locked=b
-        
+        self.locked = b
+
     def islocked(self):
         return self.locked
-    
-    def setchanged(self,b):
-        self.changed=b
-        
+
+    def setchanged(self, b):
+        self.changed = b
+
     def ischanged(self):
         return self.changed
 
     def addcomponent(self, component):
         if self.islocked():
-            return #don't do it when the model is locked, the fitter typically locks the model during fitting
+            # don't do it when the model is locked, the fitter typically locks
+            # the model during fitting
+            return
         if isinstance(component, Component):
-            # component.seteshift(self.geteshift())  #give every new component the same eshift as we have
+            # give every new component the same eshift as we have
+            # component.seteshift(self.geteshift())
             component.eshift = self.eshift
             self.components.append(component)
             self.setchanged(True)
@@ -137,57 +138,54 @@ class Model(Spectrum):
 
     def getcomponents(self):
         return self.components
-    
+
     def getallparameters(self):
         return self.allparameters
-        
+
     def getfreeparameters(self):
         return self.freeparameters
-        
+
     def getfreelinparameters(self):
         return self.freelinparameter
-    
-    def getfreenonlinparameters(self): 
+
+    def getfreenonlinparameters(self):
         return self.freenonlinparameters
-     
+
     def prepare(self):
         """
-        Reallocate space to hold parameters. Needs to be called every time the number
-        of components or state of parameters (changeable or linear) changes. 
-        The parameterlists are what is handled by the fitter.
-        So good time to call this function is right before a fitting loop to 
-        make sure we are working with an up to date status of all parameters.
-        Changing parameter status (changeble or linear) during a fit should
-        not be allowed in the UI.
-        Calling this everytime before calculate would be too time consuming.
-        
-        
+        Reallocate space to hold parameters. Needs to be called every time the
+        number of components or state of parameters (changeable or linear)
+        changes. The parameterlists are what is handled by the fitter. So good
+        time to call this function is right before a fitting loop to make sure
+        we are working with an up to date status of all parameters. Changing
+        parameter status (changeble or linear) during a fit should not be
+        allowed in the UI. Calling this everytime before calculate would be
+        too time consuming.
 
         Returns
         -------
         None.
 
         """
-        #empty storage space 
+        # empty storage space
         self.allparameters = []
         self.freeparameters = []
         self.freelinparameter = []
         self.freenonlinparameters = []
-        #and fill it up again
+        # and fill it up again
         for comp in self.components:
             for p in comp.parameters:
                 self.allparameters.append(p)
                 if p.ischangeable():
-                     self.freeparameters.append(p)
-                     if p.islinear():
-                         self.freelinparameter.append(p)
-                     else:
-                         self.freenonlinparameters.append(p)
+                    self.freeparameters.append(p)
+                    if p.islinear():
+                        self.freelinparameter.append(p)
+                    else:
+                        self.freenonlinparameters.append(p)
 
     def getcomponentbyparameter(self, parameter):
         """
         Get component that belongs to a given parameter reference.
-    
 
         Parameters
         ----------
@@ -206,12 +204,11 @@ class Model(Spectrum):
                 return comp
         return None
 
-
     def islinear(self):
         """
         Returns whether all free parameters in the model are linear. If this
-        is the case we have a full linear model which allows the use of a linear fitter.
-        
+        is the case we have a full linear model which allows the use of a
+        linear fitter.
 
         Returns
         -------
@@ -240,8 +237,9 @@ class Model(Spectrum):
             Number of components in the model.
 
         """
-        self.prepare() #make sure to return up to date information
+        self.prepare()  # make sure to return up to date information
         return len(self.components)
+
     def getnumparameters(self):
         """
         Get total number of parameters in the model. This includes the free 
@@ -253,7 +251,7 @@ class Model(Spectrum):
             Number of parameters in the model.
 
         """
-        self.prepare() #make sure to return up to date information
+        self.prepare()  # make sure to return up to date information
         return len(self.allparameters)
 
     def getnumfreeparameters(self):
@@ -266,10 +264,10 @@ class Model(Spectrum):
             Number of free parameters in the model.
 
         """
-        self.prepare() #make sure to return up to date information
+        self.prepare()  # make sure to return up to date information
         return len(self.freeparameters)
 
-    def saveparams(self,filehandle,fmt='txt',header=True):
+    def saveparams(self, filehandle, fmt='txt', header=True):
         """
         Store all current parameters in a file that is already open
         this allows to append the parameters of all estimated params in a
@@ -289,9 +287,8 @@ class Model(Spectrum):
         None.
 
         """
-        
-        
-        #in first line of text file should appear the names
+
+        # in first line of text file should appear the names
         # if header:
         #     for p in allparameters:
         #         print(p.getdisplayname(),'\tCRLB\t',end='')
@@ -300,9 +297,8 @@ class Model(Spectrum):
         # for p in allparameters:
         #     print(p.getvalue(),'\t',p.getsigma,'\t',end='')
         print('')
-        #replace with file writing
-        #and more compact w binary 
-
+        # replace with file writing
+        # and more compact w binary
 
     def savemodel(self):
         print('saves the model')
@@ -333,7 +329,6 @@ class Model(Spectrum):
         components = worker + main
         self.components = components
 
-
     def calculate(self, use_ll=True):
         """
         Calculate the model by calculating all components.
@@ -357,72 +352,67 @@ class Model(Spectrum):
         None.
 
         """
-        
-        self.erase()  #start with a clean slate   
-        """
-        apply shift components if present they come first since they change 
-        the energy scale for all the rest
-        """
+
+        self.erase()  # start with a clean slate
+
+        # apply shift components if present they come first since they change
+        # the energy scale for all the rest
         for comp in self.components:
             if comp.getshifter():
                 comp.calculate()
-                #print('Calculating a shifter component: ',comp.getname(),'\n')
 
-        """
-        prepare multiplier components if present
-        """
+        # prepare multiplier components if present
         for comp in self.components:
-            if comp.get_ismultiplier():           
+            if comp.get_ismultiplier():
                 comp.calculate()
-                #print('Calculating a multiplier component: ',comp.getname(),'\n')
-        """
-        calculate each component and add up
-        first all components which need to be convoluted
-        """
 
-        #rearrange the order of the components such that the coupled ones are calculated first
+        #calculate each component and add up
+        #first all components which need to be convoluted
+
+        # rearrange the order of the components such that the coupled ones
+        # are calculated first
         self.order_coupled_components()
 
         for comp in self.components:
             if not comp._isconvolutor:
-                if comp.getcanconvolute() and (not (comp.get_ismultiplier()) and not (comp.getshifter())):
+                if comp.getcanconvolute() and (
+                        not (comp.get_ismultiplier()) and not (
+                comp.getshifter())):
 
-                    #only those components that can get convoluted and are not shifters or multipliers
+                    # only those components that can get convoluted and are
+                    # not shifters or multipliers
                     comp.calculate()
-                    if comp.gethasmultiplier(): #if it has a multiplier
-                           multi = comp.getmultiplierptr()
-                           #ifdef MODEL_DEBUG
-                           #std::cout << "multiptr:"<<multiptr<<"\n";
-                           #std::cout << "getmutliplierptr:"<<componentptrvector[i]->getmultiplierptr()<<"\n";
-                           #endif
-                           if multi != None:
-                               dummyspec = comp.copy()
-                               dummyspec *= multi #multiply the result with the multiplier component
-                               self += dummyspec #add the multiply result to what we have already
+                    if comp.gethasmultiplier():  # if it has a multiplier
+                        multi = comp.getmultiplierptr()
 
-                    else:#if it doesnt'have a multiplier
-                        #ifdef MODEL_DEBUG
-                        #std::cout << "Calculating a non-multiplied component: "<<componentptrvector[i]->getname()<<"\n";
-                        #endif
-                        self+=comp #just add the component
+                        if multi != None:
+                            dummyspec = comp.copy()
+                            # multiply the result with the multiplier component
+                            dummyspec *= multi
+                            # add the multiply result to what we have already
+                            self += dummyspec
 
-        """
-        then apply the convolution if needed
-        """
+                    else:
+                        self += comp  # just add the component
+
+        # then apply the convolution if needed
         if use_ll:
             for comp in self.components:
                 if isinstance(comp, Mscatter):
-                    comp.data = np.ndarray.copy(self.data) #copy in component the model data so far
-                    comp.calculate() #convolve
+                    comp.data = np.ndarray.copy(
+                        self.data)  # copy in component the model data so far
+                    comp.calculate()  # convolve
 
-                    self.data = np.ndarray.copy(comp.data) #and copy it back in the model
+                    self.data = np.ndarray.copy(
+                        comp.data)  # and copy it back in the model
 
-        """
-        then add components which can not be convoluted and are not convolutors 
-        and are not shifters and are not multipliers
-        """
+        # then add components which can not be convoluted and are not
+        # convolutors and are not shifters and are not multipliers
         for comp in self.components:
-            if not(comp.getcanconvolute()) and not(comp.get_ismultiplier()) and not isinstance(comp, Mscatter) and not(comp.getshifter()):
+            if not (comp.getcanconvolute()) and not (
+            comp.get_ismultiplier()) and not isinstance(comp,
+                                                        Mscatter) and not (
+            comp.getshifter()):
                 comp.calculate()
                 self += comp
 
@@ -446,8 +436,7 @@ class Model(Spectrum):
         for comp in self.components:
             for p in comp.parameters:
                 p.setsigma(0.0)
-                
-                
+
     def plot(self, spectrum=None, externalplt=None, **kwargs):
         """
         Plot the Model
@@ -462,16 +451,17 @@ class Model(Spectrum):
         """
         self.calculate()
         tempplt = plt
-        if type(externalplt) == type(plt):
+        if isinstance(externalplt, plt):
             tempplt = externalplt
         else:
-            #create our own figure
+            # create our own figure
             plt.figure()
             plt.title('Model')
-        #show components if visible
+        # show components if visible
         for comp in self.components:
             tempplt.plot(self.energy_axis, comp.data, **kwargs)
-        tempplt.plot(self.energy_axis, self.data, **kwargs) #and the total spectrum
+        tempplt.plot(self.energy_axis, self.data,
+                     **kwargs)  # and the total spectrum
         tempplt.xlabel(r'Energy Loss [eV]')
         if spectrum is not None:
             tempplt.plot(spectrum.energy_axis, spectrum.data, color='black',
@@ -485,7 +475,7 @@ class Model(Spectrum):
         """
         for comp in self.components:
             comp.show()
-            
+
     def printcomponents(self):
         """
         Print a list summarising all components.
@@ -497,9 +487,7 @@ class Model(Spectrum):
         """
         for comp in self.components:
             print('name: ', comp.getname())
-            # print('name: ',comp.getname(), 'description:', comp.getdescription())
 
-    
     def __iadd__(self, spectrum):
         """
         += operator, only add the spectral data.
@@ -516,7 +504,7 @@ class Model(Spectrum):
         """
         self.data += spectrum.data
         return self
-        
+
     def __imul__(self, spectrum):
         """
         *= operator, only multiply the spectral data
@@ -535,17 +523,17 @@ class Model(Spectrum):
         return self
 
     def seteshift(self, energy):
-        #override of Spectrum::seteshift
-        #set eshift for the model
+        # override of Spectrum::seteshift
+        # set eshift for the model
         # super().seteshift(energy)
         super().eshift = energy
-        #do the same for all components, they also get a setchanged command so
+        # do the same for all components, they also get a setchanged command so
         # they will recalculate completely when calculate is called
         for comp in self.components:
             # comp.seteshift(energy)
             comp.eshift = energy
-        #every new component that gets added needs also to get the same eshift
-        #this is done in addcomponent}
+        # every new component that gets added needs also to get the same eshift
+        # this is done in addcomponent}
 
     def hasconvolutor(self):
         for comp in self.components:
@@ -568,23 +556,25 @@ class Model(Spectrum):
         return False
 
     def getgradient(self, parameter):
-        #ask for an analytical gradient if available
+        # ask for an analytical gradient if available
         if parameter.gethasgradient():
-            #analytical gradients don't work if the model contains convolutors,
+            # analytical gradients don't work if the model contains convolutors,
             # shifters or multipliers
-            #we could apply these to the individual analytical gradients but
+            # we could apply these to the individual analytical gradients but
             # this takes almost the same time
-            #as a numerical derivative
-            
-            #find the component
+            # as a numerical derivative
+
+            # find the component
             component = self.getcomponentbyparameter(parameter)
             if component is None:
                 return None
 
-            if self.hasmultiplier() or self.hasconvolutor() or self.hasshifter():
+            if self.hasmultiplier() or self.hasconvolutor() \
+                    or self.hasshifter():
                 return None
-                
-            #TODO get gradient from a parameter, create it in component for convenience    
+
+            # TODO get gradient from a parameter,
+            #  create it in component for convenience
             return component.getgradient(parameter)
         else:
             return None

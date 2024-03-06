@@ -6,9 +6,10 @@ from pyEELSMODEL.core.component import Component
 from pyEELSMODEL.core.parameter import Parameter
 import numpy as np
 import logging
+
 logger = logging.getLogger(__name__)
 
-#TODO write a test function for this component
+
 class Exponential(Component):
     """
         Initialises an Exponential component
@@ -40,12 +41,11 @@ class Exponential(Component):
         p2 = Parameter('b', b)
         p2.setlinear(False)
         p2.sethasgradient(True)
-        p2.setboundaries(np.Inf,0)
+        p2.setboundaries(np.Inf, 0)
 
         self._addparameter(p2)
 
         self._setname('Exponential')
-
 
     def calculate(self):
         p1 = self.parameters[0]
@@ -59,17 +59,22 @@ class Exponential(Component):
     def exponential_function(self, A, b):
         # if sigma<self.dispersion: #sigma < dispersion makes no sense
         #    sigma=self.dispersion
-        return A * np.exp(b*self.energy_axis)
+        return A * np.exp(b * self.energy_axis)
 
     def autofit(self, spectrum, istart, istop):
         """
         Perform a linear least square fitting to get an estimate of the
         exponential fit.
 
-        :param spectrum:
-        :param istart:
-        :param istop:
-        :return:
+        Parameters
+        ----------
+        spectrum: Spectrum
+            The spectrum used to get the estimate from
+        istart: uint
+            The starting index over which to get the linear least square fit
+        istop: uint
+            The ending index over which to get the linear least square fit
+
         """
         if istart > istop:
             logger.warning(r'Start index is larger than stop index')
@@ -89,12 +94,7 @@ class Exponential(Component):
         p2.setvalue(coeff[1])
         self.calculate()
 
-
-
     def getgradient(self, parameter):
-        # to think about, we should only calculate gradients if parameters have changed
-        # but after calculate the params are set to unchanged
-        # it could make sense to always calculate the gradient whenever we calculate
         p1 = self.parameters[0]
         p2 = self.parameters[1]
         A = p1.getvalue()
@@ -104,7 +104,6 @@ class Exponential(Component):
         if parameter == p1:
             return self.exponential_function(1, b)
         if parameter == p2:
-            return en*self.exponential_function(A,b)
+            return en * self.exponential_function(A, b)
 
         return None
-

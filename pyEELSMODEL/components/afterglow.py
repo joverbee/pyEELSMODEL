@@ -1,8 +1,6 @@
-from pyEELSMODEL.components.fixedpattern import FixedPattern
 from pyEELSMODEL.core.component import Component
 from pyEELSMODEL.core.parameter import Parameter
 import numpy as np
-
 
 
 class AfterGlow(Component):
@@ -16,6 +14,7 @@ class AfterGlow(Component):
     #todo find a generic way to handle the afterglow with any need of Epos
 
     """
+
     def __init__(self, specshape, zlp, Epos, A=1):
         """
         Initiates the Afterglow component
@@ -39,13 +38,16 @@ class AfterGlow(Component):
         self.Epos = Epos
         self.zlp = zlp
         self.set_fixeddata(self.zlp, self.Epos)
-        self._setcanconvolute(False)  # don't convolute the background it only gives problems and adds no extra physics
+        # don't convolute the background it only gives problems
+        # and adds no extra physics
+        self._setcanconvolute(False)
 
         self.calculate()
 
     def set_fixeddata(self, zlp, Epos):
         """
         Sets the component using the zlp data and the energy where it is seen.
+
         Parameters
         ----------
         specshape : Spectrumshape
@@ -53,17 +55,18 @@ class AfterGlow(Component):
         zlp : numpy array
             The zlp array which is best taken to be the average.
         Epos: energy position of the peak of the afterglow
+
         """
         index = self.get_energy_index(Epos)
 
         shift = np.argmax(zlp) - index
 
         zlpdata = np.roll(zlp, -shift)[:self.size]
-        pad_size= self.size - zlpdata.size
+        pad_size = self.size - zlpdata.size
         print(pad_size)
 
         if pad_size > 0:
-            zlpdata = np.pad(zlpdata, (0,pad_size))
+            zlpdata = np.pad(zlpdata, (0, pad_size))
             print(zlpdata.size)
 
         self.fixeddata = zlpdata
@@ -73,14 +76,5 @@ class AfterGlow(Component):
 
         if p1.ischanged():
             A = p1.getvalue()
-            self.data = A*self.fixeddata
+            self.data = A * self.fixeddata
         self.setunchanged()  # put parameters to unchanged
-
-
-
-
-
-
-
-
-

@@ -27,20 +27,21 @@ to calculate the atomic cross sections. Two different GOS tables can be used for
 1. The GOS calculated by Zhang Z. *et al.* which can be found at doi:[10.5281/zenodo.7729585](https://doi.org/10.5281/zenodo.7729585).
 2. The GOS calculated by Segger L. *et al.* which can be found at doi:[10.5281/zenodo.7645765](https://doi.org/10.5281/zenodo.7645765).
 
-#### Setting up GOS array from Zhang Z.
+#### GOS tables from Zhang Z.
 Following steps explain on how the properly setup the GOS array of 
 Zhang Z. 
 1. Download the Dirac_GOS_database.zip file
 2. Unzip the file
-3. Copy the *.hdf5 files in the folder to .\database\Zhang folder which is found in the pyEELSMODEL folder
+3. Copy the *.hdf5 files in the folder to .pyEELSMODEL\database\Zhang folder which is found in the pyEELSMODEL folder
 
-**The GOS tables from Zhang are used as default in the quantification workflows so they are necessary to run the example notebooks.**
 
-#### Setting up GOS array from Segger L.
+#### GOS tables from Segger L.
 Following steps explain on how the properly setup the GOS array of 
 Segger L.
 1. Download the Segger_Guzzinati_Kohl_1.5.0.gosh (depends on version) file
-2. Copy the .gosh file to .\database\Segger_Guzzinati_Kohl folder which is found in the pyEELSMODEL folder
+2. Copy the .gosh file to .pyEELSMODEL\database\Segger_Guzzinati_Kohl folder which is found in the pyEELSMODEL folder
+
+**The GOS tables are used in the quantification workflows so they are necessary to run the example notebooks.**
 
 
 Using

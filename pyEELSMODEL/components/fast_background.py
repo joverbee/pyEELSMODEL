@@ -12,29 +12,31 @@ class FastBG2(Component):
     Fast background model, fully linear and using two terms to model the
     background
     """
+
     def __init__(self, specshape, A1=1, A2=1, r1=2.5, r2=3.5):
         super().__init__(specshape)
         p0 = Parameter('A1', A1)
         p0.setlinear(True)
         p0.setboundaries(-np.Inf, np.Inf)
         p0.sethasgradient(True)
-        self._addparameter(p0) 
+        self._addparameter(p0)
 
         p1 = Parameter('r1', r1, changeallowed=False)
         p1.sethasgradient(False)
-        self._addparameter(p1) 
+        self._addparameter(p1)
 
         p2 = Parameter('A2', A2)
         p2.setlinear(True)
         p2.setboundaries(-np.Inf, np.Inf)
         p2.sethasgradient(True)
-        self._addparameter(p2) 
+        self._addparameter(p2)
 
         p3 = Parameter('r2', r2, changeallowed=False)
         p3.sethasgradient(False)
-        self._addparameter(p3) 
-
-        self._setcanconvolute(False)  # don't convolute the background it only gives problems and adds no extra physics
+        self._addparameter(p3)
+        # don't convolute the background it only gives problems and
+        # adds no extra physics
+        self._setcanconvolute(False)
         self._setshifter(False)  # it is not a shifter type of component
 
     def calculate(self):
@@ -57,10 +59,10 @@ class FastBG2(Component):
         Estart = E[0]
         if Estart < 1:
             Estart = 1
-            
-        mask = (E > 0) # only meaningfull when E>0 and r>0
+
+        mask = (E > 0)  # only meaningfull when E>0 and r>0
         # return mask*(A1 * (E/Estart) ** (-r1) + A2 * (E/Estart) ** (-r2))
-        return mask*(A1 * E ** (-r1) + A2 * E ** (-r2))
+        return mask * (A1 * E ** (-r1) + A2 * E ** (-r2))
 
     def getgradient(self, parameter):
         """calculate the analytical partial derivative wrt parameter j
@@ -73,21 +75,20 @@ class FastBG2(Component):
 
         r1 = p1.getvalue()
         r2 = p3.getvalue()
-        
-        E=self.energy_axis
-        Estart=E[0]
-        if Estart<1:
-            Estart=1
-        mask = (E > 0) # only meaningfull when E>0 and r>0
+
+        E = self.energy_axis
+        Estart = E[0]
+        if Estart < 1:
+            Estart = 1
+        mask = (E > 0)  # only meaningfull when E>0 and r>0
         if parameter == p0:
-            self.gradient[0] = mask * E**(-r1)
+            self.gradient[0] = mask * E ** (-r1)
             return self.gradient[0]
         elif parameter == p2:
-            self.gradient[2] = mask * E**(-r2)
+            self.gradient[2] = mask * E ** (-r2)
             return self.gradient[2]
         else:
             return False
-
 
 
 class FastBG3(Component):
@@ -127,8 +128,9 @@ class FastBG3(Component):
         p5 = Parameter('r3', r3, changeallowed=False)
         p5.sethasgradient(False)
         self._addparameter(p5)
-
-        self._setcanconvolute(False)  # don't convolute the background it only gives problems and adds no extra physics
+        # don't convolute the background it only gives problems
+        # and adds no extra physics
+        self._setcanconvolute(False)
         self._setshifter(False)  # it is not a shifter type of component
 
     def calculate(self):
@@ -157,8 +159,8 @@ class FastBG3(Component):
             Estart = 1
 
         mask = (E > 0)  # only meaningfull when E>0 and r>0
-        return mask * (A1 * (E / Estart) ** (-r1) + A2 * (E / Estart) ** (-r2) + A3 * (E / Estart) ** (-r3))
-        # return mask * (A1 * (E) ** (-r1) + A2 * (E) ** (-r2) + A3 * (E) ** (-r3))
+        return mask * (A1 * (E / Estart) ** (-r1) + A2 * (E / Estart) ** (
+            -r2) + A3 * (E / Estart) ** (-r3))
 
     def getgradient(self, parameter):
         """calculate the analytical partial derivative wrt parameter j
@@ -192,5 +194,3 @@ class FastBG3(Component):
         else:
             # throw Componenterr::bad_index()
             return False
-
-

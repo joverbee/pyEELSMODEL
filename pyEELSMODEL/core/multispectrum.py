@@ -9,22 +9,21 @@ import h5py
 from os.path import exists
 import os
 
-
 from pyEELSMODEL.io_tools.dm_ncempy import dmReader
 from pyEELSMODEL.io_tools.hdf5_io import load_h5py, load_hspy
 from pyEELSMODEL.core.spectrum import Spectrum, Spectrumshape
 
 import copy
 import logging
+
 logger = logging.getLogger(__name__)
 
 
 class MultiSpectrumshape:
     """
     MultiSpectrumshape is a class holding the main parameters of a spectrum in
-    order to compactly create several spectra with the same size by providing 
-    an instance of this class
-    
+    order to compactly create several spectra with the same size by providing
+    an instance of this class.
     It holds:
         dispersion: float, dispersion in eV/pixel describing the energy scale
         offset: float, energy of the first pixel in the spectrum in eV
@@ -32,6 +31,7 @@ class MultiSpectrumshape:
         xsize: int number of spectra in x direction
         ysize: int number of spectra in y direction
     """
+
     def __init__(self, dispersion, offset, Esize, xsize, ysize):
         self.dispersion = dispersion
         self.offset = offset
@@ -45,25 +45,23 @@ class MultiSpectrumshape:
     def getspectrumshape(self):
         return self.spectrumshape
 
+
 class MultiSpectrumIterator:
     """MultiSpectrum Iterator class"""
+
     def __init__(self, multispectrum):
-       # Team object reference
-       self._multispectrum = multispectrum
-       # member variable to keep track of current index
-       self._index = 0
-       self.size=multispectrum.xsize*multispectrum.ysize
+        # Team object reference
+        self._multispectrum = multispectrum
+        # member variable to keep track of current index
+        self._index = 0
+        self.size = multispectrum.xsize * multispectrum.ysize
+
     def __next__(self):
         if self._index < self.size:
-            result=self._multispectrum[self._index]
-            self._index+=1
+            result = self._multispectrum[self._index]
+            self._index += 1
             return result
         raise StopIteration
-
-
-"""
-    MultiSpectrum class to hold multiple 1D EELS spectra as in a spectrum image or line scan spectrum.
-"""
 
 
 class MultiSpectrum(Spectrum):
@@ -87,16 +85,15 @@ class MultiSpectrum(Spectrum):
             if data does not have same size as in spectrumshape.size
         TypeError
             if data is neither int or float
-            
+
         Returns
         -------
         An instance of a Spectrum.
 
         """
-        spectrumshape=Spectrumshape(multispectrumshape.dispersion,
-                                    multispectrumshape.offset,
-                                    multispectrumshape.Esize)
-
+        spectrumshape = Spectrumshape(multispectrumshape.dispersion,
+                                      multispectrumshape.offset,
+                                      multispectrumshape.Esize)
 
         super().__init__(spectrumshape, acq_time=acq_time)
 
@@ -105,22 +102,22 @@ class MultiSpectrum(Spectrum):
         self.currentspectrumid = (0, 0)
 
         if data is None:
-            #create empy vector of data
-            self.multidata = np.zeros((self.xsize, self.ysize, self.size)) #hold all spectral data
+            # create empy vector of data
+            self.multidata = np.zeros((self.xsize, self.ysize, self.size))
 
         else:
-            if data.shape != (self.xsize, self.ysize, multispectrumshape.Esize):
+            sh = (self.xsize, self.ysize, multispectrumshape.Esize)
+            if data.shape != sh:
                 raise ValueError('data needs to be same size as spectrum.')
-            # if type(float(data[0,0,0]))!= float: #this throws a ValueError before the raise
             if not np.issubdtype(data.dtype, np.floating):
                 raise TypeError('data needs to be convertible to float.')
             self.multidata = data
 
-
         self.setcurrentspectrum(self.currentspectrumid)
         self.setcurrentmeanspectrum(self.currentspectrumid, 1, 1)
 
-        self.exclude = np.zeros(self.size, dtype=bool) #Array which points to exclude
+        # Array which points to exclude
+        self.exclude = np.zeros(self.size, dtype=bool)
         self.pppc = 1.0
         self.name = 'a multispectrum'
 
@@ -162,7 +159,7 @@ class MultiSpectrum(Spectrum):
                                        data.shape[1])
         s = MultiSpectrum(specshape, data=data)
 
-        #how to return alternate extra data like haadf map?
+        # how to return alternate extra data like haadf map?
         return s
 
     @classmethod
@@ -190,7 +187,6 @@ class MultiSpectrum(Spectrum):
             s = MultiSpectrum(specshape, data=param[0], acq_time=param[4])
             specs.append(s)
         return specs, df
-
 
     @classmethod
     def load_dm(cls, filename, flip_sign=False, dispersion=None):
@@ -257,7 +253,7 @@ class MultiSpectrum(Spectrum):
             The multispectrum which is inside the filename
 
         """
-        dispersion = energy_axis[1]-energy_axis[0]
+        dispersion = energy_axis[1] - energy_axis[0]
         offset = energy_axis[0]
         size = energy_axis.size
         xsize = data_array.shape[0]
@@ -294,16 +290,15 @@ class MultiSpectrum(Spectrum):
             return True
         return False
 
-
     def get_multispectrumshape(self):
         sh = MultiSpectrumshape(self.dispersion, self.offset, self.size,
                                 self.xsize, self.ysize)
         return sh
+
     def __getitem__(self, key):
         """
         [] operator, makes a copy of the multispectrum where key
         is the indexing used.
-
 
         Parameters
         ----------
@@ -320,18 +315,19 @@ class MultiSpectrum(Spectrum):
         -------
         s: MultiSpectrum/Spectrum
             The sliced multispectrum or spectrum
-
-        #TODO add some warining when slicing the energy loss spectrum because this is something we do not want
+        TODO add some warining when slicing the energy loss spectrum because
+        this is something we do not want
         """
 
         ndata = self.multidata[key]
 
-        #check if there is an int in the key list and make sure to add this dimension in the data
+        # check if there is an int in the key list and make sure to add this
+        # dimension in the data
         for i, val in enumerate(key):
             if isinstance(val, int):
                 ndata = np.expand_dims(ndata, axis=i)
 
-        #check if the energy axis is sliced
+        # check if the energy axis is sliced
         if ndata.shape[-1] != self.size:
             if key[-1].start is None:
                 offset = self.offset
@@ -340,18 +336,18 @@ class MultiSpectrum(Spectrum):
             if key[-1].step is None:
                 dispersion = self.dispersion
             else:
-                dispersion = self.dispersion*key[-1].step
+                dispersion = self.dispersion * key[-1].step
             size = ndata.shape[-1]
         else:
             offset = self.offset
             dispersion = self.dispersion
             size = self.size
 
-        #return a single spectrum and not multispectrum when only one spectrum
+        # return a single spectrum and not multispectrum when only one spectrum
         # is selected
-        if (ndata.shape[0]==1) and (ndata.shape[1]==1):
+        if (ndata.shape[0] == 1) and (ndata.shape[1] == 1):
             ms = Spectrumshape(dispersion, offset, size)
-            return Spectrum(ms, data=ndata[0,0])
+            return Spectrum(ms, data=ndata[0, 0])
         else:
             ms = MultiSpectrumshape(dispersion, offset, size, ndata.shape[0],
                                     ndata.shape[1])
@@ -394,7 +390,7 @@ class MultiSpectrum(Spectrum):
                                     ndata.shape[0], ndata.shape[1])
             m = MultiSpectrum(multispectrumshape=ms, data=ndata)
 
-        m.exclude = self.exclude[:] #todo nicer way of copying the exclude
+        m.exclude = self.exclude[:]  # todo nicer way of copying the exclude
         return m
 
     def mean(self, axis=(0, 1)):
@@ -414,7 +410,7 @@ class MultiSpectrum(Spectrum):
             The
             summed multispectrum or spectrum
         """
-        if axis == (0,1):
+        if axis == (0, 1):
             n_spec = self.xsize * self.ysize
         elif axis == 0:
             n_spec = self.xsize
@@ -422,7 +418,7 @@ class MultiSpectrum(Spectrum):
             n_spec = self.ysize
 
         s = self.sum(axis)
-        s.data = s.data/n_spec
+        s.data = s.data / n_spec
         return s
 
     def integrate(self, window=None, index_type=False):
@@ -495,14 +491,15 @@ class MultiSpectrum(Spectrum):
 
         """
         if self.indexOK(index):
-            self.meandata = self.multidata[index[0]:index[0]+width,
-                            index[1]:index[1]+height, :].mean((0, 1))
+            xx = [index[0], index[0] + width]
+            yy = [index[1], index[1] + height]
+            ndata = self.multidata[xx[0]:xx[1], yy[0]: yy[1], :].mean((0, 1))
+            self.meandata = ndata
         else:
             raise IndexError('Index out of bounds multispectrum')
 
     def __iter__(self):
         return MultiSpectrumIterator(self)
-
 
     def swap_xy(self):
         """
@@ -525,8 +522,8 @@ class MultiSpectrum(Spectrum):
 
     def geteshift(self):
         """
-        Get energy shift. This shift allows to move the whole energy scale up and down
-        by calling seteshift(energy)
+        Get energy shift. This shift allows to move the whole energy scale up
+        and down by calling seteshift(energy)
 
         Returns
         -------
@@ -657,7 +654,7 @@ class MultiSpectrum(Spectrum):
             raise TypeError('Input should be MultiSpectrum object, float or '
                             'int')
 
-    def __truediv__(self, other):  # needed as alternative for div depends on environment?
+    def __truediv__(self, other):
         return self.__div__(other)
 
     def __div__(self, other):
@@ -701,8 +698,6 @@ class MultiSpectrum(Spectrum):
         else:
             raise TypeError('Input should be spectrum object, float or int')
 
-
-
     def get_interval(self, interval, even_size=True):
         """
         Parameters
@@ -731,14 +726,13 @@ class MultiSpectrum(Spectrum):
         ind0 = self.get_energy_index(interval[0])
         ind1 = self.get_energy_index(interval[1])
 
-
         is_even = (ind1 - ind0) % 2
         if (is_even != 0) & even_size:
             print('Make the size of the energy spectrum even')
             ind1 -= 1
 
         ndata = self.multidata[:, :, ind0:ind1]
-        noffset = self.offset + ind0*self.dispersion
+        noffset = self.offset + ind0 * self.dispersion
         sh = MultiSpectrumshape(self.dispersion, noffset, ndata.shape[2],
                                 self.xsize, self.ysize)
         s = MultiSpectrum(sh, data=ndata)
@@ -761,12 +755,14 @@ class MultiSpectrum(Spectrum):
 
         """
 
+        return (self.dispersion != other.dispersion) or (
+                    self.offset != other.offset) or (
+                           self.size != other.size) or (
+                           self.xsize != other.xsize) or (
+                           self.ysize != other.ysize)
 
-
-        return (self.dispersion != other.dispersion) or (self.offset != other.offset) or (self.size != other.size) or (self.xsize != other.xsize) or (self.ysize != other.ysize)
-
- #   def _print_type_warning(self):
- #       print('Input should be spectrum object, float or int')
+    #   def _print_type_warning(self):
+    #       print('Input should be spectrum object, float or int')
 
     def plot(self, index=None, externalplt=None, **kwargs):
         """
@@ -779,10 +775,10 @@ class MultiSpectrum(Spectrum):
               our own matplotlib and create a new figure.
         """
         tempplt = plt
-        if type(externalplt) == type(plt):
+        if isinstance(externalplt, plt):
             tempplt = externalplt
         else:
-            #create our own figure
+            # create our own figure
             plt.figure()
 
         if index is not None:
@@ -799,9 +795,8 @@ class MultiSpectrum(Spectrum):
         ax.fill_between(self.energy_axis, 0, self.mean().data.max(),
                         where=self.exclude, color='green', alpha=0.5)
 
-
     def erase(self):
-        self.data=np.zeros(self.size)
+        self.data = np.zeros(self.size)
 
     def gaussian_3d(self, X, Y, Z, sigma):
         """
@@ -823,10 +818,10 @@ class MultiSpectrum(Spectrum):
             Three dimensional gaussian.
 
         """
-        f = np.exp(-((X**2 / (2 * sigma[0]**2)) + (Y**2 / (2 * sigma[1]**2))
-                     + (Z**2 / (2 * sigma[2]**2))))
+        f = np.exp(
+            -((X ** 2 / (2 * sigma[0] ** 2)) + (Y ** 2 / (2 * sigma[1] ** 2))
+              + (Z ** 2 / (2 * sigma[2] ** 2))))
         return f
-
 
     def rebin(self, factor):
         """
@@ -845,24 +840,24 @@ class MultiSpectrum(Spectrum):
         -------
         None.
         """
-        #todo use fftconvolve and zero padding
+        # todo use fftconvolve and zero padding
         top_hat = np.ones(factor)
-        top_hat = top_hat/top_hat.sum()
-        sindex = (np.array(factor)-1) // 2 #note that this is emperical found and I do not know if this is true for everything
+        top_hat = top_hat / top_hat.sum()
+        # note that this is emperical found and I do not know
+        # if this is true for everything
+        sind = (np.array(factor) - 1) // 2
 
         res = ndimage.convolve(self.multidata, top_hat, mode='constant',
                                cval=0.0)
 
-        # ndat = res[factor[0]::factor[0], factor[1]::factor[1], factor[2]::factor[2]]
-        ndat = res[sindex[0]::factor[0], sindex[1]::factor[1], sindex[2]::factor[2]]
-        spc = MultiSpectrumshape(factor[2]*self.dispersion,
-                                 self.offset+factor[2]*self.dispersion,
+        ndat = res[sind[0]::factor[0], sind[1]::factor[1], sind[2]::factor[2]]
+        spc = MultiSpectrumshape(factor[2] * self.dispersion,
+                                 self.offset + factor[2] * self.dispersion,
                                  ndat.shape[2], ndat.shape[0], ndat.shape[1])
         s = MultiSpectrum(spc, data=ndat)
         return s
 
-
-    def gaussiansmooth(self,sigma, crop=False):
+    def gaussiansmooth(self, sigma, crop=False):
         """
         Uses the 3D FFT to compute a gaussian blurred EELS map.
         Note the this performs a 3d fft which makes that the computation needs
@@ -882,23 +877,23 @@ class MultiSpectrum(Spectrum):
             The gaussian smoothed multispectrum
         """
 
-        fft_sig = np.pi**2/np.array(sigma) #The sigma for FFT Gaussian
+        fft_sig = np.pi ** 2 / np.array(sigma)  # The sigma for FFT Gaussian
 
-        xax = np.arange(self.xsize) - self.xsize/2
-        yax = np.arange(self.ysize) - self.ysize/2
+        xax = np.arange(self.xsize) - self.xsize / 2
+        yax = np.arange(self.ysize) - self.ysize / 2
         X, Y, E = np.meshgrid(yax, xax, self.energy_axis
-                              - self.energy_axis[int(self.size/2)])
+                              - self.energy_axis[int(self.size / 2)])
 
         FFT_d = np.fft.fftshift(np.fft.fftn(self.multidata))
         gauss = self.gaussian_3d(X, Y, E, fft_sig)
-        res = np.real(np.fft.ifftn(np.fft.ifftshift(FFT_d*gauss)))
+        res = np.real(np.fft.ifftn(np.fft.ifftshift(FFT_d * gauss)))
 
         if crop:
-            #TODO better implementation of cropping can be thought off
-            crop = [int(np.ceil(4*sig)) for sig in sigma]
-            crop[2] = int(np.ceil(crop[2]/self.dispersion))
+            # TODO better implementation of cropping can be thought off
+            crop = [int(np.ceil(4 * sig)) for sig in sigma]
+            crop[2] = int(np.ceil(crop[2] / self.dispersion))
             ndata = res[crop[0]:-crop[0], crop[1]:-crop[1], crop[2]:-crop[2]]
-            noffset = crop[2]*self.dispersion+self.offset
+            noffset = crop[2] * self.dispersion + self.offset
             ms = MultiSpectrumshape(self.dispersion, noffset, ndata.shape[2],
                                     ndata.shape[0], ndata.shape[1])
             cop = MultiSpectrum(ms, data=ndata)
@@ -922,16 +917,16 @@ class MultiSpectrum(Spectrum):
 
         differential = np.zeros_like(self.multidata)
         differential[:, :, 0] = self.multidata[:, :, 1] \
-                                - self.multidata[:, :, 0]
+            - self.multidata[:, :, 0]
         differential[:, :, -1] = self.multidata[:, :, -1] \
-                                 - self.multidata[:, :, -2]
+            - self.multidata[:, :, -2]
         differential[:, :, 1:-1] = .5 * self.multidata[:, :, 2:] \
-                                   - .5 * self.multidata[:, :, 0:-2]
+            - .5 * self.multidata[:, :, 0:-2]
         differential /= self.dispersion
 
-        nspec = MultiSpectrumshape(self.dispersion, self.offset,
-                                   differential.shape[2], self.xsize,
-                                   self.ysize)
+        nspec = MultiSpectrumshape(self.dispersion, self.offset, self.size,
+                                   self.xsize, self.ysize)
+
         s = MultiSpectrum(nspec, data=differential)
         return s
 
@@ -947,16 +942,13 @@ class MultiSpectrum(Spectrum):
         """
         differential = np.zeros_like(self.multidata)
         differential[:, :, 0] = self.multidata[:, :, 0] \
-                                - 2. * self.multidata[:, :, 1] \
-                                + self.multidata[:, :, 2]
-        differential[:, :, -1] = self.multidata[:, :, -1] \
-                                 - 2. * self.multidata[:, :, -2] \
-                                 + self.multidata[:, :, -3]
-        differential[:, :, 1:-1] = self.multidata[:, :, 0:-2] \
-                                   - 2. * self.multidata[:, :, 1:-1] \
-                                   + self.multidata[:, :, 2:]
+            - 2. * self.multidata[:, :, 1] + self.multidata[:, :, 2]
+        differential[:, :, -1] = self.multidata[:, :, -1] - 2. \
+            * self.multidata[:, :, -2] + self.multidata[:, :, -3]
+        differential[:, :, 1:-1] = self.multidata[:, :, 0:-2] - 2. \
+            * self.multidata[:, :, 1:-1] + self.multidata[:, :, 2:]
 
-        differential /= self.dispersion**2
+        differential /= self.dispersion ** 2
 
         nspec = MultiSpectrumshape(self.dispersion, self.offset,
                                    differential.shape[2], self.xsize,
@@ -964,13 +956,12 @@ class MultiSpectrum(Spectrum):
         s = MultiSpectrum(nspec, data=differential)
         return s
 
-
     def map_to_line(self):
         """
         Make a map into a line scan
         :return:
         """
-        new_shape = (int(self.xsize*self.ysize), 1, self.size)
+        new_shape = (int(self.xsize * self.ysize), 1, self.size)
         reshaped = np.reshape(self.multidata, new_shape)
         nspec = MultiSpectrumshape(self.dispersion, self.offset, self.size,
                                    new_shape[0], 1)
@@ -979,15 +970,14 @@ class MultiSpectrum(Spectrum):
 
     def to_logarithm(self):
         s = self.copy()
-        s.multidata[s.multidata<1] = 1
+        s.multidata[s.multidata < 1] = 1
         s.multidata = np.log(s.multidata)
         return s
-
 
     def apply_dark_and_gain(self, gain_name, dark_name):
         s = self.apply_dark(dark_name)
         gain = np.load(gain_name, allow_pickle=True)
-        s.multidata = gain*s.multidata
+        s.multidata = gain * s.multidata
 
         return s
 
@@ -1000,7 +990,9 @@ class MultiSpectrum(Spectrum):
     def save_hdf5(self, filename, metadata=None, overwrite=False):
         file_exists = exists(filename)
         if not overwrite and file_exists:
-            logger.info(r'File already exists, set overwrite to True if you want to overwrite existing file')
+            logger.info(
+                r'File already exists, set overwrite to True '
+                r'if you want to overwrite existing file')
             print('not overwriting')
             return False
 
@@ -1042,15 +1034,6 @@ class MultiSpectrum(Spectrum):
             if 'Layervisible' in metadata:
                 print('saving layers')
                 f.create_dataset('Layervisible', data=metadata['Layervisible'])
-
-
-            #todo: add possibility to add map layers, can also be used to store eg haadf image that goes with SI
-            #but how to get a name for each map, and e.g. brightness levels?
-            #would be best with a class, but this class then needs to be in pyeelsmodel
-            #first attempt, dumping only the data
-
-
-
 
         f.close()
         return True

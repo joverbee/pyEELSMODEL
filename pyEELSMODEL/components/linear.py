@@ -6,23 +6,25 @@ import numpy as np
 class Linear(Component):
     """
     A Linear component.
-
-    Parameters
-    ----------
-    specshape : Spectrumshape
-        The spectrum shape used to model.
-
-    m : float
-        The slope of the linear function.
-
-    q: float
-        The constant value of the linear function.
-
-    Returns
-    -------
     """
 
     def __init__(self, specshape, m, q):
+        """
+        Initialize the Linear object
+        Parameters
+        ----------
+        specshape : Spectrumshape
+            The spectrum shape used to model.
+
+        m : float
+            The slope of the linear function.
+
+        q: float
+            The constant value of the linear function.
+
+        Returns
+        -------
+        """
         super().__init__(specshape)
 
         p1 = Parameter('m', m)
@@ -34,7 +36,6 @@ class Linear(Component):
         p2.setlinear(True)
         p2.sethasgradient(True)
         self._addparameter(p2)
-        
 
     def calculate(self):
         p1 = self.parameters[0]
@@ -45,24 +46,16 @@ class Linear(Component):
             self.data = self.linear_function(m, q)
         self.setunchanged()  # put parameters to unchanged
 
-    def linear_function(self,m, q):
-        return m*self.energy_axis+q
+    def linear_function(self, m, q):
+        return m * self.energy_axis + q
 
-    def getgradient(self,parameter):
-        # to think about, we should only calculate gradients if parameters have changed
-        #but after calculate the params are set to unchanged
-        #it could make sense to always calculate the gradient whenever we calculate
-        
+    def getgradient(self, parameter):
         p1 = self.parameters[0]
         p2 = self.parameters[1]
-        m = p1.getvalue()
-        q = p2.getvalue()
-        if parameter==p1:
-            self.gradient[0]=self.linear_function(1,0)
+        if parameter == p1:
+            self.gradient[0] = self.linear_function(1, 0)
             return self.gradient[0]
-        if parameter==p2:
-            self.gradient[1]=np.ones(self.size)
+        if parameter == p2:
+            self.gradient[1] = np.ones(self.size)
             return self.gradient[1]
         return None
-            
-            
