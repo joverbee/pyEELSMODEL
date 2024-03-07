@@ -2,16 +2,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import logging
 from pyEELSMODEL.core.operator import Operator
-from pyEELSMODEL.core.model import Model
-from pyEELSMODEL.core.multispectrum import MultiSpectrum, MultiSpectrumshape
-from pyEELSMODEL.core.spectrum import Spectrum, Spectrumshape
+from pyEELSMODEL.core.multispectrum import MultiSpectrum
 from pyEELSMODEL.core.model import Model
 
 from pyEELSMODEL.operators.aligns.fastalignzeroloss import FastAlignZeroLoss
 
 from pyEELSMODEL.components.powerlaw import PowerLaw
 from pyEELSMODEL.components.linear_background import LinearBG
-from pyEELSMODEL.components.CLedge.zezhong_coreloss_edgecombined import ZezhongCoreLossEdgeCombined
+from pyEELSMODEL.components.CLedge.zezhong_coreloss_edgecombined import\
+    ZezhongCoreLossEdgeCombined
 from pyEELSMODEL.components.MScatter.mscatterfft import MscatterFFT
 from pyEELSMODEL.components.gdoslin import GDOSLin
 
@@ -19,6 +18,7 @@ from pyEELSMODEL.fitters.linear_fitter import LinearFitter
 from pyEELSMODEL.fitters.lsqfitter import LSQFitter
 
 logger = logging.getLogger(__name__)
+
 
 class ElementalQuantification(Operator):
     """
@@ -55,12 +55,12 @@ class ElementalQuantification(Operator):
         self.is_multispectrum = isinstance(spectrum, MultiSpectrum)
         self.ll = ll
 
-        self.do_align=True
+        self.do_align = True
 
-        #show feedback
-        self.feedback = True #inidicates if inbetween results are shown
+        # show feedback
+        self.feedback = True  # inidicates if inbetween results are shown
 
-        #attributes connected to core loss components
+        # attributes connected to core loss components
         self.elements = elements
         self.edges = edges
         self.onsets = np.zeros((len(elements)))
@@ -68,20 +68,21 @@ class ElementalQuantification(Operator):
         self.E0 = settings[0]
         self.alpha = settings[1]
         self.beta = settings[2]
-        self.qsteps = 20 #the number of points used to integrate q vector
+        self.qsteps = 20  # the number of points used to integrate q vector
 
-        #attributes connected to fine structure
-        self.use_fine=False #indicates if fine structure will be used.
+        # attributes connected to fine structure
+        self.use_fine = False  # indicates if fine structure will be used.
         self.fine_components = []
         self.fine_intervals = []
-        self.pre_fine = None #how much the fine structure should be fitter before onset energy
+        # how much the fine structure should be fitter before onset energy
+        self.pre_fine = None
         self.dE = None
 
-        #attributes connected to background
+        # attributes connected to background
         self.background_model = 'linear'
-        self.n_bgterms = 4 #number of terms in the linear background
+        self.n_bgterms = 4  # number of terms in the linear background
 
-        #attributes connected to fitter
+        # attributes connected to fitter
         self.linear_fitter_method = 'nnls'
         self.use_weights = True
 
@@ -107,8 +108,6 @@ class ElementalQuantification(Operator):
         self.spectrum = align.aligned_others[0]
         self.ll = align.aligned
 
-
-
     def _get_onset_energies(self):
         """
         Calculates the onset energies of the different edges. Is needed in
@@ -128,9 +127,9 @@ class ElementalQuantification(Operator):
         onset_energies = self._get_onset_energies()
         first_onset = np.min(onset_energies)
         ind_f = self.spectrum.get_energy_index(first_onset)
-        ind_i = 5 #the 10 pixel is used as estimate
+        ind_i = 5  # the 10 pixel is used as estimate
 
-        if ind_f<=ind_i:
+        if ind_f <= ind_i:
             print('powerlaw estimation region too small')
             return None
         indices = [ind_i, ind_f]
@@ -149,7 +148,7 @@ class ElementalQuantification(Operator):
             s = self.spectrum
 
         xx = np.arange(bg.size)
-        where = (xx>=indices[0]) & (xx<=indices[1])
+        where = (xx >= indices[0]) & (xx <= indices[1])
         fig, ax = plt.subplots()
         ax.plot(s.energy_axis, s.data)
         ax.plot(bg.energy_axis, bg.data)
@@ -175,8 +174,9 @@ class ElementalQuantification(Operator):
             if self.feedback:
                 self.visualize_autofit(bg)
 
-        elif self.background_model =='linear':
-            bg = LinearBG(specshape=spsh, rlist=np.linspace(1,5,self.n_bgterms))
+        elif self.background_model == 'linear':
+            rlist = np.linspace(1, 5, self.n_bgterms)
+            bg = LinearBG(specshape=spsh, rlist=rlist)
         self.bg = bg
 
     def make_coreloss(self):
@@ -187,7 +187,6 @@ class ElementalQuantification(Operator):
         """
         spsh = self.spectrum.get_spectrumshape()
 
-
         # The components of the edges
         comp_elements = []
         for elem, edge, onset in zip(self.elements, self.edges, self.onsets):
@@ -195,8 +194,6 @@ class ElementalQuantification(Operator):
                                                self.beta, elem, edge,
                                                eshift=onset,
                                                q_steps=self.qsteps)
-
-
             comp_elements.append(comp)
         self.element_components = comp_elements
 
@@ -205,8 +202,6 @@ class ElementalQuantification(Operator):
             self.dE = self.ll.mean().get_numerical_fwhm()
         else:
             self.dE = self.ll.get_numerical_fwhm()
-
-
 
     def make_finestructure(self):
         """
@@ -218,7 +213,7 @@ class ElementalQuantification(Operator):
         """
         spsh = self.spectrum.get_spectrumshape()
 
-        #if no dE is given then estimate it from zero loss peak
+        # if no dE is given then estimate it from zero loss peak
         if self.dE is None:
             self.estimate_sampling()
 
@@ -249,7 +244,7 @@ class ElementalQuantification(Operator):
         if self.ll is None:
             self.llcomp = None
         else:
-            self.llcomp  = MscatterFFT(spsh, self.ll)
+            self.llcomp = MscatterFFT(spsh, self.ll)
 
     def make_model(self):
         """
@@ -284,9 +279,9 @@ class ElementalQuantification(Operator):
 
         else:
             for comps in self.element_components:
-                comps.parameters[0].setboundaries(0,1e10)
-            self.fitter = LSQFitter(self.spectrum, self.model, method='trf', use_bounds=True)
-
+                comps.parameters[0].setboundaries(0, 1e10)
+            self.fitter = LSQFitter(self.spectrum, self.model, method='trf',
+                                    use_bounds=True)
 
     def do_procedure(self):
         """
@@ -304,13 +299,12 @@ class ElementalQuantification(Operator):
         if isinstance(self.spectrum, MultiSpectrum):
             self.fitter.multi_fit()
             self.multimodel = self.fitter.model_to_multispectrum()
-            fig, maps, names = self.fitter.show_map_result(self.element_components)
+            fig, maps, names = \
+                self.fitter.show_map_result(self.element_components)
             self.elemental_maps = maps
             self.elemental_names = names
         else:
             self.fitter.perform_fit()
-
-
 
     def show_elements_maps(self):
         """
@@ -335,24 +329,27 @@ class ElementalQuantification(Operator):
 
         """
         multimodels = []
-        multimodels.append(self.fitter.model_to_multispectrum_with_comps([self.bg]))
+        multimodels.append(
+            self.fitter.model_to_multispectrum_with_comps([self.bg]))
 
         onset_energies = self._get_onset_energies()
         co = np.argsort(onset_energies)
 
         use_comps = [self.bg]
         for ii in range(co.size):
-            comps = []
             comp = self.element_components[co[ii]]
-            multimodels.append(self.fitter.model_to_multispectrum_with_comps(use_comps + [comp]))
+            comps = use_comps + [comp]
+            s = self.fitter.model_to_multispectrum_with_comps(comps)
+            multimodels.append(s)
             use_comps.append(comp)
             if self.use_fine:
                 comp = self.fine_components[co[ii]]
-                multimodels.append(self.fitter.model_to_multispectrum_with_comps(use_comps + [comp]))
+                comps = use_comps + [comp]
+                s = self.fitter.model_to_multispectrum_with_comps(comps)
+                multimodels.append(s)
                 use_comps.append(comp)
 
         return multimodels
-
 
     def get_CRLB(self):
         """
@@ -374,14 +371,3 @@ class ElementalQuantification(Operator):
 
         self.crlbs = crlbs
         return crlbs
-
-
-
-
-
-
-
-
-
-
-

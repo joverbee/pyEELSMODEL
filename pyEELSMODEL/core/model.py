@@ -221,7 +221,7 @@ class Model(Spectrum):
             for param in comp.parameters:
                 if param.ischangeable():
                     boolean = boolean and param.islinear()
-                    if param.islinear() == False:
+                    if not param.islinear():
                         logger.warning('non linear parameter found %s in '
                                        'component:%s', param.getname(),
                                        comp.getname())
@@ -242,8 +242,8 @@ class Model(Spectrum):
 
     def getnumparameters(self):
         """
-        Get total number of parameters in the model. This includes the free 
-        and the non-free parameters. 
+        Get total number of parameters in the model. This includes the free
+        and the non-free parameters.
 
         Returns
         -------
@@ -272,7 +272,6 @@ class Model(Spectrum):
         Store all current parameters in a file that is already open
         this allows to append the parameters of all estimated params in a
         spectrum image in one big file.
-        
         TODO work eg with elementtree for XML writing
 
         Parameters
@@ -366,8 +365,8 @@ class Model(Spectrum):
             if comp.get_ismultiplier():
                 comp.calculate()
 
-        #calculate each component and add up
-        #first all components which need to be convoluted
+        # calculate each component and add up
+        # first all components which need to be convoluted
 
         # rearrange the order of the components such that the coupled ones
         # are calculated first
@@ -375,9 +374,8 @@ class Model(Spectrum):
 
         for comp in self.components:
             if not comp._isconvolutor:
-                if comp.getcanconvolute() and (
-                        not (comp.get_ismultiplier()) and not (
-                comp.getshifter())):
+                if comp.getcanconvolute() and (not (comp.get_ismultiplier())
+                                               and not (comp.getshifter())):
 
                     # only those components that can get convoluted and are
                     # not shifters or multipliers
@@ -385,7 +383,7 @@ class Model(Spectrum):
                     if comp.gethasmultiplier():  # if it has a multiplier
                         multi = comp.getmultiplierptr()
 
-                        if multi != None:
+                        if multi is not None:
                             dummyspec = comp.copy()
                             # multiply the result with the multiplier component
                             dummyspec *= multi
@@ -409,10 +407,9 @@ class Model(Spectrum):
         # then add components which can not be convoluted and are not
         # convolutors and are not shifters and are not multipliers
         for comp in self.components:
-            if not (comp.getcanconvolute()) and not (
-            comp.get_ismultiplier()) and not isinstance(comp,
-                                                        Mscatter) and not (
-            comp.getshifter()):
+            if not (comp.getcanconvolute()) and not (comp.get_ismultiplier()) \
+                    and not isinstance(comp, Mscatter) \
+                    and not (comp.getshifter()):
                 comp.calculate()
                 self += comp
 
@@ -440,7 +437,7 @@ class Model(Spectrum):
     def plot(self, spectrum=None, externalplt=None, **kwargs):
         """
         Plot the Model
-            
+
         Parameters
         ----------
         spectrum: Spectrum
@@ -558,7 +555,7 @@ class Model(Spectrum):
     def getgradient(self, parameter):
         # ask for an analytical gradient if available
         if parameter.gethasgradient():
-            # analytical gradients don't work if the model contains convolutors,
+            # analytical gradients don't work if the model contains convolutor
             # shifters or multipliers
             # we could apply these to the individual analytical gradients but
             # this takes almost the same time

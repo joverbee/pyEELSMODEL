@@ -10,10 +10,11 @@ from matplotlib.backend_bases import MouseButton
 import logging
 
 from pyEELSMODEL.core.operator import Operator
-from pyEELSMODEL.core.multispectrum import MultiSpectrum, MultiSpectrumshape
+from pyEELSMODEL.core.multispectrum import MultiSpectrum
 from pyEELSMODEL.components.CLedge.coreloss_edge import CoreLossEdge
 
 logger = logging.getLogger(__name__)
+
 
 class CalibrateSpectrum(Operator):
     """
@@ -51,8 +52,6 @@ class CalibrateSpectrum(Operator):
 
         self.set_onset_edge_energies()
 
-
-
     def set_onset_edge_energies(self):
         """
         Calculates the list of tabulated onset energies of the edges.
@@ -64,14 +63,9 @@ class CalibrateSpectrum(Operator):
             core = CoreLossEdge(sh, 1, 1, 1, 1, elem, edge)
             self.onset_edge_energies.append(core.onset_energy)
 
-
-
-
-
     def show_real_energies(self):
         """
         Show the real energies from the tabulated data on the spectrum
-        :return:
         """
 
         cte = 1.1
@@ -79,7 +73,7 @@ class CalibrateSpectrum(Operator):
         if isinstance(self.spectrum, MultiSpectrum):
             ndata = self.spectrum.sum().data
         else:
-            ndata =self.spectrum.data
+            ndata = self.spectrum.data
 
         ax.plot(self.spectrum.energy_axis, ndata)
         for index, en in enumerate(self.onset_edge_energies):
@@ -106,10 +100,12 @@ class CalibrateSpectrum(Operator):
                 global ix, iy, coords
                 ix, iy = event.xdata, event.ydata
                 ylim = ax.get_ylim()
-                ax.plot([event.xdata,event.xdata], [ylim[0], ylim[1]], color='black')
+                ax.plot([event.xdata, event.xdata], [ylim[0], ylim[1]],
+                        color='black')
                 ax.set_ylim(ylim)
                 fig.canvas.draw()
-                print('Energy of '+self.element_list[len(coords)]+' '+self.edge_list[len(coords)]+' is:' + str(ix))
+                print('Energy of ' + self.element_list[len(coords)] + ' ' +
+                      self.edge_list[len(coords)] + ' is:' + str(ix))
 
                 coords.append(ix)
                 if len(coords) == len(self.onset_edge_energies):
@@ -122,7 +118,7 @@ class CalibrateSpectrum(Operator):
         if isinstance(self.spectrum, MultiSpectrum):
             ndata = self.spectrum.sum().data
         else:
-            ndata =self.spectrum.data
+            ndata = self.spectrum.data
         ax.plot(self.spectrum.energy_axis, ndata)
         ax.set_ylim([ndata.min(), cte*ndata.max()])
         ax.set_xlabel(r'Energy axis')
@@ -131,17 +127,18 @@ class CalibrateSpectrum(Operator):
         self.coords = coords
         cid = fig.canvas.mpl_connect('button_press_event', onclick)
 
-
     def calibrate_energy_axis(self):
         """
         Calibrates the energy axis using the input energies.
 
         """
         if len(self.coords) != len(self.onset_edge_energies):
-            print('Run the determine_edge_positions function again to define the edges')
+            print('Run the determine_edge_positions function '
+                  'again to define the edges')
 
-        self.coeff = np.polyfit(np.array(self.coords), np.array(self.onset_edge_energies), 1)
-        n_en_axis = self.coeff[0]*self.spectrum.energy_axis+self.coeff[1]
+        self.coeff = np.polyfit(np.array(self.coords),
+                                np.array(self.onset_edge_energies), 1)
+        n_en_axis = self.coeff[0] * self.spectrum.energy_axis + self.coeff[1]
         disp = n_en_axis[1]-n_en_axis[0]
         offset = n_en_axis[0]
         delta_offset = self.spectrum.offset - offset
@@ -155,12 +152,9 @@ class CalibrateSpectrum(Operator):
 
     def show_calibration_fit(self):
         plt.figure()
-        plt.plot(self.coords, self.onset_edge_energies, marker='o', label='Data points')
-        plt.plot(self.spectrum.energy_axis, self.coeff[0]*self.spectrum.energy_axis+self.coeff[1],
+        plt.plot(self.coords, self.onset_edge_energies,
+                 marker='o', label='Data points')
+        plt.plot(self.spectrum.energy_axis,
+                 self.coeff[0] * self.spectrum.energy_axis + self.coeff[1],
                  label='Fit')
         plt.legend()
-
-
-
-
-

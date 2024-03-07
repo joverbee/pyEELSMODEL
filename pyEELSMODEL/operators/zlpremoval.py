@@ -1,12 +1,13 @@
 from pyEELSMODEL.core.operator import Operator
 from pyEELSMODEL.core.model import Model
 from pyEELSMODEL.core.multispectrum import MultiSpectrum, MultiSpectrumshape
-from pyEELSMODEL.core.spectrum import Spectrum, Spectrumshape
+from pyEELSMODEL.core.spectrum import Spectrum
 from pyEELSMODEL.components.gaussian import Gaussian
 from pyEELSMODEL.components.lorentzian import Lorentzian
 from pyEELSMODEL.components.voigt import Voigt
 from pyEELSMODEL.fitters.lsqfitter import LSQFitter
-from pyEELSMODEL.operators.multispectrumvisualizer import MultiSpectrumVisualizer
+from pyEELSMODEL.operators.multispectrumvisualizer import \
+    MultiSpectrumVisualizer
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
@@ -23,12 +24,12 @@ class ZLPRemoval(Operator):
         self.spectrum = spectrum
         self.signal_range = signal_range
         self.model_type = model_type
-        self.fwhm_boundaries = (self.spectrum.dispersion/2, 40*self.spectrum.dispersion)
+        self.fwhm_boundaries = (self.spectrum.dispersion/2,
+                                40*self.spectrum.dispersion)
 
         self.set_indices()
         self.make_zeroloss_model()
         self.set_start_parameters()
-
 
         self.start_parameters = None
         self.fitter = None
@@ -40,7 +41,6 @@ class ZLPRemoval(Operator):
         self.mirror_inelastic = None
 
         self.mirror_ind = 50
-
 
     @property
     def spectrum(self):
@@ -57,8 +57,9 @@ class ZLPRemoval(Operator):
     @signal_range.setter
     def signal_range(self, signal_range):
         if signal_range is None:
-            #todo a smarter guess of the signal range would be good
-            signal_range = (self.spectrum.offset, self.spectrum.energy_axis[-1])
+            # todo a smarter guess of the signal range would be good
+            signal_range = (self.spectrum.offset,
+                            self.spectrum.energy_axis[-1])
         self._signal_range = signal_range
 
     @property
@@ -86,7 +87,8 @@ class ZLPRemoval(Operator):
     @property
     def fitter(self):
         """
-        The fitter used in the spectrum (now it is the LSQ since it fast and stable)
+        The fitter used in the spectrum (now it is the LSQ since
+        it fast and stable)
         """
         return self._fitter
 
@@ -96,9 +98,9 @@ class ZLPRemoval(Operator):
 
     def make_zeroloss_model(self):
         """
-        Creates a model for the zero loss peak, this depends on which model_type
-        is chosen when creating the background object. The model is stored in the model
-        attribute
+        Creates a model for the zero loss peak, this depends on which
+        model_type is chosen when creating the background object. The model is
+        stored in the model attribute
         """
         specshape = self.spectrum.get_spectrumshape()
         m0 = Model(specshape)
@@ -108,7 +110,6 @@ class ZLPRemoval(Operator):
             comp = Lorentzian(specshape, A=1, centre=0, fwhm=1)
         elif self.model_type == 'Voigt':
             comp = Voigt(specshape, A=1, centre=1, gamma=1, sigma=1)
-
         else:
             print('model type not included in the list of possibilities')
 
@@ -131,24 +132,26 @@ class ZLPRemoval(Operator):
         start_param[2:] = self.spectrum.dispersion*10
         self.start_param = start_param
 
-
     def estimate_start_param_multi(self):
         """
-        Estimates the starting value of the fitting for a multispectrum when having a
-        gaussian or lorentzian model to fit.
+        Estimates the starting value of the fitting for a multispectrum when
+        having a gaussian or lorentzian model to fit.
         """
         # The lorentzian and gaussian model both have three parameters.
-        start_param = np.zeros((self.spectrum.xsize, self.spectrum.ysize, self.model.getnumparameters()))
+        start_param = np.zeros((self.spectrum.xsize, self.spectrum.ysize,
+                                self.model.getnumparameters()))
         ind0 = self.indices[0]
         ind1 = self.indices[1]
 
         start_param[:, :, 0] = np.max(self.spectrum.multidata, axis=2)
 
         # this should be zero in principle
-        shift = (np.argmax(self.spectrum.multidata[:, :, ind0:ind1], axis=2)+ind0)
+        co = np.argmax(self.spectrum.multidata[:, :, ind0:ind1], axis=2)
+        shift = (co + ind0)
         start_param[:, :, 1] = self.spectrum.energy_axis[shift]
 
-        # start_param[:, :, 2:] = 4*self.spectrum.dispersion #if voigt this is still  fine
+        # if voigt this is still  fine
+        # start_param[:, :, 2:] = 4*self.spectrum.dispersion
         start_param[:, :, 2:] = 1
 
         self.start_param_multi = start_param
@@ -159,7 +162,6 @@ class ZLPRemoval(Operator):
         else:
             self.estimate_start_param()
 
-
     def set_indices(self):
         """
         Calculates the indices used which are excluded in the fit.
@@ -167,7 +169,6 @@ class ZLPRemoval(Operator):
         background model. The result is stored in the indices attribute
 
         """
-
         ind1 = [self.spectrum.get_energy_index(self.signal_range[0]),
                 self.spectrum.get_energy_index(self.signal_range[1])]
         self.indices = ind1
@@ -178,7 +179,6 @@ class ZLPRemoval(Operator):
         range is taken into account.
         """
         self.spectrum.set_include_region(self.indices[0], self.indices[1])
-
 
     def fit_zlp(self):
         prev_exclude = self.spectrum.exclude[:]
@@ -197,30 +197,37 @@ class ZLPRemoval(Operator):
 
             fit.perform_fit()
             self.fitter = fit
-            self.zlp = Spectrum(self.spectrum.get_spectrumshape(), data=self.model.data)
+            self.zlp = Spectrum(self.spectrum.get_spectrumshape(),
+                                data=self.model.data)
 
         self.spectrum.exclude = prev_exclude
         self.inelastic = self.spectrum - self.zlp
-
-
-
 
     def mirrored_zlp(self):
         ind0 = self.indices[0]
         ind1 = self.indices[1]
         print(isinstance(self.spectrum, MultiSpectrum))
         if isinstance(self.spectrum, MultiSpectrum):
-            shift = (np.argmax(self.spectrum.multidata[:, :, ind0:ind1], axis=2)+ind0)
+            shift = (np.argmax(self.spectrum.multidata[:, :, ind0:ind1],
+                               axis=2)+ind0)
             shape = (self.spectrum.xsize, self.spectrum.ysize)
-            ndata = np.zeros((self.spectrum.xsize, self.spectrum.ysize, self.spectrum.size))
+            ndata = np.zeros((self.spectrum.xsize, self.spectrum.ysize,
+                              self.spectrum.size))
             for index in (np.ndindex(shape)):
-                islice = np.s_[index]
-                ind = max(0, shift[islice]-self.mirror_ind)
-                res = self.spectrum.multidata[islice[0],islice[1],ind:shift[islice]+1]
+                isl = np.s_[index]
+                ind = max(0, shift[isl]-self.mirror_ind)
+                res = self.spectrum.multidata[isl[0], isl[1], ind:shift[isl]+1]
+
                 rest_size = int(self.spectrum.size - 2*res.size - ind + 1)
-                ndata[islice] = np.concatenate((np.zeros(ind), res, np.flip(res[:-1]), np.zeros(rest_size)))
-            mshape = MultiSpectrumshape(self.spectrum.dispersion, self.spectrum.offset,
-                                        self.spectrum.size, self.spectrum.xsize, self.spectrum.ysize)
+                ndata[isl] = np.concatenate((np.zeros(ind),
+                                             res, np.flip(res[:-1]),
+                                             np.zeros(rest_size)))
+
+            mshape = MultiSpectrumshape(self.spectrum.dispersion,
+                                        self.spectrum.offset,
+                                        self.spectrum.size,
+                                        self.spectrum.xsize,
+                                        self.spectrum.ysize)
             self.mirror_zlp = MultiSpectrum(mshape, data=ndata)
             self.mirror_inelastic = self.spectrum - self.mirror_zlp
 
@@ -230,28 +237,28 @@ class ZLPRemoval(Operator):
             print(ind)
             res = self.spectrum.data[ind:shift+1]
             rest_size = int(self.spectrum.size - 2*res.size - ind + 1)
-            ndata = np.concatenate((np.zeros(ind), res, np.flip(res[:-1]), np.zeros(rest_size)))
-            self.mirror_zlp = Spectrum(self.spectrum.get_spectrumshape(), data=ndata)
+            ndata = np.concatenate((np.zeros(ind),
+                                    res, np.flip(res[:-1]),
+                                    np.zeros(rest_size)))
+            self.mirror_zlp = Spectrum(self.spectrum.get_spectrumshape(),
+                                       data=ndata)
             self.mirror_inelastic = self.spectrum - self.mirror_zlp
 
     def show_fit_result(self):
         if isinstance(self.spectrum, MultiSpectrum):
             print('show the multispectrum')
-            MultiSpectrumVisualizer([self.spectrum, self.zlp], labels=['Experimental', 'Fitted ZLP'])
+            MultiSpectrumVisualizer([self.spectrum, self.zlp],
+                                    labels=['Experimental', 'Fitted ZLP'])
         else:
             self.fitter.plot()
 
     def show_mirror_result(self):
         if isinstance(self.spectrum, MultiSpectrum):
             print('show the multispectrum')
-            MultiSpectrumVisualizer([self.spectrum, self.zlp], labels=['Experimental', 'Fitted ZLP'])
+            MultiSpectrumVisualizer([self.spectrum, self.zlp],
+                                    labels=['Experimental', 'Fitted ZLP'])
         else:
             fig, ax = plt.subplots()
-            ax.plot(self.spectrum.energy_axis, self.spectrum.data, color='black', marker='o')
+            ax.plot(self.spectrum.energy_axis, self.spectrum.data,
+                    color='black', marker='o')
             ax.plot(self.spectrum.energy_axis, self.mirror_zlp.data)
-
-
-
-
-
-

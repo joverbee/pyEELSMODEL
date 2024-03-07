@@ -4,20 +4,23 @@ from scipy import interpolate
 import pyEELSMODEL.misc.physical_constants as pc
 import pyEELSMODEL.misc.hydrogen_gdos as hdos
 
+
 def getgosq(info1_1, info1_2, n):
     return info1_1 * (np.exp(np.arange(n) * info1_2) - 1) * 1e10
+
 
 def getgosenergy(info2_1, info2_2, n):
     return info2_1 * (np.exp(np.arange(n) * info2_2 / info2_1) - 1)
 
+
 def linear_interpolation(x, y, x1):
-    m = (y[1]-y[0])/(x[1]-x[0])
-    q = y[0]-m*x[0]
-    return m*x1+q
+    m = (y[1] - y[0]) / (x[1] - x[0])
+    q = y[0] - m * x[0]
+    return m * x1 + q
+
 
 def powerlaw(x, A, r):
-    return A*x**(-r)
-
+    return A * x ** (-r)
 
 
 def getinterpolatedgos(E, q, E_axis, q_axis, GOSmatrix, swap_axes=False):
@@ -56,29 +59,34 @@ def getinterpolatedgos(E, q, E_axis, q_axis, GOSmatrix, swap_axes=False):
     if index_q == q_axis.size:
         return 0.0
 
-    dE = E_axis[index_E] - E_axis[index_E-1]
-    dq = q_axis[index_q] - q_axis[index_q-1]
+    dE = E_axis[index_E] - E_axis[index_E - 1]
+    dq = q_axis[index_q] - q_axis[index_q - 1]
 
-    distE = E - E_axis[index_E-1]
-    distq = q - q_axis[index_q-1]
+    distE = E - E_axis[index_E - 1]
+    distq = q - q_axis[index_q - 1]
 
     if swap_axes:
-        r0 = GOSmatrix[index_q - 1, index_E - 1] * (1 / (dE * dq)) * (dE - distE) * (dq - distq)
-        r1 = GOSmatrix[index_q, index_E - 1] * (1 / (dE * dq)) * (dE - distE) * (distq)
-        r2 = GOSmatrix[index_q - 1, index_E] * (1 / (dE * dq)) * (distE) * (dq - distq)
+        r0 = GOSmatrix[index_q - 1, index_E - 1] * (1 / (dE * dq)) * (
+                    dE - distE) * (dq - distq)
+        r1 = GOSmatrix[index_q, index_E - 1] * (1 / (dE * dq)) * (
+                    dE - distE) * (distq)
+        r2 = GOSmatrix[index_q - 1, index_E] * (1 / (dE * dq)) * (distE) * (
+                    dq - distq)
         r3 = GOSmatrix[index_q, index_E] * (1 / (dE * dq)) * (distE) * (distq)
     else:
-        r0 = GOSmatrix[index_E-1, index_q-1]*(1/(dE*dq))*(dE-distE)*(dq-distq)
-        r1 = GOSmatrix[index_E-1, index_q]*(1/(dE*dq))*(dE-distE)*(distq)
-        r2 = GOSmatrix[index_E, index_q-1]*(1/(dE*dq))*(distE)*(dq-distq)
-        r3 = GOSmatrix[index_E, index_q]*(1/(dE*dq))*(distE)*(distq)
+        r0 = GOSmatrix[index_E - 1, index_q - 1] * (1 / (dE * dq)) * (
+                    dE - distE) * (dq - distq)
+        r1 = GOSmatrix[index_E - 1, index_q] * (1 / (dE * dq)) * (
+                    dE - distE) * (distq)
+        r2 = GOSmatrix[index_E, index_q - 1] * (1 / (dE * dq)) * (distE) * (
+                    dq - distq)
+        r3 = GOSmatrix[index_E, index_q] * (1 / (dE * dq)) * (distE) * (distq)
+
+    return r0 + r1 + r2 + r3
 
 
-
-    return r0+r1+r2+r3
-
-
-def get_powerLaw_extrapolation(rel_energy_axis, q_axis, GOSmatrix, E0, beta, alpha,
+def get_powerLaw_extrapolation(rel_energy_axis, q_axis, GOSmatrix, E0, beta,
+                               alpha,
                                q_steps=100, swap_axes=False):
     """
     If the energy axis for the cross section extends the range of calculated
@@ -116,19 +124,23 @@ def get_powerLaw_extrapolation(rel_energy_axis, q_axis, GOSmatrix, E0, beta, alp
         integral = 0
 
         qa0sq_min, qa0sq_max = hdos.get_qmin_max(E, E0, beta, alpha=alpha)
-        logqa0sq_axis = np.linspace(np.log(qa0sq_min), np.log(qa0sq_max), q_steps)
+        logqa0sq_axis = np.linspace(np.log(qa0sq_min), np.log(qa0sq_max),
+                                    q_steps)
         lnqa0sqstep = (logqa0sq_axis[1] - logqa0sq_axis[0])
         for j in range(logqa0sq_axis.size):
             q = np.sqrt(np.exp(logqa0sq_axis[j])) / pc.a0()
-            theta = 2. * np.sqrt(np.abs(R * (np.exp(logqa0sq_axis[j]) - qa0sq_min) / (4. * gamma ** 2 * T)))
-            df_dE = getinterpolatedgos(E, q, rel_energy_axis, q_axis, GOSmatrix, swap_axes=swap_axes)
+            theta = 2. * np.sqrt(np.abs(
+                R * (np.exp(logqa0sq_axis[j]) - qa0sq_min) / (
+                            4. * gamma ** 2 * T)))
+            df_dE = getinterpolatedgos(E, q, rel_energy_axis, q_axis,
+                                       GOSmatrix, swap_axes=swap_axes)
             # integral += df_dE * lnqa0sqstep
-            integral += df_dE * lnqa0sqstep*hdos.correction_factor_kohl(alpha, beta, theta)
-        # dsigma_dE[i] = 4 * np.pi * pc.a0() ** 2 * (R / E) * (R / T) * integral * dispersion
+            integral += df_dE * lnqa0sqstep * hdos.correction_factor_kohl(
+                alpha, beta, theta)
         dsigma_dE[i] = 4 * np.pi * pc.a0() ** 2 * (R / E) * (R / T) * integral
 
-    r=np.log(dsigma_dE[1] / dsigma_dE[0]) / np.log(E_axis[0] / E_axis[1])
-    A= dsigma_dE[0] / (pow(E_axis[0], -r))
+    r = np.log(dsigma_dE[1] / dsigma_dE[0]) / np.log(E_axis[0] / E_axis[1])
+    A = dsigma_dE[0] / (pow(E_axis[0], -r))
 
     return A, r
 
@@ -164,14 +176,17 @@ def dsigma_dE_HS(energy_axis, Z, ek, E0, beta, alpha, filename, q_steps=100):
     E_2 = float(GOS_list[7])
     nrow = int(GOS_list[8])
     gos_array = np.array(GOS_list[9:], dtype=np.float64)
-    #careful data is stored per rydberg and we want per eV to be compatible with sigmak
+    # careful data is stored per rydberg and we want
+    # per eV to be compatible with sigmak
     GOSmatrix = gos_array.reshape(nrow, ncol) / R
 
-    rel_energy_axis = getgosenergy(E_1, E_2, nrow)+ek
+    rel_energy_axis = getgosenergy(E_1, E_2, nrow) + ek
     q_axis = getgosq(q_1, q_2, ncol)
-    dsigma_dE = dsigma_dE_from_GOSarray(energy_axis, rel_energy_axis, ek, E0, beta, alpha, q_axis,
+    dsigma_dE = dsigma_dE_from_GOSarray(energy_axis, rel_energy_axis, ek, E0,
+                                        beta, alpha, q_axis,
                                         GOSmatrix, q_steps=q_steps)
     return dsigma_dE
+
 
 def dsigma_dE_from_GOSarray(energy_axis, rel_energy_axis, ek, E0, beta, alpha,
                             q_axis, GOSmatrix, q_steps=100, swap_axes=False):
@@ -222,29 +237,36 @@ def dsigma_dE_from_GOSarray(energy_axis, rel_energy_axis, ek, E0, beta, alpha,
 
     # check if there are energies larger then the max energy
     if energy_axis[-1] > rel_energy_axis[-1]:
-    # then calculate a power law dependence of the cross sections
-        powA, powr = get_powerLaw_extrapolation(rel_energy_axis, q_axis, GOSmatrix,
-                                                E0, beta, alpha, q_steps=q_steps,
+        # then calculate a power law dependence of the cross sections
+        powA, powr = get_powerLaw_extrapolation(rel_energy_axis, q_axis,
+                                                GOSmatrix,
+                                                E0, beta, alpha,
+                                                q_steps=q_steps,
                                                 swap_axes=swap_axes)
-
 
     for i in range(energy_axis.size):
         E = energy_axis[i]
         integral = 0
-        if (E>ek) & (E<=rel_energy_axis[-1]):
+        if (E > ek) & (E <= rel_energy_axis[-1]):
             qa0sq_min, qa0sq_max = hdos.get_qmin_max(E, E0, beta, alpha=alpha)
-            logqa0sq_axis = np.linspace(np.log(qa0sq_min), np.log(qa0sq_max), q_steps)
+            logqa0sq_axis = np.linspace(np.log(qa0sq_min), np.log(qa0sq_max),
+                                        q_steps)
             lnqa0sqstep = (logqa0sq_axis[1] - logqa0sq_axis[0])
             for j in range(logqa0sq_axis.size):
-                q = np.sqrt(np.exp(logqa0sq_axis[j]))/pc.a0()
-                theta = 2.*np.sqrt(np.abs(R*(np.exp(logqa0sq_axis[j])-qa0sq_min)/(4.*gamma**2*T)))
-                df_dE = getinterpolatedgos(E, q, rel_energy_axis, q_axis, GOSmatrix, swap_axes=swap_axes)
+                q = np.sqrt(np.exp(logqa0sq_axis[j])) / pc.a0()
+                theta = 2. * np.sqrt(np.abs(
+                    R * (np.exp(logqa0sq_axis[j]) - qa0sq_min) / (
+                                4. * gamma ** 2 * T)))
+                df_dE = getinterpolatedgos(E, q, rel_energy_axis, q_axis,
+                                           GOSmatrix, swap_axes=swap_axes)
                 # integral+= df_dE*lnqa0sqstep
-                integral += df_dE * lnqa0sqstep * hdos.correction_factor_kohl(alpha, beta, theta)
+                integral += df_dE * lnqa0sqstep * hdos.correction_factor_kohl(
+                    alpha, beta, theta)
             # dsigma_dE[i] = 4*np.pi*pc.a0()**2*(R/E)*(R/T)*integral*dispersion
-            dsigma_dE[i] = 4*np.pi*pc.a0()**2*(R/E)*(R/T)*integral
+            dsigma_dE[i] = 4 * np.pi * pc.a0() ** 2 * (R / E) * (
+                        R / T) * integral
 
-        elif E>rel_energy_axis[-1]:
+        elif E > rel_energy_axis[-1]:
             dsigma_dE[i] = powerlaw(E, powA, powr)
         else:
             dsigma_dE[i] = 0
@@ -252,7 +274,8 @@ def dsigma_dE_from_GOSarray(energy_axis, rel_energy_axis, ek, E0, beta, alpha,
     return dsigma_dE
 
 
-def dsigma_dE_from_GOSarray_approx(energy_axis, rel_energy_axis, E0, beta, GOSmatrix, swap_axes=False):
+def dsigma_dE_from_GOSarray_approx(energy_axis, rel_energy_axis, E0, beta,
+                                   GOSmatrix, swap_axes=False):
     """
     Calculates the cross section by using the approximation shown in
     https://doi.org/10.1016/0304-3991(89)90197-6, see Eq. 3
@@ -265,23 +288,16 @@ def dsigma_dE_from_GOSarray_approx(energy_axis, rel_energy_axis, E0, beta, GOSma
     theta_E = pc.characteristic_angle(energy_axis, E0)
 
     # fac1 = 8 * a0**2 * R**2 / (energy_axis*pc.m0()*pc.speed_electron(E0)**2)
-    fac1_ = 4*np.pi*a0**2*(R/energy_axis)*(R/T)
+    fac1_ = 4 * np.pi * a0 ** 2 * (R / energy_axis) * (R / T)
 
-    fac2 = np.log(1 + beta**2/(theta_E**2))
+    fac2 = np.log(1 + beta ** 2 / (theta_E ** 2))
 
-    f = interpolate.interp1d(rel_energy_axis, GOSmatrix[:, 0], kind='linear', fill_value='extrapolate')
+    f = interpolate.interp1d(rel_energy_axis, GOSmatrix[:, 0], kind='linear',
+                             fill_value='extrapolate')
     GOS = f(energy_axis)
 
-    dsigma_dE = fac1_*fac2*GOS
-    boolean = energy_axis<rel_energy_axis[0]
+    dsigma_dE = fac1_ * fac2 * GOS
+    boolean = energy_axis < rel_energy_axis[0]
     dsigma_dE[boolean] = 0
 
     return dsigma_dE
-
-
-
-
-
-
-
-

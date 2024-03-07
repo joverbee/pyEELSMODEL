@@ -3,26 +3,60 @@ from pyEELSMODEL.components.CLedge.coreloss_edge import CoreLossEdge
 import os
 import h5py
 
+
 class KohlLossEdge(CoreLossEdge):
     """
     Coreloss edges which are calculated by Leonhard Segger, Giulio Guzzinati
     and Helmut Kohl https://zenodo.org/record/6599071#.Y3I1cnbMKUk
 
-
-
     """
-    def __init__(self, specshape, A, E0, alpha, beta, element, edge, eshift=0, q_steps=100, dir_path=None):
-        # dir path should be defined before set_edge function is called
-        # use relative paths
-        # self.dir_path = r'..\H-S GOS Tables'
 
+    def __init__(self, specshape, A, E0, alpha, beta, element, edge, eshift=0,
+                 q_steps=100, dir_path=None):
+        """
+
+        Parameters
+        ----------
+        specshape : Spectrumshape
+        The spectrum shape used to model
+        A : float
+        Amplitude of the edge
+
+        E0: float [V]
+        The acceleration voltage of the microscope
+
+        alpha: float [rad]
+        The convergence angle of the incoming probe
+
+        beta: float [rad]
+        The collection angle
+
+        element: string
+        The name of the element from which to calculate the edge model.
+
+        edge: string
+        The type of edge. (K1, L3, M4, ...)
+
+        eshift: float [eV]
+        The shift of the onset energy with respect to the literature value.
+        (default: 0)
+
+        q_steps: int
+        The number of q points taken into account for the integration over
+        the momentum space. The larger the number of q_steps the more
+        accurate the calculation. (default: 100)
+
+        dir_path: string
+            The filepath indicating where the GOS tables can be found.
+            If None, the default path is used.
+        Returns
+        -------
+        """
         self.set_dir_path(dir_path)
-        # self.set_onset_path(r'C:\Users\DJannis\Documents\KohlCrossSection\onset_energies.hdf5')
-        super().__init__(specshape, A, E0, alpha, beta, element, edge, eshift=eshift, q_steps=q_steps)
+        super().__init__(specshape, A, E0, alpha, beta, element, edge,
+                         eshift=eshift, q_steps=q_steps)
 
         self.set_gos_energy_q()
-        #redefine some attributes
-
 
     def set_gos_energy_q(self):
         if int(self.edge[-1]) == 1:
@@ -47,8 +81,8 @@ class KohlLossEdge(CoreLossEdge):
 
     def set_dir_path(self, path):
         self.dir_path = path
-        self.file = os.path.join(self.dir_path, 'Segger_Guzzinati_Kohl_1.5.0.gosh')
-
+        self.file = os.path.join(self.dir_path,
+                                 'Segger_Guzzinati_Kohl_1.5.0.gosh')
 
     # def set_onset_path(self, path):
     #     self.onset_path = path
@@ -72,8 +106,8 @@ class KohlLossEdge(CoreLossEdge):
         :param edge:
         :return:
         """
-        edge_list = ['K1', 'L1', 'L2', 'L3', 'M1','M2', 'M3', 'M4', 'M5',
-                     'N1','N2', 'N3', 'N4', 'N5', 'N6', 'N7']
+        edge_list = ['K1', 'L1', 'L2', 'L3', 'M1', 'M2', 'M3', 'M4', 'M5',
+                     'N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7']
         if not isinstance(edge, str):
             raise TypeError('Edge should be a string: K1, L1, L2, L3, M2, M3,'
                             ' M4, M5, N4, N5', 'N6', 'N7')
@@ -83,25 +117,25 @@ class KohlLossEdge(CoreLossEdge):
             raise ValueError('Edge should be: K1, L1, L2, L3, M2, M3, M4, M5,'
                              ' N4, N5', 'N6', 'N7')
 
-    def set_edge(self, edge):
-        """
-        Checks if the given edge is valid and adds the directories of the
-        :param edge:
-        :return:
-        """
-        edge_list = ['K1', 'L1', 'L2', 'L3', 'M1','M2', 'M3', 'M4', 'M5',
-                     'N1','N2', 'N3', 'N4', 'N5', 'N6', 'N7']
-
-        elem_list = self.get_elements()
-
-        if not isinstance(edge, str):
-            raise TypeError('Edge should be a string: K1, L1, L2, L3, M2, M3,'
-                            ' M4, M5, N4, N5', 'N6', 'N7')
-        if edge in edge_list:
-                self.edge = edge
-        else:
-            raise ValueError('Edge should be: K1, L1, L2, L3, M2, M3, M4, M5,'
-                             ' N4, N5', 'N6', 'N7')
+    # def set_edge(self, edge):
+    #     """
+    #     Checks if the given edge is valid and adds the directories of the
+    #     :param edge:
+    #     :return:
+    #     """
+    #     edge_list = ['K1', 'L1', 'L2', 'L3', 'M1', 'M2', 'M3', 'M4', 'M5',
+    #                  'N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7']
+    #
+    #     if not isinstance(edge, str):
+    #         raise TypeError('Edge should be a string: K1, L1, L2, L3, M2,'
+    #                         ' M3,'
+    #                         ' M4, M5, N4, N5', 'N6', 'N7')
+    #     if edge in edge_list:
+    #         self.edge = edge
+    #     else:
+    #         raise ValueError('Edge should be: K1, L1, L2, L3, M2, M3, M4,'
+    #                          ' M5,'
+    #                          ' N4, N5', 'N6', 'N7')
 
     def calculate_cross_section(self):
         """
@@ -117,23 +151,11 @@ class KohlLossEdge(CoreLossEdge):
         q_axis = self.q_axis
         gos = self.gos
 
-        prf = 1e28 * self.prefactor #prefactor and convert to barns
-        css = prf  *  hsdos.dsigma_dE_from_GOSarray(self.energy_axis,
-                                                    e_axis+ek, ek, E0, beta,
-                                                    alpha, q_axis, gos,
-                                                    q_steps=100,
-                                                    swap_axes=True)
+        prf = 1e28 * self.prefactor  # prefactor and convert to barns
+        css = prf * hsdos.dsigma_dE_from_GOSarray(self.energy_axis,
+                                                  e_axis + ek, ek, E0, beta,
+                                                  alpha, q_axis, gos,
+                                                  q_steps=100,
+                                                  swap_axes=True)
 
         return css
-
-
-
-
-
-
-
-
-
-
-
-

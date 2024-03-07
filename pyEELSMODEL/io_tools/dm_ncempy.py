@@ -13,42 +13,42 @@ General users:
 Advanced users and developers:
     Access the file internals through the dm.fileDM() class.
 On Memory mode:
-  The fileDM support and "on memory" mode that pre-loads the file data in memory
-  and read operations during header parsing are performed against memory. This
-  can significantly improve performance when the file resides in a parallel file
-  system (PFS) because latency of seek operations PFSs is very high.
+  The fileDM support and "on memory" mode that pre-loads the file data in
+  memory and read operations during header parsing are performed against
+  memory. This can significantly improve performance when the file resides in
+  a parallel file system (PFS) because latency of seek operations PFSs is very
+  high.
 
 """
-import sys
-sys.path.append(r'C:\Users\DJannis\PycharmProjects\pyEELSmodel')
-
 from pathlib import Path
 import mmap
 import os
 from os import stat as filestats
-from os.path import basename as os_basename
 
 import numpy as np
-# from pyEELSMODEL.core.multispectrum import MultiSpectrumshape, MultiSpectrum
 
-import pyEELSMODEL.core as cde
 
 class fileDM:
-    """Opens the file and reads in the header. Data is loaded using the getDataset method.
+    """Opens the file and reads in the header. Data is loaded using the
+    getDataset method.
     Attributes
     ----------
     xSize, ySize, zSize : list
-        The shape of the data for each data set in the file. Each value is the same as the shape attribute for an
+        The shape of the data for each data set in the file. Each value is the
+        same as the shape attribute for an
         ndarray.
     zSize2 : list
         The shape of the 4th dimension for a 4D file (i.e. 4D-STEM data)
     dataSize : list
-        The total number of bytes in each dataset. Similar to numpy's nbytes attribute for an ndarray.
+        The total number of bytes in each dataset. Similar to numpy's nbytes
+        attribute for an ndarray.
     dataOffset : list
-        The starting byte number for each dataset. This can provide fast access directly to the data if needed
+        The starting byte number for each dataset. This can provide fast
+        access directly to the data if needed
         by seeking to this byte number.
     dataShape : list
-        The total number of dimensions in eahc dataset. Similar to numpy's ndims attribute for an ndarray.
+        The total number of dimensions in eahc dataset. Similar to numpy's
+        ndims attribute for an ndarray.
     file_name : str
         The name of the file
     file_path : pathlib.Path
@@ -56,19 +56,24 @@ class fileDM:
     fid : file
         The file handle.
     numObjects : list
-        The number of datasets in the file. Often (but not always) the file contains a thumbnail and the raw data.
+        The number of datasets in the file. Often (but not always) the file
+        contains a thumbnail and the raw data.
         The thumbnail will always be the first object. See thumbnail attribute.
     thumbnail : bool
-        Tells whether the first object or dataset in the file is a thumbnail. If true then this object is always
-        skipped in methods and it is assumed that the user wants to skip this. Can retrive this thumbnail using
+        Tells whether the first object or dataset in the file is a thumbnail.
+        If true then this object is always
+        skipped in methods and it is assumed that the user wants to skip this.
+        Can retrive this thumbnail using
         a built-in method if desired.
     scale : list
         The real size of the pixel. Real and reciprical space are supported.
     scaleUnit : list
         The unit name as a string for each dimension of each dataset.
     origin : list
-        The origin for the real or reciprocal space scaling for each dimension. Be careful, this value is actually
-        meant to be *scaled* by the scale before being used. See ncempy.io.dmReader() for proper handling of this
+        The origin for the real or reciprocal space scaling for each dimension.
+        Be careful, this value is actually
+        meant to be *scaled* by the scale before being used.
+        See ncempy.io.dmReader() for proper handling of this
         especially for spectroscopy data.
     allTags : dictionary
         Contains *all* tags in the DM file as key value pairs.
@@ -83,7 +88,8 @@ class fileDM:
     >>     series = dmFile2.getDataset(0)
     """
 
-    __slots__ = ('file_name', 'file_path', 'fid', '_on_memory', '_v', 'xSize', 'ySize',
+    __slots__ = ('file_name', 'file_path', 'fid', '_on_memory', '_v', 'xSize',
+                 'ySize',
                  'zSize', 'zSize2', 'dataType', 'dataSize', 'dataOffset',
                  'dataShape', 'numObjects', 'thumbnail', '_curGroupLevel',
                  '_maxDepth', '_curGroupAtLevelX', '_curGroupNameAtLevelX',
@@ -130,7 +136,8 @@ class fileDM:
             elif isinstance(filename, Path):
                 pass
             else:
-                raise TypeError('Filename is supposed to be a string or pathlib.Path')
+                raise TypeError('Filename is supposed to be a string or'
+                                ' pathlib.Path')
 
             self.file_path = filename
             self.file_name = self.file_path.name
@@ -141,7 +148,8 @@ class fileDM:
                     self.fid = open(self.file_path, 'rb')
                 if self._on_memory:
                     self._buffer_offset = 0
-                    # Pre-load the file as a memory map that supports operations
+                    # Pre-load the file as a memory map that supports
+                    # operations
                     # similar to a file.
                     with open(self.file_path, 'rb') as _fid:
                         if os.name == 'nt':
@@ -149,12 +157,12 @@ class fileDM:
                                                  access=mmap.ACCESS_READ)
                         else:
                             self.fid = mmap.mmap(_fid.fileno(), 0,
-                                                 prot=mmap.PROT_READ)  # , flags=mmap.MAP_PRIVATE)
+                                                 prot=mmap.PROT_READ)
                         self._buffer_size = filestats(self.file_path).st_size
             except IOError:
                 print('Error reading file: "{}"'.format(self.file_path))
                 raise
-            except:
+            except Exception:
                 raise
 
         if not self._validDM():
@@ -168,7 +176,9 @@ class fileDM:
         self.dataType = []
         self.dataSize = []  # like numpy.shape
         self.dataOffset = []
-        self.dataShape = []  # 1,2,3, or 4. The total number of dimensions in a data set (like numpy.ndim)
+        # 1,2,3, or 4. The total number of dimensions in a data set
+        # (like numpy.ndim)
+        self.dataShape = []
         self.allTags = {}
 
         # lists that will contain scale information (pixel size)
@@ -184,15 +194,20 @@ class fileDM:
 
         self._curGroupLevel = 0  # track how deep we currently are in a group
         self._maxDepth = 64  # maximum number of group levels allowed
-        self._curGroupAtLevelX = np.zeros((self._maxDepth,), dtype=np.int8)  # track group at current level
+        # track group at current level
+        self._curGroupAtLevelX = np.zeros((self._maxDepth,),
+                                          dtype=np.int8)
         self._curGroupNameAtLevelX = ''  # set the name of the root group
-        self._curTagAtLevelX = np.zeros((self._maxDepth,), dtype=np.int8)  # track tag number at the current level
+        # track tag number at the current level
+        self._curTagAtLevelX = np.zeros((self._maxDepth,),
+                                        dtype=np.int8)
         self._curTagName = ''  # string of the current tag
-        # self._specialType = np.dtype('>u4')   # type which changes for DM3 and DM4
+        # self._specialType = np.dtype('>u4')
         # self._dmType = None
         # self._endianType = None
 
-        # Temporary variables to keep in case a tag entry shows useful information in an array
+        # Temporary variables to keep in case a tag entry shows useful
+        # information in an array
         self._scale_temp = 0
         self._origin_temp = 0
 
@@ -227,7 +242,8 @@ class fileDM:
         if not self.fid.closed:
             if self._v:
                 print('Closing input file: {}'.format(self.file_path))
-            #self.fid.close() #this cayse an exception stating that some pointers are still open
+            # self.fid.close() #this cayse an exception stating that some
+            # pointers are still open
 
     def __enter__(self):
         """Implement python's with statement
@@ -300,7 +316,8 @@ class fileDM:
                 or backwards (negative value).
             from_what : int
                 Reference point to use in the head movement. 0:
-                for beginning of the file (default behavior), 1: from the current
+                for beginning of the file (default behavior), 1: from the
+                current
                 head position, and 2: from the end of the file.
         """
         if self._on_memory:
@@ -312,7 +329,8 @@ class fileDM:
             elif from_what == 2:
                 self._buffer_offset = self._buffer_size + offset - 1
             else:
-                raise ValueError("Unkown from_what value: {}".format(from_what))
+                raise ValueError(
+                    "Unkown from_what value: {}".format(from_what))
             if self._buffer_offset < 0:
                 raise ValueError("Resulting head position cannot be negative.")
         else:
@@ -325,7 +343,8 @@ class fileDM:
         output = True  # output will stay == 1 if the file is a true DM4 file
 
         # file type: == 3 for DM3 or == 4 for DM4
-        self._dmType = self.fromfile(self.fid, dtype=np.dtype('>u4'), count=1)[0]
+        self._dmType = self.fromfile(self.fid, dtype=np.dtype('>u4'), count=1)[
+            0]
 
         if self._v:
             print('validDM: DM file type number = {}'.format(self._dmType))
@@ -337,15 +356,17 @@ class fileDM:
         else:
             raise IOError('File is not a valid DM3 or DM4')
 
-        aa = self.fromfile(self.fid, dtype=np.dtype([('fileSize', self._specialType),
-                                                     ('endianType', '>u4')]), count=1)
+        aa = self.fromfile(self.fid,
+                           dtype=np.dtype([('fileSize', self._specialType),
+                                           ('endianType', '>u4')]), count=1)
 
         self.fileSize = aa['fileSize']
         self._endianType = aa['endianType']
 
         if self._endianType != 1:
-            # print('File is not written Little Endian (PC) format and can not be read by this program.')
-            raise IOError('File is not written Little Endian (PC) format and can not be read by this program.')
+            raise IOError(
+                'File is not written Little Endian (PC) format and can not be'
+                ' read by this program.')
 
         return output
 
@@ -410,12 +431,16 @@ class fileDM:
         # Check to see if the maximum group level is reached.
         if self._curGroupLevel > self._maxDepth:
             raise IOError(
-                'Maximum tag group depth of {} reached. This file is most likely corrupt.'.format(self._maxDepth))
+                'Maximum tag group depth of {} reached. This file is '
+                'most likely corrupt.'.format(self._maxDepth))
 
-        self._curGroupAtLevelX[self._curGroupLevel] = self._curGroupAtLevelX[self._curGroupLevel] + 1
+        self._curGroupAtLevelX[self._curGroupLevel] = \
+            self._curGroupAtLevelX[self._curGroupLevel] + 1
         self._curTagAtLevelX[self._curGroupLevel] = 0
 
-        aa = self.fromfile(self.fid, dtype=[('IsOpenSorted', '2<i1'), ('nTags', self._specialType)], count=1)
+        aa = self.fromfile(self.fid, dtype=[('IsOpenSorted', '2<i1'),
+                                            ('nTags', self._specialType)],
+                           count=1)
         nTags = aa['nTags'][0]
 
         if self._v:
@@ -442,15 +467,18 @@ class fileDM:
         lenTagLabel = self.fromfile(self.fid, dtype='>u2', count=1)[0]
 
         if self._v:
-            print('_readTagEntry: dataType = {}, lenTagLabel = {}'.format(dataType, lenTagLabel))
+            print('_readTagEntry: dataType = {}, lenTagLabel = {}'.format(
+                dataType, lenTagLabel))
 
         if lenTagLabel > 0:
-            tagLabelBinary = self.fromfile(self.fid, dtype='<u1', count=lenTagLabel)  # read as binary
+            tagLabelBinary = self.fromfile(self.fid, dtype='<u1',
+                                           count=lenTagLabel)  # read as binary
             tagLabel = self._bin2str(tagLabelBinary)
             if self._v:
                 print('_readTagEntry: tagLabel = {}'.format(tagLabel))
         else:
-            tagLabel = str(self._curTagAtLevelX[self._curGroupLevel])  # unlabeled tag.
+            tagLabel = str(
+                self._curTagAtLevelX[self._curGroupLevel])  # unlabeled tag.
 
         # Save the current group name in case this is needed
         oldGroupName = self._curGroupNameAtLevelX
@@ -465,7 +493,8 @@ class fileDM:
 
             # An unknown part of the DM4 tags
             if self._dmType == 4:
-                _ = self.fromfile(self.fid, dtype=self._specialType, count=1)[0]
+                _ = self.fromfile(self.fid, dtype=self._specialType, count=1)[
+                    0]
 
             self._readTagGroup()
 
@@ -474,20 +503,28 @@ class fileDM:
     def _readTagType(self):
         """Determine the type of tag: Regular data, string, struct, or array.
         """
-        # Need to read 8 bytes before %%%% delimiter. Unknown part of DM4 tag structure
+        # Need to read 8 bytes before %%%% delimiter.
+        # Unknown part of DM4 tag structure
         if self._dmType == 4:
-            temp1 = self.fromfile(self.fid, dtype=self._specialType, count=1)[0]
+            pass
+            # temp1 = \
+            #     self.fromfile(self.fid, dtype=self._specialType, count=1)[0]
 
         delim = self.fromfile(self.fid, dtype='<i1', count=4)
-        assert ((delim == 37).all())  # delim has to be [37,37,37,37] which is %%%% in ASCII.
+        # delim has to be [37,37,37,37] which is %%%% in ASCII.
+        assert ((delim == 37).all())
         if self._v:
-            print('_readTagType: should be %%%% = {}'.format(self._bin2str(delim)))
+            dlm = self._bin2str(delim)
+            print('_readTagType: should be %%%% = {}'.format(dlm))
 
-        nInTag = self.fromfile(self.fid, dtype=self._specialType, count=1)[0]  # nInTag: unnecessary redundant info
+        # nInTag = self.fromfile(self.fid, dtype=self._specialType, count=1)[
+        #     0]  # nInTag: unnecessary redundant info
 
         # Determine the type of the data in the tag
         # specifies data type: int8, uint16, float32, etc.
-        encodedType = self.fromfile(self.fid, dtype=self._specialType, count=1)[0]  # big endian
+        # big endian
+        encodedType = \
+            self.fromfile(self.fid, dtype=self._specialType, count=1)[0]
 
         etSize = self._encodedTypeSize(encodedType)
 
@@ -501,11 +538,14 @@ class fileDM:
                 print('string')
             stringSize = self.fromfile(self.fid, dtype='>u4', count=1)[0]
             # strtemp = '' #in case stringSize == 0
-            strTempBin = self.fromfile(self.fid, dtype='<u1', count=stringSize)  # read as uint8 little endian
+            # read as uint8 little endian
+            strTempBin = self.fromfile(self.fid, dtype='<u1',
+                                       count=stringSize)
             strTemp = self._bin2str(strTempBin)
             self._storeTag(self._curTagName, strTemp)
         elif encodedType == 15:  # struct
-            # This does not work for field names that are non-zero. This is uncommon
+            # This does not work for field names that are non-zero.
+            # This is uncommon
             if self._v:
                 print('struct')
             structTypes = self._readStructTypes()
@@ -515,19 +555,25 @@ class fileDM:
             # The array data is not read. It will be read later if needed
             if self._v:
                 print('array')
-            arrayTypes = self._readArrayTypes()  # could be recursive if array contains array(s)
-            arrInfo = self._readArrayData(arrayTypes)  # only info of the array is read. It is read later if needed
+            # could be recursive if array contains array(s)
+            arrayTypes = self._readArrayTypes()
+            # only info of the array is read. It is read later if needed
+            arrInfo = self._readArrayData(
+                arrayTypes)
             self._storeTag(self._curTagName, arrInfo)
 
     @staticmethod
     def _bin2str(bin0):
-        """Utility function to convert a numpy array of binary values to a python string.
+        """Utility function to convert a numpy array of binary values to a
+        python string.
         """
         return ''.join([chr(item) for item in bin0])
 
     def _encodedTypeSize(self, encodedType):
-        """Return the number of bytes in a data type for the encodings used by DM.
-        Constants for the different encoded data types used in DM files as as follows:
+        """Return the number of bytes in a data type for the encodings used
+        by DM.
+        Constants for the different encoded data types used in DM files as as
+        follows:
             SHORT   = 2
             LONG    = 3
             USHORT  = 4
@@ -552,7 +598,7 @@ class fileDM:
             return self._encodedTypeSizes[encodedType]
         except KeyError:
             return -1
-        except:
+        except Exception:
             raise
 
     def _encodedTypeDtype(self, encodedType):
@@ -582,7 +628,7 @@ class fileDM:
             Type = self._EncodedTypeDTypes[encodedType]
         except KeyError:
             Type = -1
-        except:
+        except Exception:
             raise
 
         return Type
@@ -590,7 +636,8 @@ class fileDM:
     def _readStructTypes(self):
         """Analyze the types of data in a struct.
         """
-        _ = self.fromfile(self.fid, count=1, dtype=self._specialType)[0]  # this is not needed
+        _ = self.fromfile(self.fid, count=1, dtype=self._specialType)[
+            0]  # this is not needed
         nFields = self.fromfile(self.fid, count=1, dtype=self._specialType)[0]
         if self._v:
             print('_readStructTypes: nFields = {}'.format(nFields))
@@ -600,7 +647,8 @@ class fileDM:
 
         fieldTypes = np.zeros(nFields)
         for ii in range(0, nFields):
-            aa = self.fromfile(self.fid, dtype=self._specialType, count=2)  # nameLength, fieldType
+            aa = self.fromfile(self.fid, dtype=self._specialType,
+                               count=2)  # nameLength, fieldType
             # nameLength = aa[0] #not used currently
             fieldTypes[ii] = aa[1]
         return fieldTypes
@@ -618,8 +666,10 @@ class fileDM:
         """
         struct = np.zeros(structTypes.shape[0])
         for ii, encodedType in enumerate(structTypes):
-            etSize = self._encodedTypeSize(encodedType)  # the size of the data type
-            struct[ii] = self._readNativeData(encodedType)  # read this type of data
+            # etSize = self._encodedTypeSize(
+            #     encodedType)  # the size of the data type
+            struct[ii] = self._readNativeData(
+                encodedType)  # read this type of data
         return struct
 
     def _readNativeData(self, encodedType):
@@ -647,14 +697,16 @@ class fileDM:
         val = self.fromfile(self.fid, count=1, dtype=Type)[0]
 
         if self._v:
-            print('_readNativeData: encodedType == {} and val = {}'.format(encodedType, val))
+            print('_readNativeData: encodedType == {} and val = {}'.format(
+                encodedType, val))
 
         return val
 
     def _readArrayTypes(self):
         """Analyze the types of data in an array.
         """
-        arrayType = self.fromfile(self.fid, dtype=self._specialType, count=1)[0]
+        arrayType = self.fromfile(self.fid, dtype=self._specialType, count=1)[
+            0]
 
         itemTypes = []
 
@@ -688,12 +740,15 @@ class fileDM:
         encodedType = None
 
         # The number of elements in the array
-        arraySize = self.fromfile(self.fid, count=1, dtype=self._specialType)[0]
+        arraySize = self.fromfile(self.fid, count=1, dtype=self._specialType)[
+            0]
 
         if self._v:
-            print('_readArrayData: arraySize, arrayTypes = {}, {}'.format(arraySize, arrayTypes))
+            print('_readArrayData: arraySize, arrayTypes = {}, {}'.format(
+                arraySize, arrayTypes))
 
-        # Everything used to calculate the bufSize is not needed anymore. THis can be removed after testing
+        # Everything used to calculate the bufSize is not needed anymore.
+        # THis can be removed after testing
         itemSize = 0
         for encodedType in arrayTypes:
             if self._v:
@@ -705,26 +760,32 @@ class fileDM:
         bufSize = bufSize.astype('<u8')  # change to an integer
 
         if self._v:
-            print('_readArrayData: arraySize, itemSize = {}, {}'.format(arraySize, itemSize))
+            print('_readArrayData: arraySize, itemSize = {}, {}'.format(
+                arraySize, itemSize))
 
         if self._curTagName == 'Data':
             # This is a binary array. Save its location to read later if needed
             self._storeTag(self._curTagName + '.arraySize', bufSize)
             self._storeTag(self._curTagName + '.arrayOffset', self.tell())
             self._storeTag(self._curTagName + '.arrayType', encodedType)
-            self.seek(self.fid, bufSize.astype('<u8'), 1)  # advance the pointer by bufsize from current position
+            # advance the pointer by bufsize from current position
+            self.seek(self.fid, bufSize.astype('<u8'),
+                      1)
             arrOut = 'Data unread. Encoded type = {}'.format(encodedType)
-        elif bufSize < 1e3:  # set an upper limit on the size of array that will be read in as a string
+        # set an upper limit on the size of array that will be read in
+        # as a string
+        elif bufSize < 1e3:
             # treat as a string
             for encodedType in arrayTypes:
                 Type0 = self._encodedTypeDtype(encodedType)
-                stringData = self.fromfile(self.fid, count=arraySize, dtype=Type0)
-                # stringData = self.fromfile(self.fid,count=arraySize,dtype=self._encodedTypeDtype(encodedType))
+                stringData = self.fromfile(self.fid, count=arraySize,
+                                           dtype=Type0)
                 arrOut = self._bin2str(stringData)
 
             # Catch useful tags for images and spectra (nm, eV, etc.)
             fullTagName = self._curGroupNameAtLevelX + '.' + self._curTagName
-            if (fullTagName.find('Dimension') > -1) & (fullTagName.find('Units') > -1):  # & (self.numObjects > 0)):
+            if (fullTagName.find('Dimension') > -1) & (fullTagName.find(
+                    'Units') > -1):  # & (self.numObjects > 0)):
                 self.scale.append(self._scale_temp)
                 self.scaleUnit.append(arrOut)
                 self.origin.append(self._origin_temp)
@@ -732,14 +793,18 @@ class fileDM:
             self._storeTag(self._curTagName + '.arraySize', bufSize)
             self._storeTag(self._curTagName + '.arrayOffset', self.tell())
             self._storeTag(self._curTagName + '.arrayType', encodedType)
-            self.seek(self.fid, bufSize.astype('<u8'), 1)  # advance the pointer by bufsize from current position
+            # advance the pointer by bufsize from current position
+            self.seek(self.fid, bufSize.astype('<u8'),
+                      1)
             arrOut = 'Array unread. Encoded type = {}'.format(encodedType)
 
         return arrOut
 
     def _storeTag(self, curTagName, curTagValue):
-        """Builds the full tag name and key/value pair as text. Also calls another
-        function to catch useful tags and values. Also saves all tags in a dictionary.
+        """Builds the full tag name and key/value pair as text. Also calls
+        another
+        function to catch useful tags and values. Also saves all tags in a
+        dictionary.
         Parameters
         ----------
             curTagName : str
@@ -750,8 +815,10 @@ class fileDM:
         """
         # Build the full tag name (key) and add the tag value
         if self._v:
-            print('_storeTag: curTagName, curTagValue = {}, {}'.format(curTagName, curTagValue))
-        totalTag = self._curGroupNameAtLevelX + '.' + '{}'.format(curTagName)  # + '= {}'.format(curTagValue)
+            print('_storeTag: curTagName, curTagValue = {}, {}'.format(
+                curTagName, curTagValue))
+        totalTag = self._curGroupNameAtLevelX + '.' + '{}'.format(
+            curTagName)  # + '= {}'.format(curTagValue)
 
         self._catchUsefulTags(totalTag, curTagName, curTagValue)
 
@@ -760,7 +827,8 @@ class fileDM:
         return totalTag
 
     def _catchUsefulTags(self, totalTag, curTagName, curTagValue):
-        """Find interesting keys and keep their values for later. This is separate from _storeTag
+        """Find interesting keys and keep their values for later.
+        This is separate from _storeTag
         so that it is easy to find and modify.
         Parameters
         ----------
@@ -789,7 +857,9 @@ class fileDM:
             self.zSize2.append(1)
             self.dataShape.append(1)  # indicate as at least 1D data
         elif totalTag.find('Dimensions.2') > -1:
-            self.ySize[-1] = curTagValue  # OR self.ysize[self.numObjects] = self.curTagValue
+            # OR self.ysize[self.numObjects] = self.curTagValue
+            self.ySize[
+                -1] = curTagValue
             self.dataShape[-1] = 2  # indicate as at least 2D data
         elif totalTag.find('Dimensions.3') > -1:
             self.zSize[-1] = curTagValue
@@ -797,20 +867,24 @@ class fileDM:
         elif totalTag.find('Dimensions.4') > -1:
             self.zSize2[-1] = curTagValue
             self.dataShape[-1] = 4  # indicate as at least 3D data
-        elif (totalTag.find('Dimension.') > -1) & (totalTag.find('.Scale') > -1):
+        elif (totalTag.find('Dimension.') > -1) & (
+                totalTag.find('.Scale') > -1):
             self._scale_temp = curTagValue
-        elif (totalTag.find('Dimension.') > -1) & (totalTag.find('.Origin') > -1):
+        elif (totalTag.find('Dimension.') > -1) & (
+                totalTag.find('.Origin') > -1):
             self._origin_temp = curTagValue
         else:
             pass
 
     def writeTags(self, new_folder_path_for_tags=None):
         """Write out all tags as human readable text to a text file
-        in the same directory (or a user definable directory) and with a the same name as the DM file.
+        in the same directory (or a user definable directory) and with a the
+         same name as the DM file.
         Parameters
         ----------
             new_folder_path_for_tags : str or pathlib.Path, Optional
-                Allow user to define a different path than the directory of the current file.
+                Allow user to define a different path than the directory of
+                the current file.
         """
         new_file_name = Path(self.file_path.stem + '_tags').with_suffix('.txt')
 
@@ -828,13 +902,13 @@ class fileDM:
                     try:
                         combined_tag = '{} = {}'.format(nn, self.allTags[nn])
                         fid_out.write(combined_tag)
-                    except:
+                    except Exception:
                         fid_out.write('{} = dm.py write error'.format(nn))
                     fid_out.write('\n')
         except IOError:
             print("ncempy: Issue opening DM tags output file.")
             raise
-        except:
+        except Exception:
             raise
 
     def _checkIndex(self, i):
@@ -855,7 +929,8 @@ class fileDM:
         # check whether in range
         if i < 0 or i > self.numObjects:
             raise IndexError('Index out of range, '
-                             'trying to access element {} of {} valid elements'.format(i + 1, self.numObjects))
+                             'trying to access element {} of {} valid '
+                             'elements'.format(i + 1, self.numObjects))
 
         return
 
@@ -874,8 +949,10 @@ class fileDM:
             Type = self._DM2NPDataTypes[dd]
         except KeyError:
             Type = None
-            raise IOError('Unsupported binary data type during conversion to numpy dtype. DM dataType == {}'.format(dd))
-        except:
+            raise IOError(
+                'Unsupported binary data type during conversion to numpy '
+                'dtype. DM dataType == {}'.format(dd))
+        except Exception:
             Type = None
             raise
         return Type
@@ -884,16 +961,22 @@ class fileDM:
         """Retrieve a dataset from the DM file.
         Notes
         -----
-            Most DM3 and DM4 files contain a small "thumbnail" as the first dataset written as RGB data. This
-            function ignores that dataset if it exists. To retrieve the thumbnail use the getThumbnail() function.
-            The pixelOrigin returned is not actually the start of the coordinates. The start of the energy axis
-            for EELS (for example) will be pixelSize * pixelOrigin. dmReader() returns the correct coordinates.
-            The correct origin is: pixelSize * pixelOrigin and be careful about the sign as it seems some datasets
+            Most DM3 and DM4 files contain a small "thumbnail" as the first
+            dataset written as RGB data. This
+            function ignores that dataset if it exists. To retrieve the
+            thumbnail use the getThumbnail() function.
+            The pixelOrigin returned is not actually the start of the
+            coordinates. The start of the energy axis
+            for EELS (for example) will be pixelSize * pixelOrigin. dmReader()
+            returns the correct coordinates.
+            The correct origin is: pixelSize * pixelOrigin and be careful
+            about the sign as it seems some datasets
             might use -pixelOrigin in the previous equation.
         Parameters
         ----------
             index : int
-                The number of the data set to retrieve ignoring the thumbnail. If a thumbnail exists then index = 0
+                The number of the data set to retrieve ignoring the thumbnail.
+                 If a thumbnail exists then index = 0
                 actually corresponds to the second data set in a DM file.
         Returns
         -------
@@ -901,7 +984,8 @@ class fileDM:
                 A dictionary of the data and meta data. The data is associated
                 with the 'data' key in the dictionary.
         """
-        # The first dataset is usually a thumbnail. Test for this and skip the thumbnail automatically
+        # The first dataset is usually a thumbnail.
+        # Test for this and skip the thumbnail automatically
         if self.numObjects == 1:
             ii = index
         else:
@@ -910,53 +994,71 @@ class fileDM:
         # Check that the dataset exists.
         try:
             self._checkIndex(ii)
-        except:
+        except Exception:
             raise
 
-        self.seek(self.fid, self.dataOffset[ii], 0)  # Seek to start of dataset from beginning of the file
+        self.seek(self.fid, self.dataOffset[ii],
+                  0)  # Seek to start of dataset from beginning of the file
 
         outputDict = {}
 
         outputDict['filename'] = self.file_name
 
-        # Parse the dataset to see what type it is (image, image series, spectra, etc.)
+        # Parse the dataset to see what type it is (image, image series,
+        # spectra, etc.)
         if self.xSize[ii] > 0:
-            pixelCount = int(self.xSize[ii]) * int(self.ySize[ii]) * int(self.zSize[ii]) * int(self.zSize2[ii])
+            pixelCount = int(self.xSize[ii]) * int(self.ySize[ii]) * int(
+                self.zSize[ii]) * int(self.zSize2[ii])
             jj = 0  # counter to determine where the first scale value starts
+            # sum up all number of dimensions for previous datasets
             for nn in self.dataShape[0:ii]:
-                jj += nn  # sum up all number of dimensions for previous datasets
-            # if self.dataType == 23: #RGB image(s)
-            #    temp = self.fromfile(self.fid,count=pixelCount,dtype=np.uint8).reshape(self.ysize[ii],self.xsize[ii])
+                jj += nn
             if self.zSize[ii] == 1:
                 # 2D data and 1D spectra
                 outputDict['data'] = self.fromfile(self.fid, count=pixelCount,
-                                                   dtype=self._DM2NPDataType(self.dataType[ii])).reshape(
+                                                   dtype=self._DM2NPDataType(
+                                                       self.dataType[
+                                                           ii])).reshape(
                     (self.ySize[ii], self.xSize[ii]))
 
                 # Reverse the order to match the C-ordering of the data
-                outputDict['pixelUnit'] = self.scaleUnit[jj:jj + self.dataShape[ii]][::-1]
-                outputDict['pixelSize'] = self.scale[jj:jj + self.dataShape[ii]][::-1]
-                outputDict['pixelOrigin'] = self.origin[jj:jj + self.dataShape[ii]][::-1]
+                outputDict['pixelUnit'] = self.scaleUnit[
+                                          jj:jj + self.dataShape[ii]][::-1]
+                outputDict['pixelSize'] = self.scale[
+                                          jj:jj + self.dataShape[ii]][::-1]
+                outputDict['pixelOrigin'] = self.origin[
+                                            jj:jj + self.dataShape[ii]][::-1]
 
                 # Match size of meta data if necessary
                 if outputDict['data'].ndim > len(outputDict['pixelOrigin']):
                     outputDict['data'] = np.squeeze(outputDict['data'])
             elif self.zSize2[ii] > 1:  # 4D data
                 outputDict['data'] = self.fromfile(self.fid, count=pixelCount,
-                                                   dtype=self._DM2NPDataType(self.dataType[ii])).reshape(
-                    (self.zSize2[ii], self.zSize[ii], self.ySize[ii], self.xSize[ii]))
+                                                   dtype=self._DM2NPDataType(
+                                                       self.dataType[
+                                                           ii])).reshape(
+                    (self.zSize2[ii], self.zSize[ii], self.ySize[ii],
+                     self.xSize[ii]))
                 # Reverse the order to match the C-ordering of the data
-                outputDict['pixelUnit'] = self.scaleUnit[jj:jj + self.dataShape[ii]][::-1]
-                outputDict['pixelSize'] = self.scale[jj:jj + self.dataShape[ii]][::-1]
-                outputDict['pixelOrigin'] = self.origin[jj:jj + self.dataShape[ii]][::-1]
+                outputDict['pixelUnit'] = self.scaleUnit[
+                                          jj:jj + self.dataShape[ii]][::-1]
+                outputDict['pixelSize'] = self.scale[
+                                          jj:jj + self.dataShape[ii]][::-1]
+                outputDict['pixelOrigin'] = self.origin[
+                                            jj:jj + self.dataShape[ii]][::-1]
             else:  # 3D array
                 outputDict['data'] = self.fromfile(self.fid, count=pixelCount,
-                                                   dtype=self._DM2NPDataType(self.dataType[ii])).reshape(
+                                                   dtype=self._DM2NPDataType(
+                                                       self.dataType[
+                                                           ii])).reshape(
                     (self.zSize[ii], self.ySize[ii], self.xSize[ii]))
                 # Reverse the order to match the C-ordering of the data
-                outputDict['pixelUnit'] = self.scaleUnit[jj:jj + self.dataShape[ii]][::-1]
-                outputDict['pixelSize'] = self.scale[jj:jj + self.dataShape[ii]][::-1]
-                outputDict['pixelOrigin'] = self.origin[jj:jj + self.dataShape[ii]][::-1]
+                outputDict['pixelUnit'] = self.scaleUnit[
+                                          jj:jj + self.dataShape[ii]][::-1]
+                outputDict['pixelSize'] = self.scale[
+                                          jj:jj + self.dataShape[ii]][::-1]
+                outputDict['pixelOrigin'] = self.origin[
+                                            jj:jj + self.dataShape[ii]][::-1]
 
         # Ensure the data is loaded into memory from the buffer
         if self._on_memory:
@@ -967,12 +1069,17 @@ class fileDM:
         return outputDict
 
     def getSlice(self, index, sliceZ, sliceZ2=0):
-        """Retrieve a slice of a dataset from the DM file. The data set will have a shape according to
+        """Retrieve a slice of a dataset from the DM file. The data set will
+        have a shape according to
         3D = [sliceZ,Y,X] or 4D: [sliceZ2,sliceZ,Y,X]
-        Note: Most DM3 and DM4 files contain a small "thumbnail" as the first dataset written as RGB data. This function
-        ignores that dataset if it exists. To retrieve the thumbnail use the getThumbnail() function.
-        Warning: DM4 files with 4D data sets are written as [X,Y,Z1,Z2]. This code currently gets the [X,Y] slice.
-        Getting the [Z1,Z2] slice is not yet implemented. Use the getMemmap() function to retrieve arbitrary slices of
+        Note: Most DM3 and DM4 files contain a small "thumbnail" as the first
+        dataset written as RGB data. This function
+        ignores that dataset if it exists. To retrieve the thumbnail use the
+        getThumbnail() function.
+        Warning: DM4 files with 4D data sets are written as [X,Y,Z1,Z2]. This
+        code currently gets the [X,Y] slice.
+        Getting the [Z1,Z2] slice is not yet implemented. Use the getMemmap()
+        function to retrieve arbitrary slices of
         large data sets.
         Parameters
         ----------
@@ -988,7 +1095,8 @@ class fileDM:
             : dict
                 A dictionary containing meta data and the data.
         """
-        # The first dataset is usually a thumbnail. Test for this and skip the thumbnail automatically
+        # The first dataset is usually a thumbnail. Test for this and skip the
+        # thumbnail automatically
         if self.numObjects == 1:
             ii = index
         else:
@@ -997,42 +1105,56 @@ class fileDM:
         # Check that the dataset exists.
         try:
             self._checkIndex(ii)
-        except:
+        except Exception:
             raise
 
         # Check sliceZ and sliceZ2 are within the data array size bounds
         if sliceZ > (self.zSize[ii] - 1):
             raise IndexError(
-                'Index out of range, trying to access element {} of {} valid elements'.format(sliceZ, self.zSize))
+                'Index out of range, trying to access element {} of {} valid '
+                'elements'.format(sliceZ, self.zSize))
         if sliceZ2 > (self.zSize2[ii] - 1):
             raise IndexError(
-                'Index out of range, trying to access element {} of {} valid elements'.format(sliceZ2, self.zSize2))
+                'Index out of range, trying to access element {} of {} valid'
+                ' elements'.format(sliceZ2, self.zSize2))
 
-        self.seek(self.fid, self.dataOffset[ii], 0)  # Seek to start of dataset from beginning of the file
+        self.seek(self.fid, self.dataOffset[ii],
+                  0)  # Seek to start of dataset from beginning of the file
 
         outputDict = {'filename': self.file_name}
 
-        # Parse the dataset to see what type it is (image, 3D image series, spectra, 4D, etc.)
+        # Parse the dataset to see what type it
+        # is (image, 3D image series, spectra, 4D, etc.)
         if self.xSize[ii] > 0:
             # determine the number of bytes to skip
             pixelCount = int(self.xSize[ii]) * int(self.ySize[ii])
-            byteCount = pixelCount * np.dtype(self._DM2NPDataType(self.dataType[ii])).itemsize
+            byteCount = pixelCount * np.dtype(
+                self._DM2NPDataType(self.dataType[ii])).itemsize
             jj = 0  # counter to determine where the first scale value starts
+            # sum up all number of dimensions for previous datasets
             for nn in self.dataShape[0:ii]:
-                jj += nn  # sum up all number of dimensions for previous datasets
+                jj += nn
             if self.zSize[ii] == 1:  # 2D data
                 outputDict['data'] = self.fromfile(self.fid, count=pixelCount,
-                                                   dtype=self._DM2NPDataType(self.dataType[ii])).reshape(
+                                                   dtype=self._DM2NPDataType(
+                                                       self.dataType[
+                                                           ii])).reshape(
                     (self.ySize[ii], self.xSize[ii]))
             elif self.zSize2[ii] > 1:  # 4D data
-                self.seek(self.fid, sliceZ * sliceZ2 * byteCount, 1)  # skip ahead from current position
+                self.seek(self.fid, sliceZ * sliceZ2 * byteCount,
+                          1)  # skip ahead from current position
                 outputDict['data'] = self.fromfile(self.fid, count=pixelCount,
-                                                   dtype=self._DM2NPDataType(self.dataType[ii])).reshape(
+                                                   dtype=self._DM2NPDataType(
+                                                       self.dataType[
+                                                           ii])).reshape(
                     (self.ySize[ii], self.xSize[ii]))
             else:  # 3D array
-                self.seek(self.fid, sliceZ * byteCount, 1)  # skip ahead from current position
+                self.seek(self.fid, sliceZ * byteCount,
+                          1)  # skip ahead from current position
                 outputDict['data'] = self.fromfile(self.fid, count=pixelCount,
-                                                   dtype=self._DM2NPDataType(self.dataType[ii])).reshape(
+                                                   dtype=self._DM2NPDataType(
+                                                       self.dataType[
+                                                           ii])).reshape(
                     (self.ySize[ii], self.xSize[ii]))
 
             # Return the proper meta data for this one image
@@ -1050,10 +1172,12 @@ class fileDM:
     def _readRGB(self, xSizeRGB, ySizeRGB):
         """Read in a uint8 type array with [Red,green,blue,alpha] channels.
         """
-        return self.fromfile(self.fid, count=xSizeRGB * ySizeRGB * 4, dtype='<u1').reshape(xSizeRGB, ySizeRGB, 4)
+        return self.fromfile(self.fid, count=xSizeRGB * ySizeRGB * 4,
+                             dtype='<u1').reshape(xSizeRGB, ySizeRGB, 4)
 
     def getThumbnail(self):
-        """Read the thumbnail saved as the first dataset in the DM file as an RGB array.
+        """Read the thumbnail saved as the first dataset in the DM file as an
+         RGB array.
         This is not fully tested. Be careful using this.
         Returns
         -------
@@ -1064,8 +1188,10 @@ class fileDM:
         return self._readRGB(self.ySize[0], self.xSize[0])
 
     def getMemmap(self, index):
-        """Return a numpy memmap object (read-only) for the dataset requested. This is very useful
-        for very large datasets to avoid loading the entire data set into memory. No meta data is
+        """Return a numpy memmap object (read-only) for the dataset requested.
+         This is very useful
+        for very large datasets to avoid loading the entire data set into
+        memory. No meta data is
         returned.
         Parameters
         ----------
@@ -1074,10 +1200,12 @@ class fileDM:
         Returns
         -------
             : numpy.memmap
-                A read-only numpy memmap object with access to the data. The file will continue to be open as long
+                A read-only numpy memmap object with access to the data.
+                The file will continue to be open as long
                 as the memmap is open. Delete the memmap to close the file.
         """
-        # The first dataset is usually a thumbnail. Test for this and skip the thumbnail automatically
+        # The first dataset is usually a thumbnail. Test for this and skip
+        # the thumbnail automatically
         if self.numObjects == 1:
             ii = index
         else:
@@ -1086,7 +1214,7 @@ class fileDM:
         # Check that the dataset exists.
         try:
             self._checkIndex(ii)
-        except:
+        except Exception:
             raise
 
         # Create a memmap
@@ -1094,7 +1222,8 @@ class fileDM:
         sh0 = (self.zSize2[ii], self.zSize[ii], self.ySize[ii], self.xSize[ii])
         sh1 = tuple([ii for ii in sh0 if ii > 1])  # shape must be a tuple
 
-        mm = np.memmap(self.file_path, dtype=self._DM2NPDataType(self.dataType[ii]), mode='r',
+        mm = np.memmap(self.file_path,
+                       dtype=self._DM2NPDataType(self.dataType[ii]), mode='r',
                        offset=self.dataOffset[ii], shape=sh1)
 
         return mm
@@ -1109,11 +1238,13 @@ def dmReader(filename, dSetNum=0, verbose=False, on_memory=True):
         filename : str
             The filename to open and read into memory
         dSetNum : int
-            The number of the data set to read. Almost always should be = 0. Default = 0
+            The number of the data set to read. Almost always should be = 0.
+             Default = 0
         verbose : bool
             Allow extra printing to see file internals. Default = False
         on_memory : bool, default True
-            Whether to use the on_memory option of fileDM. Usually provides much faster data reading.
+            Whether to use the on_memory option of fileDM. Usually provides
+            much faster data reading.
     Notes
     -----
         Use the coords key for spatial axes (i.e. energy loss for spectra).
@@ -1121,8 +1252,10 @@ def dmReader(filename, dSetNum=0, verbose=False, on_memory=True):
     -------
         : dict
             A dictionary of keys where the data is in the 'data' key.
-            Other metadata is contained in other named keys such as 'pixelSize'.
-            'coords' contains the coordinate axes with the proper origin and scale
+            Other metadata is contained in other named keys such as
+            'pixelSize'.
+            'coords' contains the coordinate axes with the proper origin and
+             scale
             applied (i.e. the energy loss axis for EELS data)
     Example
     -------
@@ -1138,19 +1271,22 @@ def dmReader(filename, dSetNum=0, verbose=False, on_memory=True):
 
     # Now prepare nice coordinates (like energy loss axis for spectra)
     coords = []
-    for pixel_size, pixel_origin, pixel_unit, sh in zip(im1['pixelSize'], im1['pixelOrigin'], im1['pixelUnit'],
+    for pixel_size, pixel_origin, pixel_unit, sh in zip(im1['pixelSize'],
+                                                        im1['pixelOrigin'],
+                                                        im1['pixelUnit'],
                                                         im1['data'].shape):
         if sh == 1:
             coords.append(0)
         else:
-            # pixel_origin = round(pixel_origin * pixel_size, ndigits=4)  # Multiply by pixelSize to get the correct origin
-            # pixel_origin = np.abs(round(pixel_origin * pixel_size, ndigits=4))  # Multiply by pixelSize to get the correct origin
             print(pixel_origin)
             print(pixel_size)
-            pixel_origin = round(pixel_origin * pixel_size, ndigits=4)  # Multiply by pixelSize to get the correct origin
+            # Multiply by pixelSize to get the correct origin
+            pixel_origin = round(pixel_origin * pixel_size,
+                                 ndigits=4)
 
-
-            eLoss = np.round(np.linspace(0, pixel_size * (sh - 1), sh) + pixel_origin, decimals=4)
+            eLoss = np.round(
+                np.linspace(0, pixel_size * (sh - 1), sh) + pixel_origin,
+                decimals=4)
             coords.append(eLoss)
     im1['coords'] = coords
 
@@ -1158,5 +1294,3 @@ def dmReader(filename, dSetNum=0, verbose=False, on_memory=True):
     del im1['pixelOrigin']
 
     return im1  # return the dataset and metadata as a dictionary
-
-

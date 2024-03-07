@@ -1,60 +1,59 @@
 from pyEELSMODEL.components.CLedge.coreloss_edge import CoreLossEdge
-import h5py
-import os
+
 
 class DummyEdge(CoreLossEdge):
     """
     DummyEdge is a first approximation of the edge. This assumes each edge has
-    a different onset energy but the powerlaw value is can be chosen. Note that the
-    parameters E0, alpha, beta do not influence the dummy edge model.
-
-
-
-    Parameters
-    ----------
-    specshape : Spectrumshape
-        The spectrum shape used to model
-    A : float
-        Amplitude of the edge
-
-    E0: float [V]
-        The acceleration voltage of the microscope
-
-    alpha: float [rad]
-        The convergence angle of the incoming probe
-
-    beta: float [rad]
-        The collection angle
-
-    element: string
-        The name of the element from which to calculate the edge model.
-
-    edge: string
-        The type of edge. (K1, L1, L2, L3, M1, etc.)
-
-    eshift: float [eV]
-        The shift of the onset energy with respect to the literature value.
-        (default: 0)
-    r: float
-        The powerlaw of the dummyedge. (default: 3)
-
-    Returns
-    -------
-
+    a different onset energy but the powerlaw value is can be chosen. Note that
+    the parameters E0, alpha, beta do not influence the dummy edge model.
     """
-    def __init__(self, specshape, A, E0=300e3, alpha=1e-9, beta=10e-3, element=None, edge=None, eshift=0, r=3):
-        # dir path should be defined before set_edge function is called
-        # use relative paths
 
-        super().__init__(specshape, A, E0, alpha, beta, element, edge, eshift=eshift)
+    def __init__(self, specshape, A, E0=300e3, alpha=1e-9, beta=10e-3,
+                 element=None, edge=None, eshift=0, r=3):
+        """
+
+        Parameters
+        ----------
+        specshape : Spectrumshape
+            The spectrum shape used to model
+        A : float
+            Amplitude of the edge
+
+        E0: float [V]
+            The acceleration voltage of the microscope
+
+        alpha: float [rad]
+            The convergence angle of the incoming probe
+
+        beta: float [rad]
+            The collection angle
+
+        element: string
+            The name of the element from which to calculate the edge model.
+
+        edge: string
+            The type of edge. (K1, L1, L2, L3, M1, etc.)
+
+        eshift: float [eV]
+            The shift of the onset energy with respect to the literature value.
+            (default: 0)
+        r: float
+            The powerlaw of the dummyedge. (default: 3)
+
+        Returns
+        -------
+        """
+
+        super().__init__(specshape, A, E0, alpha, beta, element, edge,
+                         eshift=eshift)
         self.r = r
 
     @classmethod
     def edge_by_onset(self, specshape, A, onset):
         """
-        Class method to make a dummy edge where the edge onset energy is specified.
-        In the list of elements not every edge is included so it would be of interest
-        to have some freedom if needed.
+        Class method to make a dummy edge where the edge onset energy is
+        specified. In the list of elements not every edge is included so it
+        would be of interest to have some freedom if needed.
 
         :param specshape:
         :param A:
@@ -64,12 +63,6 @@ class DummyEdge(CoreLossEdge):
         d = DummyEdge(specshape, A, 1, 1, 1, 'C', 'K')
         d.onset_energy = onset
         return d
-
-    # def set_onset_energy(self):
-    #     with h5py.File(self.get_elements_dir(), 'r') as f:
-    #         self.onset_energy = f[self.element][self.edge].attrs['onset_energy']
-    #         self.prefactor = f[self.element][self.edge].attrs['occupancy_ratio']
-
 
     def _check_str_in_list(self, list, edge):
         for name in list:
@@ -105,10 +98,9 @@ class DummyEdge(CoreLossEdge):
                 'Edge should be: K1, L1, L2, L3, M2, M3, M4, M5, N4, N5')
 
     def calculate_cross_section(self):
-        cross_section = self.prefactor*self.energy_axis**(-self.r)
-        scale = 1/cross_section[self.get_energy_index(self.onset_energy)]
-        cross_section = cross_section*scale
-        boolean = self.energy_axis<self.onset_energy
+        cross_section = self.prefactor * self.energy_axis ** (-self.r)
+        scale = 1 / cross_section[self.get_energy_index(self.onset_energy)]
+        cross_section = cross_section * scale
+        boolean = self.energy_axis < self.onset_energy
         cross_section[boolean] = 0
         return cross_section
-

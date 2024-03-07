@@ -1,5 +1,3 @@
-
-
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -21,19 +19,14 @@ class Align(Operator):
     """
     def __init__(self, multispectrum, other_spectra, cropping,
                  signal_range=None, zero_index=None):
-
-
-
         self.multispectrum = multispectrum
 
         if other_spectra is None:
             self.other_spectra = []
         else:
             if self.check_valid_other_spectra(other_spectra):
-                self.other_spectra= other_spectra
+                self.other_spectra = other_spectra
         self.update_multispectra()
-
-
         self.cropping = cropping
         self.signal_range = signal_range
         self.zero_index = zero_index
@@ -42,9 +35,7 @@ class Align(Operator):
         self.aligned = None
         self.aligned_others = []
         self.method = None
-        self.pdf_path = r'E:\eelsmodel_pdfs' #directory to put the pdfs
-
-
+        self.pdf_path = r'E:\eelsmodel_pdfs'  # directory to put the pdfs
 
     @property
     def shift(self):
@@ -126,11 +117,15 @@ class Align(Operator):
             self._zero_index = None
             return
 
-        if (E>=self.multispectrum.energy_axis[-1]) or (E<=self.multispectrum.energy_axis[0]):
-            raise ValueError(r'The given energy value is not inside the energy axis so it cannot'
-                             r'align on this energy. Please take a energy value inside the axis.')
-        self._zero_index = self.multispectrum.get_energy_index(E)
+        E0 = self.multispectrum.energy_axis[0]
+        E1 = self.multispectrum.energy_axis[-1]
 
+        if (E >= E1) or (E <= E0):
+
+            raise ValueError(r'The given energy value is not inside the energy'
+                             r' axis so it cannot, align on this energy. '
+                             r'Please take a energy value inside the axis.')
+        self._zero_index = self.multispectrum.get_energy_index(E)
 
     @property
     def signal_range(self):
@@ -161,13 +156,13 @@ class Align(Operator):
 
         if signal_range is None:
             signal_range = (self.multispectrum.energy_axis[0],
-                                  self.multispectrum.energy_axis[-1])
+                            self.multispectrum.energy_axis[-1])
 
         if signal_range[1] < signal_range[0]:
             raise ValueError(r'Second energy in the signal range should be '
                              r'bigger then the first one')
 
-        if signal_range[0]<self.multispectrum.energy_axis[0]:
+        if signal_range[0] < self.multispectrum.energy_axis[0]:
             signal_range[0] = self.multispectrum.energy_axis[0]
             logger.warning(r'Begin energy is set to start of energy axis')
 
@@ -214,14 +209,14 @@ class Align(Operator):
         update on the offset energy of the multispectrum by taking the median
         value of the energy at maximum intensity.
         """
-        zlp_pos = self.multispectrum.energy_axis[np.argmax(self.multispectrum.multidata[:,:], axis=(2))]
+        co = np.argmax(self.multispectrum.multidata[:, :], axis=2)
+        zlp_pos = self.multispectrum.energy_axis[co]
         zlp_med = np.median(zlp_pos)
 
         self.multispectrum.offset -= zlp_med
 
         for spec in self.other_spectra:
             spec.offset -= zlp_med
-
 
     def fast_align(self):
         """
@@ -239,7 +234,7 @@ class Align(Operator):
                   ' it')
             return None
 
-        #make the aligned other empty
+        # make the aligned other empty
         self.aligned_others = []
 
         shape = (self.multispectrum.xsize, self.multispectrum.ysize)
@@ -248,22 +243,17 @@ class Align(Operator):
         else:
             shf = self.index_shift + self.zero_index
 
-
-
         min_shift = np.nanmin(shf)
         max_shift = np.nanmax(shf)
 
-        #if no shift is obsereved, then it will not try to apply something
+        # if no shift is observed, then it will not try to apply something
         if min_shift == max_shift:
             print('dataset is already aligned')
             self.aligned = self.multispectrum.copy()
             self.aligned_others = self.other_spectra[:]
-            return None   
+            return None
 
-
-		# piece of code to determine the cropping coordinates
         if self.cropping:
-
             # set the offset to the maximum shift
             new_offset = self.multispectrum.offset + \
                          self.multispectrum.dispersion * max_shift
@@ -296,11 +286,10 @@ class Align(Operator):
             for index, spec in enumerate(self.other_spectra):
                 ms = MultiSpectrumshape(self.multispectrum.dispersion,
                                         new_offset_list[index], new_size,
-                                        shape[0],shape[1])
+                                        shape[0], shape[1])
 
                 nshape = (shape[0], shape[1], new_size)
-                self.aligned_others.append(MultiSpectrum(ms,np.zeros(nshape)))
-
+                self.aligned_others.append(MultiSpectrum(ms, np.zeros(nshape)))
 
         else:
             # if no cropping is used, everything is a lot easier :)
@@ -310,20 +299,19 @@ class Align(Operator):
                 self.aligned_others.append(spectra.copy())
             ind = [0, None]
 
-        #apply the shifts using the numpy roll function and cropping away
-        #the proper regions.
+        # apply the shifts using the numpy roll function and cropping away
+        # the proper regions.
         for index in (np.ndindex(shape)):
             islice = np.s_[index]
             self.aligned.multidata[islice] \
                 = np.roll(self.multispectrum.multidata[islice],
-                          shf[islice])[ ind[0]:ind[1]]
+                          shf[islice])[ind[0]:ind[1]]
 
             # apply the shift to every other spectrum
             for ii, spec in enumerate(self.aligned_others):
                 spec.multidata[islice] \
                     = np.roll(self.other_spectra[ii].multidata[islice],
                               shf[islice])[ind[0]:ind[1]]
-
 
     def align(self):
         """
@@ -348,12 +336,12 @@ class Align(Operator):
         # make the aligned others list empty
         self.aligned_others = []
 
-        #determine the minimal and maximum shift
+        # determine the minimal and maximum shift
         shape = (self.multispectrum.xsize, self.multispectrum.ysize)
 
-        #some weird prefactor and naming to make everything work
-        max_shift = -1*min(np.nanmin(self.shift),0)
-        min_shift = max(np.nanmax(self.shift),0)
+        # some weird prefactor and naming to make everything work
+        max_shift = -1*min(np.nanmin(self.shift), 0)
+        min_shift = max(np.nanmax(self.shift), 0)
 
         disp = self.multispectrum.dispersion
 
@@ -362,25 +350,25 @@ class Align(Operator):
         if max_shift == 0:
             ar_before = []
         else:
-            ar_before = np.arange(np.ceil(max_shift/disp))*disp
+            ar_before = np.arange(np.ceil(max_shift / disp)) * disp
             ar_before += self.multispectrum.offset-ar_before[-1]-disp
 
         if min_shift == 0:
             ar_after = []
         else:
-            ar_after = np.arange(np.ceil(min_shift/disp))\
-                       +self.multispectrum.energy_axis[-1]+disp
+            ar_after = np.arange(np.ceil(min_shift / disp))\
+                       + self.multispectrum.energy_axis[-1] + disp
 
-        #the new energy axis where everything should be okay.
+        # the new energy axis where everything should be okay.
         E_ax = np.concatenate((ar_before, self.multispectrum.energy_axis,
                                ar_after))
 
-        #cropping modifies the total size EEL spectrum
+        # cropping modifies the total size EEL spectrum
         if self.cropping:
             ind = [int(np.ceil(max_shift / disp)),
                    -1 * int(np.ceil(min_shift / disp))]
 
-            if (ind[1]-ind[0])%2 == 1:
+            if (ind[1]-ind[0]) % 2 == 1:
                 ind[1] -= 1
 
             if ind[1] == 0:
@@ -392,7 +380,6 @@ class Align(Operator):
 
             delta_offset = self.multispectrum.offset - new_offset
 
-
             ms = MultiSpectrumshape(self.multispectrum.dispersion, new_offset,
                                     new_size, shape[0], shape[1])
             self.aligned = MultiSpectrum(ms, data=np.zeros((shape[0], shape[1],
@@ -403,9 +390,9 @@ class Align(Operator):
                 prev_off = spec.offset
                 ms = MultiSpectrumshape(self.multispectrum.dispersion,
                                         prev_off-delta_offset, new_size,
-                                        shape[0],shape[1])
+                                        shape[0], shape[1])
                 nshape = (shape[0], shape[1], new_size)
-                self.aligned_others.append(MultiSpectrum(ms,np.zeros(nshape)))
+                self.aligned_others.append(MultiSpectrum(ms, np.zeros(nshape)))
 
         else:
             self.aligned = self.multispectrum.copy()
@@ -421,7 +408,7 @@ class Align(Operator):
             i_dat = si(self.multispectrum.energy_axis+self.shift[islice])
             self.aligned.multidata[islice] = i_dat[ind[0]:ind[1]]
 
-            #apply the shift to every other spectrum
+            # apply the shift to every other spectrum
             for ii, spec in enumerate(self.other_spectra):
                 dat = np.pad(spec.multidata[islice],
                              pad_width=(len(ar_before), len(ar_after)))
@@ -430,9 +417,7 @@ class Align(Operator):
                 self.aligned_others[ii].multidata[islice] \
                     = i_dat[ind[0]:ind[1]]
 
-
-
-    def show_signal_range(self, index=(0,0)):
+    def show_signal_range(self, index=(0, 0)):
         """
         Show the signal range used in the determination of the shift.
 
@@ -452,7 +437,7 @@ class Align(Operator):
         boolean = np.zeros(self.multispectrum.size)
         boolean[ind0:ind1] = True
         self.multispectrum.setcurrentspectrum(index)
-        fig, ax = plt.subplots(figsize=(4,3))
+        fig, ax = plt.subplots(figsize=(4, 3))
         ax.plot(self.multispectrum.energy_axis, self.multispectrum.data,
                 color='black')
         ax.fill_between(self.multispectrum.energy_axis, 0,
@@ -481,15 +466,15 @@ class Align(Operator):
                 ax.set_ylabel(r'Shift [eV]')
 
         else:
-            fig, ax = plt.subplots(1,2, figsize=(6,3))
+            fig, ax = plt.subplots(1, 2, figsize=(6, 3))
             if show_index:
-                data = self.index_shift - self.index_shift[0,0]
-                label='index'
+                data = self.index_shift - self.index_shift[0, 0]
+                label = 'index'
                 bins = np.arange(data.min(), data.max()+1)
 
             else:
                 data = self.shift
-                label='eV'
+                label = 'eV'
                 bins = np.linspace(data.min(), data.max(), nbins)
 
             im = ax[0].imshow(data)
@@ -504,7 +489,6 @@ class Align(Operator):
 
         return fig
 
-
     def show_alignment_result(self):
         """
         Figure outputs the average spectrum before and after alignment
@@ -514,7 +498,7 @@ class Align(Operator):
         fig: Figure
             The figure which can then be used to modify or save
         """
-        fig, ax1 = plt.subplots(figsize=(6,3))
+        fig, ax1 = plt.subplots(figsize=(6, 3))
         avg_r = self.multispectrum.mean().data
         avg_a = self.aligned.mean().data
         en_r = self.multispectrum.energy_axis[np.argmax(avg_r)]
@@ -527,8 +511,6 @@ class Align(Operator):
         ax1.set_xlim(xlim)
 
         return fig
-
-
 
     def make_pdf_result(self):
         """
@@ -546,78 +528,41 @@ class Align(Operator):
         pdf.add_page()
 
         pdf.intitialize(path=self.pdf_path)
-        pdf.write(pdf.dh,txt='Method used is: ' + self.method+ '\n')
-        pdf.write(0.5,txt=' \n')
+        pdf.write(pdf.dh, txt='Method used is: ' + self.method + '\n')
+        pdf.write(0.5, txt=' \n')
 
-
-        ### figure in the resulting shift
-        pdf.write(pdf.dh,txt='Cropping was set to: '
-                             + str(self.cropping)+ '\n')
+        # figure in the resulting shift
+        pdf.write(pdf.dh, txt='Cropping was set to: '
+                              + str(self.cropping) + '\n')
 
         dE = np.diff(self.multispectrum.energy_axis[:2])[0]
-        pdf.write(pdf.dh,txt='Energy range of raw data is ' + str(dE)
-                             + ' eV \n')
+        pdf.write(pdf.dh, txt='Energy range of raw data is ' + str(dE)
+                              + ' eV \n')
         dE = self.aligned.energy_axis[-1] - self.aligned.energy_axis[0]
-        pdf.write(pdf.dh,txt='Energy range of the aligned data is ' + str(dE)
-                             + ' eV \n')
-        pdf.write(0.5,txt=' \n')
+        pdf.write(pdf.dh, txt='Energy range of the aligned data is ' + str(dE)
+                              + ' eV \n')
+        pdf.write(0.5, txt=' \n')
 
-
-        pdf.write(pdf.dh,txt='The shift which is applied to each individual'
-                             ' spectrum')
+        pdf.write(pdf.dh, txt='The shift which is applied to each '
+                              'individual spectrum')
 
         fig = self.show_shift(show_index=False, nbins=20)
         pdf.add_figure(fig)
 
-        ### figure on the signal range used
+        # figure on the signal range used
         pdf.add_page()
-        pdf.write(pdf.dh,txt='The signal range used in determining the shift'
-                             ' \n')
-        pdf.write(pdf.dh,txt='Signal range is: '+str(self.signal_range))
+        pdf.write(pdf.dh, txt='The signal range used in determining the '
+                              'shift  \n')
+        pdf.write(pdf.dh, txt='Signal range is: '+str(self.signal_range))
         fig1 = self.show_signal_range()
         pdf.add_figure(fig1)
 
-        ### figure showing the result
+        # figure showing the result
         pdf.add_page()
-        pdf.write(pdf.dh,txt='The average raw and aligned spectrum \n')
+        pdf.write(pdf.dh, txt='The average raw and aligned spectrum \n')
         fig2 = self.show_alignment_result()
         pdf.add_figure(fig2)
 
         plt.close('all')
         name = pdf.get_savename()
         pdf.output(name)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

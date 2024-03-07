@@ -5,22 +5,19 @@ Created on Thu Dec  9 20:46:09 2021
 @author: joverbee
 """
 import numpy as np
-import matplotlib.pyplot as plt
 import logging
 from pyEELSMODEL.core.operator import Operator
-from pyEELSMODEL.core.model import Model
 from pyEELSMODEL.core.multispectrum import MultiSpectrum, MultiSpectrumshape
 from pyEELSMODEL.core.spectrum import Spectrum, Spectrumshape
 
 
 logger = logging.getLogger(__name__)
 
+
 class Deconvolution(Operator):
     """
     Parten class for the deconvolution methods.
     """
-
-
     def __init__(self, spectrum, llspectrum):
         """
         Parameters
@@ -47,11 +44,6 @@ class Deconvolution(Operator):
             print('the low loss will be zero padded to have the same size')
             llspectrum = self.padding(spectrum.get_spectrumshape(), llspectrum)
             self.llspectrum = llspectrum
-
-
-
-
-
 
     def padding(self, specshape, llspectrum):
         """
@@ -80,10 +72,14 @@ class Deconvolution(Operator):
 
         elif type(llspectrum) is MultiSpectrum:
             print('low loss is multispectrum')
-            pad_data = np.pad(llspectrum.multidata, pad_width=((0,0),(0,0),(before, after)))
-            noffset = llspectrum.offset - llspectrum.dispersion*before
-            sph = MultiSpectrumshape(llspectrum.dispersion, noffset, pad_data.shape[-1],
-                                     llspectrum.xsize, llspectrum.ysize)
+            pad_w = ((0, 0), (0, 0), (before, after))
+            pad_data = np.pad(llspectrum.multidata, pad_width=pad_w)
+            noffset = llspectrum.offset - llspectrum.dispersion * before
+            sph = MultiSpectrumshape(llspectrum.dispersion,
+                                     noffset,
+                                     pad_data.shape[-1],
+                                     llspectrum.xsize,
+                                     llspectrum.ysize)
             s = MultiSpectrum(sph, data=pad_data)
 
         return s

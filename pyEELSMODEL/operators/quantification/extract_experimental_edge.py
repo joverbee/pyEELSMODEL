@@ -1,13 +1,10 @@
 from pyEELSMODEL.core.operator import Operator
 from pyEELSMODEL.operators.areaselection import AreaSelection
-from pyEELSMODEL.fitters.linear_fitter import LinearFitter
-from pyEELSMODEL.components.linear_background import LinearBG
-from pyEELSMODEL.operators.quantification.elemental_quantification import ElementalQuantification
+from pyEELSMODEL.operators.quantification.elemental_quantification import \
+    ElementalQuantification
 from pyEELSMODEL.components.gdoslin import GDOSLin
 from pyEELSMODEL.components.fixedpattern import FixedPattern
 import matplotlib.pyplot as plt
-import numpy as np
-
 
 
 class ExperimentalEdgeExtractor(Operator):
@@ -36,8 +33,6 @@ class ExperimentalEdgeExtractor(Operator):
         self.areas = []
         self.settings = settings
 
-
-
     def define_new_region(self, input_map=None, max_points=4, coords=None):
         """
         Define an AreaSelection object. This object is able to extract the
@@ -62,11 +57,13 @@ class ExperimentalEdgeExtractor(Operator):
         """
         if coords is None:
             area = AreaSelection(self.multispectrum, input_map=input_map,
-                                 other_spectra=[self.ll], max_points=max_points)
+                                 other_spectra=[self.ll],
+                                 max_points=max_points)
             area.determine_input_area()
         else:
             area = AreaSelection(self.multispectrum, input_map=input_map,
-                                 other_spectra=[self.ll], max_points=max_points)
+                                 other_spectra=[self.ll],
+                                 max_points=max_points)
             area.xcoords = coords[0]
             area.ycoords = coords[1]
 
@@ -143,15 +140,15 @@ class ExperimentalEdgeExtractor(Operator):
             that the fine structure starts before expected onset from the
             atomic cross section. Negative values would be unexpected.
         """
-        quant = ElementalQuantification(hl, elements, edges, self.settings,ll=ll)
+        quant = ElementalQuantification(hl, elements, edges, self.settings,
+                                        ll=ll)
         quant.linear_fitter_method = 'ols'
         quant.n_bgterms = 4
-        quant.pre_fine=pre_fine
+        quant.pre_fine = pre_fine
         quant.use_fine = True
         quant.fine_intervals = intervals
         quant.do_align = False
         self.quant = quant
-
 
     def extract_edge(self, index, elements, edges, intervals, pre_fine):
         """
@@ -183,11 +180,11 @@ class ExperimentalEdgeExtractor(Operator):
         hl = self.spectra[index]
         ll = self.llspectra[index]
 
-        self.add_quantification_method(hl, ll, elements, edges, intervals, pre_fine)
+        self.add_quantification_method(hl, ll, elements, edges, intervals,
+                                       pre_fine)
         self.quant.do_procedure()
 
         self.quant.fitter.plot()
-
 
         fixs = []
         for ii in range(len(elements)):
@@ -195,7 +192,6 @@ class ExperimentalEdgeExtractor(Operator):
             fixs.append(fix)
 
         return fixs
-
 
     def _get_norm_cross_section(self, index):
         """
@@ -241,27 +237,3 @@ class ExperimentalEdgeExtractor(Operator):
                            name=component.name)
         fix.calculate()
         return fix
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

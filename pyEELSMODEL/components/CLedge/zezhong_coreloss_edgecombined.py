@@ -1,7 +1,7 @@
 from pyEELSMODEL.components.CLedge.coreloss_edge import CoreLossEdge
 
-# from pyEELSMODEL.components.CLedge.hs_coreloss_edge import HSCoreLossEdge
-from pyEELSMODEL.components.CLedge.zezhong_coreloss_edge import ZezhongCoreLossEdge
+from pyEELSMODEL.components.CLedge.zezhong_coreloss_edge import \
+    ZezhongCoreLossEdge
 import numpy as np
 import logging
 import h5py
@@ -10,70 +10,75 @@ from pyEELSMODEL import __file__
 
 logger = logging.getLogger(__name__)
 
+
 # todo implement method
 
-
 class ZezhongCoreLossEdgeCombined(CoreLossEdge):
-    # core loss edge with L3,L2,L1 combined in one edge w fixed ratios
     """
-    Calculates the coreloss edges for a group of edges using the GOS from Zezhong Zang. For instance,
-    the L edge calculates the L3, L2 and L1 edges and puts them together with the appropriate prefactors.
+    Calculates the coreloss edges for a group of edges using the GOS from
+    Zezhong Zang. For instance, the L edge calculates the L3, L2 and L1 edges
+    and puts them together with the appropriate prefactors.
 
-
-    Parameters
-    ----------
-    spec : Spectrumshape
-        The spectrum shape used to model
-    A : float
-          Amplitude of the edge
-
-    E0: float [V]
-          The acceleration voltage of the microscope
-
-    alpha: float [rad]
-          The convergence angle of the incoming probe
-
-    beta: float [rad]
-          The collection angle
-
-    element: string
-          The name of the element from which to calculate the edge model.
-
-    edge: string
-          The type of edge. (K, L or M)
-
-    eshift: float [eV]
-          The shift of the onset energy with respect to the literature value.
-        (default: 0)
-
-    q_steps: int
-         The number of q points taken into account for the integration over the
-         momentum space. The larger the number of q_steps the more accurate
-         the calculation. (default: 100)
-
-    Returns
-    -------
     """
 
     def __init__(
-        self,
-        specshape,
-        A,
-        E0,
-        alpha,
-        beta,
-        element,
-        edge,
-        eshift=0,
-        q_steps=100,
-        dir_path=None,
+            self,
+            specshape,
+            A,
+            E0,
+            alpha,
+            beta,
+            element,
+            edge,
+            eshift=0,
+            q_steps=100,
+            dir_path=None,
     ):
-        if dir_path == None:
+        """
+        Coreloss edges which are calculated by Zezhong Zhang.
+        https://zenodo.org/records/7729585
+
+
+        Parameters
+        ----------
+        specshape : Spectrumshape
+            The spectrum shape used to model
+        A : float
+              Amplitude of the edge
+
+        E0: float [V]
+              The acceleration voltage of the microscope
+
+        alpha: float [rad]
+              The convergence angle of the incoming probe
+
+        beta: float [rad]
+              The collection angle
+
+        element: string
+              The name of the element from which to calculate the edge model.
+
+        edge: string
+              The type of edge. (K, L or M)
+
+        eshift: float [eV]
+              The shift of the onset energy with respect to the literature
+              value. (default: 0)
+
+        q_steps: int
+             The number of q points taken into account for the integration over
+             the momentum space. The larger the number of q_steps the more
+             accurate the calculation. (default: 100)
+
+        Returns
+        -------
+
+        """
+
+        if dir_path is None:
             self.dir_path = os.path.dirname(
                 os.path.dirname(__file__) + "/../pyEELSMODEL/database/Zhang/"
             )
-
-
         else:
             self.dir_path = dir_path
 
@@ -94,7 +99,8 @@ class ZezhongCoreLossEdgeCombined(CoreLossEdge):
                 dir_path=self.dir_path,
             )
             self.xsectionlist.append(xsectionK)
-            super().__init__(specshape, A, E0, alpha, beta, element, "K1", q_steps=100)
+            super().__init__(specshape, A, E0, alpha, beta, element, "K1",
+                             q_steps=q_steps)
             name = element + " K edge: " + str(self.onset_energy) + " eV"
             self.setdisplayname(name)
 
@@ -113,7 +119,7 @@ class ZezhongCoreLossEdgeCombined(CoreLossEdge):
                 dir_path=self.dir_path,
             )
             self.xsectionlist.append(xsection_op)
-            for i in range(max_edge-1):
+            for i in range(max_edge - 1):
                 try:
                     next_edge = edge + str(max_edge - i - 1)
                     xsection = ZezhongCoreLossEdge(
@@ -133,12 +139,11 @@ class ZezhongCoreLossEdgeCombined(CoreLossEdge):
                     xsection.parameters[2].couple(xsection_op.parameters[2])
                     xsection.parameters[3].couple(xsection_op.parameters[3])
                     self.xsectionlist.append(xsection)
-                    #print(next_edge + " is used")
+                    # print(next_edge + " is used")
 
-                except:
+                except Exception:
                     print(next_edge + " is NOT implemented")
 
-            #self.xsectionlist.append(xsection) # te veel? laatste edge wordt 2X berekend?
             super().__init__(
                 specshape,
                 A,
@@ -158,9 +163,10 @@ class ZezhongCoreLossEdgeCombined(CoreLossEdge):
 
     def check_maximum_edge(self, specshape, element, edge):
         """
-        Check which is the lowest energy loss edge (the highest number) available.
-        Some elements only have a L1 but do not have a L3 edge. This function
-        can tell which number is the highest for the given element and edge.
+        Check which is the lowest energy loss edge (the highest number)
+        available. Some elements only have a L1 but do not have a L3 edge.
+        This function can tell which number is the highest for the given
+        element and edge.
 
         Parameters
         ----------
@@ -193,15 +199,14 @@ class ZezhongCoreLossEdgeCombined(CoreLossEdge):
         sub_edges = np.array(sub_edges)
 
         begin = specshape.offset
-        end = specshape.offset + specshape.size*specshape.dispersion
-        mask = np.logical_and((sub_onsets>begin), (sub_onsets<end))
+        end = specshape.offset + specshape.size * specshape.dispersion
+        mask = np.logical_and((sub_onsets > begin), (sub_onsets < end))
         # mask = (sub_onsets>begin) & (sub_onsets<end)
         mask = np.ravel(mask)
         # sub_edges = np.array(sub_edges)[mask]
 
         av_e = np.array(sub_edges)[mask]
         co = np.argsort(av_e)[::-1]
-
 
         # stores all the edges used in the calculation of the components
         # self.available_edges = av_e[co]
@@ -214,7 +219,8 @@ class ZezhongCoreLossEdgeCombined(CoreLossEdge):
             []
         )  # erase existing parameter list and replace with longer list
         self.gradient = []
-        # first 4 paramters however remain same meaning but they are coupled with the higher ones
+        # first 4 paramters however remain same meaning
+        # but they are coupled with the higher ones
         for xsection in self.xsectionlist:
             for par in xsection.parameters:
                 self._addparameter(par)

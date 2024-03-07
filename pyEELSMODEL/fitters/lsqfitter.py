@@ -11,7 +11,8 @@ logger = logging.getLogger(__name__)
 
 class LSQFitter(Fitter):
     """
-
+    The  least squares fitter which can be used to solve non-linear
+    problems by optimizing the least squares.
     """
 
     def __init__(self, spectrum, model, use_bounds=False, method='lm'):
@@ -23,10 +24,12 @@ class LSQFitter(Fitter):
         spectrum : Spectrum or Multispectrum
             The experimental data used which needs to be fitted
         model : Model
-            The model used to fit the experimental data. Model should only contain
+            The model used to fit the experimental data. Model should only
+            contain
             linear parameters.
         use_bounds: bool, optional
-            Bool indicating which if the boundaries of the parameters are used (default:False)
+            Bool indicating which if the boundaries of the parameters are used
+            (default:False)
 
         Returns
         -------
