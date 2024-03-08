@@ -37,7 +37,7 @@ jobs:
     - name: Test that the module imports
       run: |
         pip install .
-        python -c "import pyEELSMODEL; print(pyEELSMODEL.__version__)"
+        python -c "import pyEELSMODEL; print(pyEELSMODEL.__path__)"
     - name: Test with pytest
       run: |
         pytest
