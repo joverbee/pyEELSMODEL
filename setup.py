@@ -32,6 +32,6 @@ setup(
    ],
    setup_requires=['flake8'],
    test_requires=['pytest'],
-   package_data={'': ['pyEELSMODEL/element_info.hdf5']},
+   package_data={"": ["*.hdf5"]},
 
 )
