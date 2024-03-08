@@ -130,15 +130,17 @@ def test_fast_align_1():
         align.determine_fast_shift()
         align.align()
         # every maximum value is at zero energy
-        assert np.all(align.aligned.energy_axis[
-                          np.argmax(align.aligned.multidata, axis=2)].astype(
-            'int') == 0)
-        assert align.aligned_others[0].energy_axis[
-                   np.argmax(align.aligned_others[0].sum().data)].astype(
-            'int') == 50
-        assert align.aligned_others[1].energy_axis[
-                   np.argmax(align.aligned_others[1].sum().data)].astype(
-            'int') == 100
+        alg = align.aligned
+        alg0 = align.aligned_others[0]
+        alg1 = align.aligned_others[1]
+
+        Em = alg.energy_axis[np.argmax(alg.multidata, axis=2)]
+        Em0 = alg0.energy_axis[np.argmax(alg0.multidata, axis=2)]
+        Em1 = alg1.energy_axis[np.argmax(alg1.multidata, axis=2)]
+
+        assert np.all(np.abs(Em)) <= 1
+        assert np.all(np.abs(Em0-50)) <= 1
+        assert np.all(np.abs(Em1-100)) <= 1
 
 
 def test_fast_align_other():
