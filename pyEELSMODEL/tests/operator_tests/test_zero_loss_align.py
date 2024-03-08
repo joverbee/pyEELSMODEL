@@ -134,9 +134,11 @@ def test_fast_align_1():
                           np.argmax(align.aligned.multidata, axis=2)].astype(
             'int') == 0)
         assert align.aligned_others[0].energy_axis[
-                   np.argmax(align.aligned_others[0].sum().data)] == 50
+                   np.argmax(align.aligned_others[0].sum().data)].astype(
+            'int') == 50
         assert align.aligned_others[1].energy_axis[
-                   np.argmax(align.aligned_others[1].sum().data)] == 100
+                   np.argmax(align.aligned_others[1].sum().data)].astype(
+            'int') == 100
 
 
 def test_fast_align_other():
