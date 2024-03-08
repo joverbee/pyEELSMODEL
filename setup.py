@@ -28,7 +28,8 @@ setup(
        "tqdm",
        "fpdf",
        "pyqt5",
-       "pytest"
+       "pytest",
+       "jupyter"
    ],
    setup_requires=['flake8'],
    test_requires=['pytest'],
