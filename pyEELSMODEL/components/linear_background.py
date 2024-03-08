@@ -7,7 +7,6 @@ from pyEELSMODEL.core.parameter import Parameter
 import numpy as np
 
 
-
 class LinearBG(Component):
     """
     Fast background model, where the number of components can be varied.
@@ -24,37 +23,41 @@ class LinearBG(Component):
     -------
     """
 
-    def __init__(self, specshape, rlist=[1,2,3,4,5]):
+    def __init__(self, specshape, rlist=[1, 2, 3, 4, 5]):
         super().__init__(specshape)
 
         n = len(rlist)
         for i in range(n):
-            pname = 'a'+str(i)
-            p=Parameter(pname,1.0,True)
+            pname = 'a' + str(i)
+            p = Parameter(pname, 1.0, True)
             p.setboundaries(-np.Inf, np.Inf)
-            p.setlinear(True) #is this true as we will multiply this with another cross section
+            # is this true as we will multiply this with another cross section
+            p.setlinear(True)
             self._addparameter(p)
 
-            qname = 'r'+str(i)
-            q =  Parameter(qname, rlist[i], changeallowed=False)
+            qname = 'r' + str(i)
+            q = Parameter(qname, rlist[i], changeallowed=False)
             q.sethasgradient(False)
             self._addparameter(q)
 
-        self.n = n #number of terms in the sum
-        self._setcanconvolute(False)  # don't convolute the background it only gives problems and adds no extra physics
+        self.n = n  # number of terms in the sum
+
+        # don't convolute the background it only gives problems and
+        # adds no extra physics
+        self._setcanconvolute(False)
         self._setshifter(False)  # it is not a shifter type of component
 
     def calculate(self):
         changes = False
         for param in self.parameters:
-            changes=changes or param.ischanged()
+            changes = changes or param.ischanged()
         if changes:
             Alist = []
             rlist = []
             for i in range(self.n):
-                p = self.parameters[2*i]
+                p = self.parameters[2 * i]
                 Alist.append(p.getvalue())
-                q = self.parameters[2*i+1]
+                q = self.parameters[2 * i + 1]
                 rlist.append(q.getvalue())
 
             self.data = self.linear_background(Alist, rlist)
@@ -76,13 +79,13 @@ class LinearBG(Component):
         """calculate the analytical partial derivative wrt parameter j
         returns true if succesful, gradient is stored in component.gradient
         """
-        #todo implement the analytical gradient
+        # todo implement the analytical gradient
         for ii, param in enumerate(self.parameters):
             if param is parameter:
                 index = ii
 
         if parameter in self.parameters[::2]:
-            r = self.parameters[index+1].getvalue()
+            r = self.parameters[index + 1].getvalue()
             partial = self.linear_background([1], [r])
             return partial
 

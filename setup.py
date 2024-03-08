@@ -14,7 +14,6 @@ setup(
    author_email='jo.verbeeck@uantwerpen.be',
    package_dir={'': '.'},
    packages=find_packages(),
-   #['pyEELSMODEL','pyEELSMODEL.core','pyEELSMODEL.dmread','pyEELSMODEL.components','pyEELSMODEL.fitters','pyEELSMODEL.io','pyEELSMODEL.misc','pyEELSMODEL.operators','pyEELSMODEL.tests','pyEELSMODEL.components.CLedge','pyEELSMODEL.components.MScatter'],
    url='',
    license='LICENSE.txt',
    description='a model based quantification library for electron energy loss spectroscopy',
@@ -29,7 +28,7 @@ setup(
        "tqdm",
        "fpdf",
        "pyqt5",
-       "jupyter notebook"
+       "pytest"
    ],
    setup_requires=['flake8'],
    test_requires=['pytest'],

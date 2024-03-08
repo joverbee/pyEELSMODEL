@@ -2,6 +2,7 @@ from fpdf import FPDF
 import time
 import os
 
+
 class PDF(FPDF):
     """
     Class which makes a pdf, this is useful when wanting to have some
@@ -9,6 +10,7 @@ class PDF(FPDF):
     the FastAlignZeroLoss class can generate a file with the relevant
     information which can be checked if everything went fine.
     """
+
     def get_time_name(self):
         return time.ctime(time.time()).replace(" ", "_").replace(":", "_")
 
@@ -17,16 +19,16 @@ class PDF(FPDF):
         return os.path.join(self.savepath, name)
 
     def get_figname(self):
-        name = self.get_time_name() + '_img'+str(self.counter)+'.png'
+        name = self.get_time_name() + '_img' + str(self.counter) + '.png'
         self.counter += 1
         return os.path.join(self.savepath, name)
 
     def add_figure(self, fig):
         savename = self.get_figname()
-        fig.savefig(savename,bbox_inches='tight', dpi=300)
+        fig.savefig(savename, bbox_inches='tight', dpi=300)
         wd = fig.get_figwidth()
         he = fig.get_figheight()
-        self.set_xy(0.0, self.get_y()+self.dh)
+        self.set_xy(0.0, self.get_y() + self.dh)
 
         self.image(savename, link='', type='', w=wd, h=he)
         os.remove(savename)

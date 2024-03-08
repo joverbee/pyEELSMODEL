@@ -5,7 +5,7 @@ author: Jo Verbeeck and Daen Jannis
 import numpy as np
 from pyEELSMODEL.core.component import Component
 from pyEELSMODEL.core.parameter import Parameter
-from pyEELSMODEL.core.spectrum import Spectrum, Spectrumshape
+from pyEELSMODEL.core.spectrum import Spectrum
 import logging
 
 logger = logging.getLogger(__name__)
@@ -59,10 +59,11 @@ class FixedPattern(Component):
 
         self.set_fixeddata(spectrum)
 
-        self._spectrum = Spectrum(self.get_spectrumshape(), data=self.fixeddata)
+        self._spectrum = Spectrum(self.get_spectrumshape(),
+                                  data=self.fixeddata)
 
         self.setdisplayname(name)
-        self.setdescription("Fixed pattern of "+name)
+        self.setdescription("Fixed pattern of " + name)
         self._setname(name)
 
     def set_fixeddata(self, spectrum):
@@ -125,11 +126,10 @@ class FixedPattern(Component):
 
         """
         if (scale == 1) and (shift == 0):
-            res = A*fixedpattern
+            res = A * fixedpattern
         else:
-            res = A*self._spectrum.rescale_spectrum(scale, shift).data
+            res = A * self._spectrum.rescale_spectrum(scale, shift).data
         return res
-
 
     def getgradient(self, parameter):
         pA = self.parameters[0]
@@ -138,6 +138,3 @@ class FixedPattern(Component):
             return self.gradient[0]
         else:
             return None
-
-
-

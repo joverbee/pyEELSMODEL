@@ -1,5 +1,4 @@
 from pyEELSMODEL.core.component import Component
-from pyEELSMODEL.core.parameter import Parameter
 from pyEELSMODEL.core.multispectrum import MultiSpectrum, MultiSpectrumshape
 from pyEELSMODEL.core.spectrum import Spectrum, Spectrumshape
 import numpy as np
@@ -7,24 +6,39 @@ import numpy as np
 
 class Mscatter(Component):
     """
-        A convolutor component can take the input of another component and apply a convolution
-        operator to it and store the results of that operation in its own spectrum data.
-        The model will treat this as special and first calculate the individual components that
-        have canconvolute set, sum those and then apply these as input to a convolutor component
-        (typically only 1 in a model). After this those components are added which have
-        canconvolute=False (eg a background component)
+    A convolutor component can take the input of another component and
+    apply a convolution operator to it and store the results of that operation
+    in its own spectrum data. The model will treat this as special and first
+    calculate the individual components that have canconvolute set, sum those
+    and then apply these as input to a convolutor component (typically
+    only 1 in a model). After this those components are added which have
+    canconvolute=False (eg a background component)
     """
 
     def __init__(self, specshape, llspectrum):
+        """
+
+        Parameters
+        ---------
+        specshape: Spectrumshape
+            The spectrum shape on the spectrum it will be used, not the low
+            loss spectrum
+        llspectrum: Spectrum or MultiSpectrum
+            The spectrum or multispectrum which is used to convolve the rest
+            of the components with.
+
+        """
         super().__init__(specshape)
 
-        n_acc = 8 #sometimes round error make that disperion is not the same
-        if np.round(self.dispersion, n_acc) != np.round(llspectrum.dispersion, n_acc):
-            raise ValueError('low loss spectrum has to have same dispersion as model')
+        n_acc = 8  # sometimes round error make that disperion is not the same
+        if np.round(self.dispersion, n_acc) != np.round(llspectrum.dispersion,
+                                                        n_acc):
+            raise ValueError('low loss spectrum has to have same '
+                             'dispersion as model')
 
         if self.size < llspectrum.size:
-            raise ValueError('size of ll spectrum is larger than the spectrum on which the analysis will be performed')
-
+            raise ValueError('size of ll spectrum is larger than the spectrum'
+                             ' on which the analysis will be performed')
 
         elif self.size > llspectrum.size:
             # print('low loss spectrum has to have same size as model')
@@ -36,22 +50,21 @@ class Mscatter(Component):
         self._isconvolutor = True
         self.llspectrum = llspectrum
 
-
-
-
-        # this component has no parameters, we just need to remember the low loss
-        # spectrum
-        # but how do we then load that spectrum if we reload the model?
-        # each component should now how to save itself so that it can reload itself
-        # for most of components this can be the generic save and load defined in component
-        # and some components can override it
-
-
     def padding(self, specshape, llspectrum):
-        #todo has not been properly tested
-
+        """
+        Zero pads the low loss spectrum to have the same size as the spectrum
+        shape.
+        Parameters
+        ---------
+        specshape: Spectrumshape
+            The spectrum shape on the spectrum it will be used, not the low
+            loss spectrum
+        llspectrum: Spectrum or MultiSpectrum
+            The spectrum or multispectrum which is used to convolve the rest
+            of the components with.
+        """
         size_dif = specshape.size - llspectrum.size
-        before = size_dif//2
+        before = size_dif // 2
         after = size_dif - before
         # print('padding is done')
         # print(llspectrum)
@@ -64,14 +77,15 @@ class Mscatter(Component):
 
         elif type(llspectrum) is MultiSpectrum:
             # print('low loss is multispectrum')
-            pad_data = np.pad(llspectrum.multidata, pad_width=((0,0),(0,0),(before, after)))
-            noffset = llspectrum.offset - llspectrum.dispersion*before
-            sph = MultiSpectrumshape(llspectrum.dispersion, noffset, pad_data.shape[-1],
+            pad_data = np.pad(llspectrum.multidata,
+                              pad_width=((0, 0), (0, 0), (before, after)))
+            noffset = llspectrum.offset - llspectrum.dispersion * before
+            sph = MultiSpectrumshape(llspectrum.dispersion, noffset,
+                                     pad_data.shape[-1],
                                      llspectrum.xsize, llspectrum.ysize)
             s = MultiSpectrum(sph, data=pad_data)
 
         return s
-
 
     def save(self, fh):
         # save the details of this component to file in such a way
@@ -92,6 +106,6 @@ class Mscatter(Component):
         return
 
     def calculate(self):
-        print('if this statement is printed, it means that no calculte function exists for other MScatter components')
-
-
+        print(
+            'if this statement is printed, it means that no '
+            'calculte function exists for other MScatter components')

@@ -1,4 +1,4 @@
-#the classes in the cores
+# the classes in the cores
 from pyEELSMODEL.core.spectrum import Spectrum, Spectrumshape
 from pyEELSMODEL.core.multispectrum import MultiSpectrum, MultiSpectrumshape
 from pyEELSMODEL.core.model import Model
@@ -35,44 +35,4 @@ from pyEELSMODEL.operators.simulator.coreloss_simulator import\
     CoreLossSimulator
 from pyEELSMODEL.operators.quantification.elemental_quantification import\
     ElementalQuantification
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

@@ -1,6 +1,7 @@
 import h5py
 import numpy as np
 
+
 def load_h5py(filename):
     f = h5py.File(filename, 'r')
     d = f['Energy_axis']
@@ -11,13 +12,15 @@ def load_h5py(filename):
     f.close()
     return data, dispersion, offset, size
 
+
 def load_elements_and_edges(filename):
     f = h5py.File(filename, 'r')
     d = f['Energy_axis']
     edges = d.attrs['edges']
-    elements= d.attrs['elements']
+    elements = d.attrs['elements']
     f.close()
     return elements, edges
+
 
 def load_hspy(filename):
     f = h5py.File(filename, 'r')
@@ -31,14 +34,15 @@ def load_hspy(filename):
             axis_num = data.ndim - 1
 
             if data.ndim == 2:
-                data = data[:,np.newaxis,:]
+                data = data[:, np.newaxis, :]
             data = data.astype(float)
 
             ax_key = 'axis-' + str(axis_num)
             offset = d[key][ax_key].attrs['offset']
             dispersion = d[key][ax_key].attrs['scale']
             size = data.shape[-1]
-            acq_time = d[key]['metadata']['Acquisition_instrument']['TEM'].attrs['exposure']
+            stra = 'Acquisition_instrument'
+            acq_time = d[key]['metadata'][stra]['TEM'].attrs['exposure']
             params.append([data, dispersion, offset, size, acq_time])
 
         else:
@@ -48,8 +52,3 @@ def load_hspy(filename):
 
     f.close()
     return params, df, detector_type
-
-
-
-
-

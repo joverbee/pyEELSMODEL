@@ -1,15 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.path as mplPath
-from matplotlib.backend_bases import MouseButton
 import logging
 from matplotlib.patches import Rectangle
-
-
-
 from pyEELSMODEL.core.operator import Operator
-from pyEELSMODEL.core.spectrum import Spectrum
-from pyEELSMODEL.core.multispectrum import MultiSpectrum
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +12,7 @@ class MultiSpectrumVisualizer(Operator):
     """
     Class which visualizes the multspectrum.
     """
-    def __init__(self, multispectra = [], input_map=None, labels=None,
+    def __init__(self, multispectra, input_map=None, labels=None,
                  logscale=False):
         """
         Class which visualizes the multspectrum.
@@ -41,7 +34,7 @@ class MultiSpectrumVisualizer(Operator):
         """
         self.multispectra = multispectra
         self.logscale = logscale
-        self.is_line=False
+        self.is_line = False
         if self.multispectra[0].xsize == 1 or self.multispectra[0].ysize == 1:
             self.is_line = True
             input_map = np.squeeze(self.multispectra[0].multidata)
@@ -72,15 +65,14 @@ class MultiSpectrumVisualizer(Operator):
         else:
             self.labels = labels
 
-        self.fig, self.ax = plt.subplots(1,2)
+        self.fig, self.ax = plt.subplots(1, 2)
         self.plot()
         self.connect()
 
-
-
-
     def get_indextitle(self, x0, y0, w, h):
-        return 'x0, y0: '+str(int(x0))+', '+str(int(y0))+'; w, h: '+str(int(w))+', '+str(int(h))
+        title = 'x0, y0: ' + str(int(x0)) + ', '+str(int(y0)) + '; w, h: ' \
+                + str(int(w)) + ', '+str(int(h))
+        return title
 
     def plotrect(self):
         # plot selection rectangle on top of the image plot
@@ -89,10 +81,12 @@ class MultiSpectrumVisualizer(Operator):
             ax[0].axis("tight")  # fill window space
             xmin, xmax = ax[0].get_xlim()
             self.w = self.multispectra[0].size
-            self.rect = Rectangle((self.sx - 0.5, self.sy - 0.5), self.w, self.h, fill=False, edgecolor='red',
+            self.rect = Rectangle((self.sx - 0.5, self.sy - 0.5),
+                                  self.w, self.h, fill=False, edgecolor='red',
                                   linewidth=self.linewidth)
         else:
-            self.rect = Rectangle((self.sx - 0.5,  self.sy - 0.5), self.w, self.h, fill=False, edgecolor='red',
+            self.rect = Rectangle((self.sx - 0.5,  self.sy - 0.5),
+                                  self.w, self.h, fill=False, edgecolor='red',
                                   linewidth=self.linewidth)
 
             ax[0].axis("image")  # square pixels
@@ -102,12 +96,10 @@ class MultiSpectrumVisualizer(Operator):
 
     def updaterect(self):
         # print(self.get_indextitle(self.sx, self.sy, self.w, self.h))
-        self.rect.set_xy((self.sx-0.5, self.sy -0.5))
+        self.rect.set_xy((self.sx-0.5, self.sy - 0.5))
         self.rect.set_width(self.w)
         self.rect.set_height(self.h)
         self.rect.figure.canvas.draw()
-
-
 
     def plot(self, **kwargs):
         ax = self.ax
@@ -118,9 +110,9 @@ class MultiSpectrumVisualizer(Operator):
         self.plotline = []
 
         for spectra, label in zip(self.multispectra, self.labels):
-            # ax[1].plot(spectra.energy_axis,
-            #            spectra.multidata[self.sx:self.sx+self.dx, self.sy:self.sy+self.dy, :].mean((0,1)))
-            mydata = spectra.multidata[self.sx:self.sx+self.h, self.sy:self.sy+self.w, :].mean((0,1))
+            x = [self.sx, self.sx+self.h]
+            y = [self.sy, self.sy+self.w]
+            mydata = spectra.multidata[x[0]:x[1], y[0]:y[1], :].mean((0, 1))
             plotline = ax[1].plot(spectra.energy_axis, mydata, label=label)
             # print('initialize')
             self.plotline.append(plotline)
@@ -130,15 +122,13 @@ class MultiSpectrumVisualizer(Operator):
         self.ylim = ax[0].get_ylim()
 
         if self.logscale:
-            ax[1].set_ylim([1,None])
+            ax[1].set_ylim([1, None])
             ax[1].set_yscale('log')
 
         for key, value in kwargs.items():
             if key == 'xlim':
                 ax[1].set_xlim(value)
                 self.xlim_eels = value
-
-
 
     def connect(self):
         """Connect to all the events we need."""
@@ -149,7 +139,8 @@ class MultiSpectrumVisualizer(Operator):
         self.cidmotion = self.rect.figure.canvas.mpl_connect(
             'motion_notify_event', self.on_motion)
 
-        self.keypress = self.rect.figure.canvas.mpl_connect('key_press_event', self.on_key_press)
+        self.keypress = self.rect.figure.canvas.mpl_connect('key_press_event',
+                                                            self.on_key_press)
 
     def on_key_press(self, event):
         dx = 1
@@ -168,21 +159,21 @@ class MultiSpectrumVisualizer(Operator):
         if event.key == 'down':
             self.sy = int(min(self.ylim[0] + 0.5 - h, y0 + dy))
 
-        if event.key == 'left' and self.is_line == False:
+        if event.key == 'left' and not self.is_line:
             self.sx = int(max(0, x0 - dx))
 
-        if event.key == 'right' and self.is_line == False:
+        if event.key == 'right' and not self.is_line:
             self.sx = int(min(self.xlim[1] + 0.5 - w, x0 + dx))
 
         if event.key == '+':
             bolx = (x0 + w + dw >= self.xlim[1])
             boly = (y0 + h + dh >= self.ylim[0])
 
-            if bolx and not (boly) and self.is_line == False:
+            if bolx and not boly and self.is_line is False:
                 self.h = h + dh
 
             # if not(bolx) and self.is_line==False:
-            elif boly and not (bolx):
+            elif boly and not bolx:
                 self.w = w + dw
 
             elif bolx and boly:
@@ -199,12 +190,7 @@ class MultiSpectrumVisualizer(Operator):
         # self.rect.set_x(self.sx)
         # self.rect.set_y(self.sy)
 
-        # all updating on screen is done by the timed ui, there is no need to try to update
-        # any faster as the user won't be able to see it anyway and it makes the
-        # response more sluggish
-
         self.update_eels()
-
 
     def on_press(self, event):
         """Check whether mouse is over us; if so, store some data."""
@@ -225,14 +211,14 @@ class MultiSpectrumVisualizer(Operator):
         dy = event.ydata - ypress
         # print(f'x0={x0}, xpress={xpress}, event.xdata={event.xdata}, '
         #       f'dx={dx}, x0+dx={x0+dx}')
-        shiftx = int(max(0,min(self.xlim[1] - self.rect.get_width(), x0 + dx)))
-        shifty = int(max(0,min(self.ylim[0] - self.rect.get_height(), y0 + dy)))
+        shiftx = int(max(0,
+                         min(self.xlim[1] - self.rect.get_width(), x0 + dx)))
+        shifty = int(max(0,
+                         min(self.ylim[0] - self.rect.get_height(), y0 + dy)))
 
         self.sx = shiftx
         self.sy = shifty
         self.update_eels()
-
-
         self.rect.figure.canvas.draw()
 
     def on_release(self, event):
@@ -243,7 +229,7 @@ class MultiSpectrumVisualizer(Operator):
     def update_eels(self):
         self.updaterect()
 
-        ax=self.ax
+        ax = self.ax
         # self.rect.figure.axes[1].cla()
         # y0 = max(0, y0 + 0.5)
         # x0 = max(0, x0 + 0.5)
@@ -254,8 +240,11 @@ class MultiSpectrumVisualizer(Operator):
         # print(self.w)
         miny = 0
         maxy = 0
-        for plotline, spectra, label in zip(self.plotline, self.multispectra, self.labels):
-            mydata = spectra.multidata[self.sy:self.sy+self.h, self.sx:self.sx+self.w, :].mean((0,1))
+        for plotline, spectra, label in zip(self.plotline,
+                                            self.multispectra, self.labels):
+            x = [self.sx, self.sx+self.h]
+            y = [self.sy, self.sy+self.w]
+            mydata = spectra.multidata[x[0]:x[1], y[0]:y[1], :].mean((0, 1))
             plotline[0].set_ydata(mydata)
             miny = min(mydata.min(), miny)
             maxy = max(mydata.max(), maxy)
@@ -271,9 +260,3 @@ class MultiSpectrumVisualizer(Operator):
         self.rect.figure.canvas.mpl_disconnect(self.cidpress)
         self.rect.figure.canvas.mpl_disconnect(self.cidrelease)
         self.rect.figure.canvas.mpl_disconnect(self.cidmotion)
-
-
-
-
-
-

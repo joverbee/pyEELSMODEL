@@ -5,16 +5,14 @@ Created on Thu Dec  9 20:46:09 2021
 @author: joverbee
 """
 import numpy as np
-import matplotlib.pyplot as plt
 import logging
-from pyEELSMODEL.core.operator import Operator
 from pyEELSMODEL.operators.deconvolutions.deconvolution import Deconvolution
-from pyEELSMODEL.core.model import Model
-from pyEELSMODEL.core.multispectrum import MultiSpectrum, MultiSpectrumshape
-from pyEELSMODEL.core.spectrum import Spectrum, Spectrumshape
+from pyEELSMODEL.core.multispectrum import MultiSpectrum
+from pyEELSMODEL.core.spectrum import Spectrum
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
+
 
 class RichardsonLucyDeconvolution(Deconvolution):
     """
@@ -48,7 +46,7 @@ class RichardsonLucyDeconvolution(Deconvolution):
     def iterations(self, n_iter):
         self._iterations = n_iter
 
-    def richardsonlucy(self,signal, psf, iterations):
+    def richardsonlucy(self, signal, psf, iterations):
         """
         RichardsonLucy algorithm
         """
@@ -76,7 +74,8 @@ class RichardsonLucyDeconvolution(Deconvolution):
     #         # first = np.convolve(psf, result, mode=mode)
     #         first = result.copy()
     #         teller =  np.convolve(signal, psf[::-1], mode=mode)
-    #         noemer =  np.convolve(np.convolve(psf, first, mode=mode), psf[::-1], mode=mode)
+    #         noemer =  np.convolve(np.convolve(psf, first, mode=mode),
+    #         psf[::-1], mode=mode)
     #         # update = teller/noemer
     #         # print(update.sum())
     #         # result *= first*update
@@ -94,53 +93,25 @@ class RichardsonLucyDeconvolution(Deconvolution):
             islice = np.s_[index]
             self.spectrum.setcurrentspectrum(index)
             self.llspectrum.setcurrentspectrum(index)
-            restore = self.richardsonlucy(self.spectrum.data, self.llspectrum.data, self.iterations)
+            restore = self.richardsonlucy(self.spectrum.data,
+                                          self.llspectrum.data,
+                                          self.iterations)
             ms.multidata[islice] = restore
 
         return ms
 
     def deconvolve(self):
-        psf = self.llspectrum.data/self.llspectrum.data.sum()
-        signal = self.spectrum.data/self.spectrum.data.sum()
+        # psf = self.llspectrum.data / self.llspectrum.data.sum()
+        # signal = self.spectrum.data / self.spectrum.data.sum()
         # restore = self.ISRA(signal, psf, self.iterations)
 
         if type(self.spectrum) is MultiSpectrum:
             s = self.multi_deconvolve()
             self.restored = s
         else:
-            restore = self.richardsonlucy(self.spectrum.data, self.llspectrum.data, self.iterations)
+            restore = self.richardsonlucy(self.spectrum.data,
+                                          self.llspectrum.data,
+                                          self.iterations)
             s = Spectrum(self.spectrum.get_spectrumshape(), data=restore)
             self.restored = s
         return s
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

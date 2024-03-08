@@ -5,7 +5,6 @@ from pyEELSMODEL.core.spectrum import Spectrum, Spectrumshape
 from pyEELSMODEL.core.multispectrum import MultiSpectrum, MultiSpectrumshape
 
 
-
 class Splice(Operator):
     """
     This class splines multiple spectra into each other. At this point the
@@ -46,11 +45,8 @@ class Splice(Operator):
         else:
             self.has_multispectra = False
 
-
         self.acq_times = acq_times
         self.weights = self.acq_times
-
-
 
     @property
     def weights(self):
@@ -59,7 +55,7 @@ class Splice(Operator):
     @weights.setter
     def weights(self, weights):
         if weights is None:
-            self._weights= np.ones(len(self.spectra))
+            self._weights = np.ones(len(self.spectra))
         else:
             self._weights = weights
 
@@ -67,17 +63,16 @@ class Splice(Operator):
     #     print('sum of weights is :'+str(self.weights.sum()))
     #     self.weights = len(self.spectra)*self.weights/self.weights.sum()
 
-
     def check_multispectra_validity(self, spectra):
-        if len(spectra)<2:
-            raise ValueError(r'Not sufficient amount of multispectra in the list')
+        if len(spectra) < 2:
+            raise ValueError(r'Not sufficient amount of multispectra'
+                             r' in the list')
         initx = spectra[0].xsize
         inity = spectra[0].ysize
         for spectrum in spectra[1:]:
             if (spectrum.xsize != initx) | (spectrum.ysize != inity):
-                raise ValueError(r'The scan size of the multispectra are not the same')
-
-
+                raise ValueError(r'The scan size of the multispectra '
+                                 r'are not the same')
 
     def get_new_energy_axis(self):
         """
@@ -94,9 +89,12 @@ class Splice(Operator):
 
         for i in range(len(self.spectra)-1):
             if i == 0:
-                offset = min(self.spectra[i].offset, self.spectra[i+1].offset)
-                dispersion = min(self.spectra[i].dispersion, self.spectra[i + 1].dispersion)
-                end_E = max(self.spectra[i].energy_axis[-1], self.spectra[i+1].energy_axis[-1])
+                offset = min(self.spectra[i].offset,
+                             self.spectra[i+1].offset)
+                dispersion = min(self.spectra[i].dispersion,
+                                 self.spectra[i + 1].dispersion)
+                end_E = max(self.spectra[i].energy_axis[-1],
+                            self.spectra[i+1].energy_axis[-1])
 
             else:
                 offset = min(offset, self.spectra[i+1].offset)
@@ -112,7 +110,8 @@ class Splice(Operator):
         This is needed in the way the function is implemented in spectrum
 
         """
-        sh = Spectrumshape(np.diff(energy_axis)[0], energy_axis[0], energy_axis.size)
+        sh = Spectrumshape(np.diff(energy_axis)[0], energy_axis[0],
+                           energy_axis.size)
         s = Spectrum(sh)
         return s, sh
 
@@ -128,7 +127,6 @@ class Splice(Operator):
         s = MultiSpectrum(sh)
         return s, sh
 
-
     def splice_spectra(self):
         """
         Multiple spectra can be spliced together. This only works for spectra
@@ -140,11 +138,11 @@ class Splice(Operator):
         s = Spectrum(sshape, data=ndata)
         return s
 
-    def _weigth_interpolate(self, spectrum):
-        ndata = np.zeros((len(self.spectra), spectrum.size))
-        weight_array = np.zeros((len(self.spectra), spectrum.size))
+    def _weigth_interpolate(self, s):
+        ndata = np.zeros((len(self.spectra), s.size))
+        # weight_array = np.zeros((len(self.spectra), spectrum.size))
         for ii, spec in enumerate(self.spectra):
-            intspec = spec.interp_to_other_energy_axis(spectrum, constant_values=(np.nan, np.nan))
+            intspec = spec.interp_to_other_energy_axis(s, (np.nan, np.nan))
             boolean = np.invert(np.isnan(intspec.data))
             ndata[ii, boolean] = intspec.data[boolean]/self.acq_times[ii]
             # weight_array[ii, boolean] = self.weights[ii]
@@ -153,16 +151,15 @@ class Splice(Operator):
 
         return res
 
-    def _calculate_weight_array(self, spectrum):
+    def _calculate_weight_array(self, s):
 
-        weight_array = np.zeros((len(self.spectra), spectrum.size))
+        weight_array = np.zeros((len(self.spectra), s.size))
         for ii, spec in enumerate(self.spectra):
-            intspec = spec.interp_to_other_energy_axis(spectrum, constant_values=(np.nan, np.nan))
+            intspec = spec.interp_to_other_energy_axis(s, (np.nan, np.nan))
             boolean = np.invert(np.isnan(intspec.data))
             weight_array[ii, boolean] = self.weights[ii]
 
         self.weight_array = weight_array
-
 
     def splice_multispectra(self):
         E = self.get_new_energy_axis()
@@ -173,13 +170,7 @@ class Splice(Operator):
             islice = np.s_[index]
             for spec in self.spectra:
                 spec.setcurrentspectrum(index)
-            multispectrum.multidata[islice] = self._weigth_interpolate(multispectrum)
+            multispectrum.multidata[islice] =\
+                self._weigth_interpolate(multispectrum)
 
         return multispectrum
-
-
-
-
-
-
-

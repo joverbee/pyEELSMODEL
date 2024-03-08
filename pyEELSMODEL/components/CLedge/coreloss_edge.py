@@ -9,8 +9,9 @@ from pyEELSMODEL import __file__
 import os
 import h5py
 import logging
-logger = logging.getLogger(__name__)
 import pyEELSMODEL.misc.hydrogen_gdos as hdos
+
+logger = logging.getLogger(__name__)
 
 
 class CoreLossEdge(Component):
@@ -18,64 +19,63 @@ class CoreLossEdge(Component):
     CoreLossEdge generic component class to derive core loss edge
     implementations from.
 
-    Parameters
-    ----------
-    specshape : Spectrumshape
-        The spectrum shape used to model
-    A : float
-        Amplitude of the edge
-
-    E0: float [V]
-        The acceleration voltage of the microscope in volts
-
-    alpha: float [rad]
-        The convergence angle of the incoming probe in radians,
-
-    beta: float [rad]
-        The collection angle in radians.
-
-    element: string
-        The name of the element from which to calculate the edge model.
-
-    edge: string
-        The type of edge. (K1, L1, L2, L3, M1, etc.)
-
-    eshift: float [eV]
-        The shift of the onset energy with respect to the literature value.
-        (default: 0)
-
-    q_steps: int
-        The number of q points taken into account for the integration over the
-        momentum space. The larger the number of q_steps the more accurate
-        the calculation. (default: 100)
-
-    Returns
-    -------
 
     """
-    def __init__(self, specshape, A, E0, alpha, beta, element, edge, eshift=0, q_steps=100):
-        super().__init__(specshape)
+
+    def __init__(self, specshape, A, E0, alpha, beta, element, edge, eshift=0,
+                 q_steps=100):
         """
+        Parameters
+        ----------
+        specshape : Spectrumshape
+            The spectrum shape used to model
+        A : float
+            Amplitude of the edge
+
+        E0: float [V]
+            The acceleration voltage of the microscope in volts
+
+        alpha: float [rad]
+            The convergence angle of the incoming probe in radians,
+
+        beta: float [rad]
+            The collection angle in radians.
+
+        element: string
+            The name of the element from which to calculate the edge model.
+
+        edge: string
+            The type of edge. (K1, L1, L2, L3, M1, etc.)
+
+        eshift: float [eV]
+            The shift of the onset energy with respect to the literature value.
+            (default: 0)
+
+        q_steps: int
+            The number of q points taken into account for the integration over
+            the momentum space. The larger the number of q_steps the more
+            accurate the calculation. (default: 100)
 
         """
+        super().__init__(specshape)
+
         self.elements_dir = os.path.dirname(__file__)
         # print(self.elements_dir)
         self.elements_name = 'element_info.hdf5'
 
-
-        p1 = Parameter('A',A)
+        p1 = Parameter('A', A)
         p1.setlinear(True)
-        p1.setboundaries(-np.Inf,np.Inf)
+        p1.setboundaries(-np.Inf, np.Inf)
         p1.sethasgradient(True)
         self._addparameter(p1)
 
-        p2 = Parameter('E0',E0, changeallowed=False)
+        p2 = Parameter('E0', E0, changeallowed=False)
         self._addparameter(p2)
 
-        p3 = Parameter('beta',beta, changeallowed=False)
+        p3 = Parameter('beta', beta, changeallowed=False)
         self._addparameter(p3)
 
-        p4 = Parameter('alpha',alpha, changeallowed=False)
+        p4 = Parameter('alpha', alpha, changeallowed=False)
         self.parameters.append(p4)
 
         self.eshift_ = eshift
@@ -84,10 +84,8 @@ class CoreLossEdge(Component):
         self.set_edge(edge)
         self.set_onset_energy()
         self.q_steps = q_steps
-        name=element+' '+edge+' edge'+str(self.onset_energy)+' eV'     
+        name = element + ' ' + edge + ' edge' + str(self.onset_energy) + ' eV'
         self.setdisplayname(name)
-
-
 
     def get_elements_dir(self):
         return os.path.join(self.elements_dir, self.elements_name)
@@ -99,28 +97,7 @@ class CoreLossEdge(Component):
         with h5py.File(self.get_elements_dir(), 'r') as f:
             elem_list = list(f.keys())
         return elem_list
-    
-    # def get_edge_list(self):
-    #     """
-    #     Returns a list of tuples containing all
-    #     element, edge, onset combinations that are available.
-    #     This function can be used for the HSCoreLossEdges
-    #
-    #     Returns
-    #     -------
-    #     edgelist: list
-    #         List containing element, edge and onset energy of all the edges.
-    #
-    #     """
-    #
-    #     edgelist=[]
-    #     for elementname,element in elements.items():
-    #         if 'Binding_energies' in element['Atomic_properties']:
-    #             for edgename,edge in element['Atomic_properties']['Binding_energies'].items():
-    #                 eonset=edge['onset_energy (eV)']
-    #                 edgelist.append((elementname,edgename,eonset))
-    #     return edgelist
-        
+
     def set_element(self, element):
         """
         Sets given element to the CoreLossEdge.
@@ -147,20 +124,14 @@ class CoreLossEdge(Component):
         with h5py.File(self.get_elements_dir(), 'r') as f:
             self.Z = f[self.element].attrs['Z']
 
-    # def set_onset_energy(self):
-    #     self.onset_energy = "not implemented"
-    #     print('if you see this you have called set_onset_energy on a coreloss '
-    #           'edge that didnt implement set_onset_energy')
-    #     #isnt set onset and set_edge most likely the same for all kinds of core loss?
-
     def set_onset_energy(self):
         with h5py.File(self.get_elements_dir(), 'r') as f:
-            self.onset_energy \
-                = f[self.element][self.edge].attrs['onset_energy'] \
-                  + self.eshift_
-            self.prefactor \
-                = f[self.element][self.edge].attrs['occupancy_ratio']
+            onset = f[self.element][self.edge].attrs['onset_energy']
+            onset += self.eshift_
+            prf = f[self.element][self.edge].attrs['occupancy_ratio']
 
+            self.onset_energy = onset
+            self.prefactor = prf
 
     def set_edge(self, edge):
         """
@@ -168,43 +139,46 @@ class CoreLossEdge(Component):
         :param edge:
         :return:
         """
-        edge_list = ['K1', 'L1', 'L2', 'L3', 'M1','M2', 'M3', 'M4', 'M5', 'N1','N2', 'N3', 'N4', 'N5', 'N6', 'N7']
+        edge_list = ['K1', 'L1', 'L2', 'L3', 'M1', 'M2', 'M3', 'M4', 'M5',
+                     'N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7']
         if not isinstance(edge, str):
-            raise TypeError('Edge should be a string: K1, L1, L2, L3, M2, M3, M4, M5, N4, N5', 'N6', 'N7')
+            raise TypeError(
+                'Edge should be a string: K1, L1, L2, L3, M2, M3, M4, M5, N4,'
+                ' N5', 'N6', 'N7')
         if edge in edge_list:
             self.edge = edge
         else:
-            raise ValueError('Edge should be: K1, L1, L2, L3, M2, M3, M4, M5, N4, N5', 'N6', 'N7')
+            raise ValueError(
+                'Edge should be: K1, L1, L2, L3, M2, M3, M4, M5, N4, N5', 'N6',
+                'N7')
 
     def calculate_cross_section(self):
         print('if you see this you have called calculate_cross section '
               'on a coreloss edge that didnt implement '
               'calculate_cross_section')
 
-
     def calculate(self):
-        pA=self.parameters[0]
-        p2=self.parameters[1]
-        p3=self.parameters[2]
-        p4=self.parameters[3]
+        pA = self.parameters[0]
+        p2 = self.parameters[1]
+        p3 = self.parameters[2]
+        p4 = self.parameters[3]
 
         if p2.ischanged() or p3.ischanged() or p4.ischanged():
-            self.cross_section=self.calculate_cross_section()
-            self.data = pA.getvalue()*self.cross_section
+            self.cross_section = self.calculate_cross_section()
+            self.data = pA.getvalue() * self.cross_section
 
         if pA.ischanged():
-            self.data = pA.getvalue()*self.cross_section
+            self.data = pA.getvalue() * self.cross_section
         self.setunchanged()
 
-    def getgradient(self,parameter):
-        #gradient with respect to weight is easy, others are too difficult
-        pA=self.parameters[0]
-        if parameter==pA:
-            self.gradient[0]=self.cross_section
+    def getgradient(self, parameter):
+        # gradient with respect to weight is easy, others are too difficult
+        pA = self.parameters[0]
+        if parameter == pA:
+            self.gradient[0] = self.cross_section
             return self.gradient[0]
         else:
             return None
-    
 
     def get_convergence_correction_factor(self, nsamples=100):
         """
@@ -215,21 +189,7 @@ class CoreLossEdge(Component):
         """
         alpha = self.parameters[3].getvalue()
         beta = self.parameters[2].getvalue()
-        theta_array = np.exp(np.linspace(np.log(1e-9), np.log(alpha + beta), nsamples))
+        theta_array = np.exp(
+            np.linspace(np.log(1e-9), np.log(alpha + beta), nsamples))
         F = hdos.convergence_correction_factor(alpha, beta, theta_array)
         return F, theta_array
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

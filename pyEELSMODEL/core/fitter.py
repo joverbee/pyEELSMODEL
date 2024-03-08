@@ -8,12 +8,12 @@ import numpy as np
 import logging
 import time
 from pyEELSMODEL.core.multispectrum import MultiSpectrum
-from pyEELSMODEL.core.spectrum import Spectrumshape, Spectrum
-from pyEELSMODEL.components.MScatter.mscatter import Mscatter
+from pyEELSMODEL.core.spectrum import Spectrum
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-logger = logging.getLogger(__name__)
 from scipy import stats
+
+logger = logging.getLogger(__name__)
 
 
 class Fitter:
@@ -28,6 +28,7 @@ class Fitter:
         -calculate crlb
         -
     """
+
     def __init__(self, spectrum, model):
         """
         Initialises a Fitter instance.
@@ -47,16 +48,17 @@ class Fitter:
         self.spectrum = spectrum
         self.model = model
         self.fittertype = 'fitter base class'
-        self.status ='status info'
+        self.status = 'status info'
         self.progress = 0
         self.stop = False
         self.set_start_parameters()
         self.set_bounds()
 
         if self.model.hasconvolutor():
-            self.usegradients=False #no analytical gradient when using a convolution
+            # no analytical gradient when using a convolution
+            self.usegradients = False
         else:
-            self.usegradients=True
+            self.usegradients = True
 
         self.information_matrix = None
         self.covariance_matrix = None
@@ -72,8 +74,7 @@ class Fitter:
             self.spectrum.setcurrentspectrum(spectrum.currentspectrumid)
             self.getcurrentfit = spectrum.currentspectrumid
 
-        self.elapsed_time = None #time it took to do the multifit
-
+        self.elapsed_time = None  # time it took to do the multifit
 
     @property
     def fittertype(self):
@@ -81,8 +82,7 @@ class Fitter:
 
     @fittertype.setter
     def fittertype(self, fittertype):
-        self._fittertype=fittertype
-
+        self._fittertype = fittertype
 
     # def getprogress(self):
     #     # returns an int from 0 to 100 indicating the progress in a multifit
@@ -104,20 +104,21 @@ class Fitter:
     def usegradients(self, b):
         # If convolution is performed, the analytical gradients are not used
         if self.model.hasconvolutor():
-            logger.warning('cannot use analytical gradients since a convolutor is inside model')
+            logger.warning(
+                'cannot use analytical gradients since a '
+                'convolutor is inside model')
             self._usegradients = False
 
         else:
             self._usegradients = b
 
-        #todo better implementation, will not work since jacobian
+        # todo better implementation, will not work since jacobian
         # is not defined in the fitter.
 
         try:
             self.jacobian = self._jacobian
-        except:
+        except Exception:
             logger.info(r'No jacobian defined for this fitter type')
-
 
     @property
     def information_matrix(self):
@@ -139,7 +140,7 @@ class Fitter:
         label_list = []
         for param in self.model.getfreeparameters():
             comp = self.model.getcomponentbyparameter(param)
-            label_list.append(comp.name+': '+param.name)
+            label_list.append(comp.name + ': ' + param.name)
         return label_list
 
     def show_covariance_matrix(self):
@@ -159,8 +160,8 @@ class Fitter:
         ax.imshow(np.abs(self.covariance_matrix))
         ax.set_xticks(np.arange(len(label_list)))
         ax.set_yticks(np.arange(len(label_list)))
-        ax.set_xticklabels(label_list, rotation = 45, ha="right")
-        ax.set_yticklabels(label_list, rotation = 45)
+        ax.set_xticklabels(label_list, rotation=45, ha="right")
+        ax.set_yticklabels(label_list, rotation=45)
         fig.set_tight_layout(True)
         return fig
 
@@ -177,11 +178,11 @@ class Fitter:
         fig, ax = plt.subplots()
         ax.plot(self.covariance_matrix.diagonal())
         ax.set_xticks(np.arange(len(label_list)))
-        ax.set_xticklabels(label_list, rotation = 45, ha="right")
+        ax.set_xticklabels(label_list, rotation=45, ha="right")
         fig.set_tight_layout(True)
         return fig
 
-    def show_coefficients(self, index=(0,0)):
+    def show_coefficients(self, index=(0, 0)):
         if isinstance(self.spectrum, MultiSpectrum):
             self.setcurrentfit(index=index)
 
@@ -189,35 +190,35 @@ class Fitter:
 
         fig, ax = plt.subplots()
         x = np.arange(self.coeff.size)
-        width = x[1]-x[0]
+        width = x[1] - x[0]
         ax.bar(x, self.coeff, width=width)
         ax.set_xticks(np.arange(len(label_list)))
-        ax.set_xticklabels(label_list, rotation = 45, ha="right")
+        ax.set_xticklabels(label_list, rotation=45, ha="right")
         fig.set_tight_layout(True)
 
     def getdoresidual(self):
         return self.residual
 
     def setminstep(self, x):
-        self.minstep=x
+        self.minstep = x
 
     def setmaxstep(self, x):
-        self.maxstep=x
+        self.maxstep = x
 
     def setfraction(self, x):
-        self.fraction=x
+        self.fraction = x
 
-    def setusegradients(self,b):
-        self.usegradients=b
+    def setusegradients(self, b):
+        self.usegradients = b
 
     def setdoresidual(self, b):
-        self.residual=b
+        self.residual = b
 
     def settolerance(self, t):
-        self.tolerance=t
+        self.tolerance = t
 
     def setnmax(self, n):
-        self.nmax=n
+        self.nmax = n
 
     def gettolerance(self):
         return self.tolerance
@@ -261,7 +262,7 @@ class Fitter:
         if self.covariance_matrix is None:
             self.set_information_matrix()
 
-        CRLB = np.sqrt(self.covariance_matrix[ii,ii])
+        CRLB = np.sqrt(self.covariance_matrix[ii, ii])
         return CRLB
 
     def CRLB_map(self, par):
@@ -295,8 +296,7 @@ class Fitter:
 
         return crlb_map
 
-
-    def CRLB_ratio(self, par1, par2, index=(0,0)):
+    def CRLB_ratio(self, par1, par2, index=(0, 0)):
         """
         Returns the CRLB bound of the ratio between par1 and par2 (par1/par2).
         The results for the different spectra can be modified by inputting
@@ -322,7 +322,7 @@ class Fitter:
         if isinstance(self.spectrum, MultiSpectrum):
             self.setcurrentfit(self, index=index)
 
-        ratio = par1.getvalue()/par2.getvalue()
+        ratio = par1.getvalue() / par2.getvalue()
         index1 = self.get_param_index(par1)
         index2 = self.get_param_index(par2)
         if index1 is None or index2 is None:
@@ -333,11 +333,11 @@ class Fitter:
         if self.covariance_matrix is None:
             self.set_information_matrix()
 
-        rel_er1 = self.covariance_matrix[index1, index1]/par1.getvalue()**2
-        rel_er2 = self.covariance_matrix[index2, index2]/par2.getvalue()**2
-        cov_er = 2*self.covariance_matrix[index1, index2]/(par1.getvalue()
-                                                           * par2.getvalue())
-        error = ratio * np.sqrt(rel_er1+rel_er2-cov_er)
+        rel_er1 = self.covariance_matrix[index1, index1] / par1.getvalue() ** 2
+        rel_er2 = self.covariance_matrix[index2, index2] / par2.getvalue() ** 2
+        cov_er = 2 * self.covariance_matrix[index1, index2] / \
+            (par1.getvalue() * par2.getvalue())
+        error = ratio * np.sqrt(rel_er1 + rel_er2 - cov_er)
         return error
 
     def get_param_index(self, param):
@@ -368,10 +368,11 @@ class Fitter:
         on the number of free parameters in the model and the number of fitted
         points in the spectrum
         """
-        dof = self.spectrum.getnonexcludedpoints()-self.model.getnumfreeparameters()
+        dof = self.spectrum.getnonexcludedpoints() \
+            - self.model.getnumfreeparameters()
         return dof
 
-    def LRtestconfidence(self, index=(0,0)):
+    def LRtestconfidence(self, index=(0, 0)):
         """
         Confidence test using the likelyhood ratio of Poisson noise. See
         publication EELSmodel for explanation on this
@@ -394,18 +395,17 @@ class Fitter:
             islice = np.s_[index]
             self.confidence_map[islice] = self.LRtestconfidence(index)
 
-
     def LRtestconfidence_string(self):
-        confidence = 100*self.LRtestconfidence()
+        confidence = 100 * self.LRtestconfidence()
         print('The model is accepted at a confidence levet of: {conf} percent'
               .format(conf=confidence))
 
     def getstatus(self):
         return 'status string'
 
-    def dolintrick(self,b):
-        #wether to do a special lin/nonlin trick for the linear parameters
-        self.dolintrick=b
+    def dolintrick(self, b):
+        # wether to do a special lin/nonlin trick for the linear parameters
+        self.dolintrick = b
 
     def getdolintrick(self):
         return self.dolintrick
@@ -414,7 +414,7 @@ class Fitter:
         return self.candolin
 
     def _setcandolin(self, b):
-        self.candolin=b
+        self.candolin = b
 
     def set_information_matrix(self):
         """
@@ -423,27 +423,25 @@ class Fitter:
         Used for Poisson noise
 
         """
-        self.model.calculate() #calculate the newest model
+        self.model.calculate()  # calculate the newest model
 
-        #do not fully understand why **(-1) but it seems to fit
-        ndata = self.spectrum.pppc**(-1) * np.copy(self.model.data)
+        # do not fully understand why **(-1) but it seems to fit
+        ndata = self.spectrum.pppc ** (-1) * np.copy(self.model.data)
         # ndata[ndata < 1.] = 1. #small values will blow up lambda_m
 
-
-
-        lambda_m = 1/np.sqrt(np.tile(ndata[np.invert(self.spectrum.exclude)],
-                             (self.model.getnumfreeparameters(), 1)))
-        deriv_matrix = lambda_m*self.calculate_derivmatrix()
+        lambda_m = 1 / np.sqrt(np.tile(ndata[np.invert(self.spectrum.exclude)],
+                                       (self.model.getnumfreeparameters(), 1)))
+        deriv_matrix = lambda_m * self.calculate_derivmatrix()
         self.information_matrix = np.dot(deriv_matrix,
                                          np.transpose(deriv_matrix))
 
         try:
             self.covariance_matrix = np.linalg.inv(self.information_matrix)
-        except:
-            #todo solve this issue since it can happen that two rows are zero
-            print('Information matrix is Singular, can happen if two components'
-                  ' are exactly zero')
-
+        except Exception:
+            # todo solve this issue since it can happen that two rows are zero
+            print(
+                'Information matrix is Singular, can happen if two components'
+                ' are exactly zero')
 
     def calculate_derivmatrix(self):
         """
@@ -461,7 +459,6 @@ class Fitter:
         for index, param in enumerate(self.model.getfreeparameters()):
             deriv_matrix[index] = self.partial_derivative(param)
         return deriv_matrix
-
 
     def partial_derivative(self, parameter, fraction=0.001):
         """
@@ -503,7 +500,6 @@ class Fitter:
         else:
             return partial[np.invert(self.spectrum.exclude)]
 
-
     def numerical_partial_derivative(self, parameter, fraction=0.001):
         """
         Calculates the numerical partial derivative of the parameter.
@@ -521,14 +517,15 @@ class Fitter:
         -------
         """
 
-        minstep=1e-99
-        maxstep=1e99
+        minstep = 1e-99
+        maxstep = 1e99
         component = self.model.getcomponentbyparameter(parameter)
-        if component == None:
+        if component is None:
             return None
-        if component._ismultiplier or component._isconvolutor or component._isshifter:
+        if component._ismultiplier or component._isconvolutor \
+                or component._isshifter:
             return None
-        delt = np.abs(parameter.getvalue()*fraction)
+        delt = np.abs(parameter.getvalue() * fraction)
         delt = max(delt, minstep)
         delt = min(delt, maxstep)
 
@@ -536,11 +533,11 @@ class Fitter:
         self.model.calculate()
         orig_mod = self.model.data[:]
 
-        parameter.setvalue(orig_par+delt)
+        parameter.setvalue(orig_par + delt)
         self.model.calculate()
         up_mod = self.model.data[:]
         parameter.setvalue(orig_par)
-        partial = (up_mod - orig_mod)/delt
+        partial = (up_mod - orig_mod) / delt
         return partial
 
     def set_start_parameters(self):
@@ -572,9 +569,8 @@ class Fitter:
                         'be set.')
             return None
 
-
         for ii, param in enumerate(self.model.getfreeparameters()):
-            #if setvalue does not work, then it returns False
+            # if setvalue does not work, then it returns False
             if not param.setvalue(self.coeff[ii]):
                 logger.info(param.name + r' value cannot be set')
                 param.setvalue(0)
@@ -599,43 +595,43 @@ class Fitter:
 
         start = time.time()
 
-        #iterate over the multispectrum
+        # iterate over the multispectrum
         if not isinstance(self.spectrum, MultiSpectrum):
             raise ValueError(r'Spectrum should be a multispectrum')
 
-        #the convolutor used in the model
+        # the convolutor used in the model
         conv = self.model.getconvolutor()
 
         shape = (self.spectrum.xsize, self.spectrum.ysize)
-        self.progress=0
-        self.stop=False
-        initialindex=self.spectrum.currentspectrumid
+        self.progress = 0
+        self.stop = False
+        initialindex = self.spectrum.currentspectrumid
 
-        step=100/(self.spectrum.xsize* self.spectrum.ysize)
+        step = 100 / (self.spectrum.xsize * self.spectrum.ysize)
         for index in tqdm(np.ndindex(shape)):
             islice = np.s_[index]
             self.spectrum.setcurrentspectrum(index)
 
-            #if the low loss spectrum is a multispectrum, the index needs to
+            # if the low loss spectrum is a multispectrum, the index needs to
             # be changed
             if conv is not None:
                 if isinstance(conv.llspectrum, MultiSpectrum):
                     conv.llspectrum.setcurrentspectrum(index)
 
-            #need to be sure that the order of the free parameters is the same
+            # need to be sure that the order of the free parameters is the same
             # as the input start_param
             if start_param is not None:
                 self._start_param = start_param[islice]
 
-            #small functionality which should give the ability to use "nearby"
-            #solution to have a better initial guess
-            #not well tested since mainly linear fitters are used and this
-            #does not need any starting parameters
+            # small functionality which should give the ability to use "nearby"
+            # solution to have a better initial guess
+            # not well tested since mainly linear fitters are used and this
+            # does not need any starting parameters
             # if use_prev:
             #     self.set_start_parameters()
 
             if self.stop:
-                #restore to state that we started from
+                # restore to state that we started from
                 self.spectrum.setcurrentspectrum(initialindex)
                 if conv is not None:
                     if isinstance(conv.llspectrum, MultiSpectrum):
@@ -644,7 +640,7 @@ class Fitter:
 
             self.perform_fit()
 
-            #initialized the result matrix at first iteration of the fit.
+            # initialized the result matrix at first iteration of the fit.
             if (islice[0] == 0) and (islice[1] == 0):
                 self.coeff_matrix = np.zeros((shape[0], shape[1],
                                               self.coeff.size))
@@ -652,11 +648,11 @@ class Fitter:
 
             self.coeff_matrix[islice] = self.coeff
             self.error_matrix[islice] = self.error
-            
-            self.progress = self.progress+step
+
+            self.progress = self.progress + step
 
         stop = time.time()
-        self.elapsed_time = stop - start #calculates the calculation time
+        self.elapsed_time = stop - start  # calculates the calculation time
 
     def set_bounds(self):
         """
@@ -701,36 +697,6 @@ class Fitter:
 
         return sig
 
-    # def model_to_multispectrum_without_comp(self, comp):
-    #     """
-    #     Calculate the model however the given component will not be added to
-    #     the signal. Can be used to estimate a new edge component found by using
-    #     the fitted signal.
-    #
-    #     """
-    #     conv = self.model.getconvolutor()
-    #
-    #     sig = self.spectrum.copy()
-    #     m = self.model
-    #     shape = (sig.xsize, sig.ysize)
-    #     for index in tqdm(np.ndindex(shape)):
-    #         islice = np.s_[index]
-    #
-    #         if conv is not None:
-    #             if isinstance(conv.llspectrum, MultiSpectrum):
-    #                 conv.llspectrum.setcurrentspectrum(index)
-    #
-    #         for ii, param in enumerate(m.getfreeparameters()):
-    #             if self.model.getcomponentbyparameter(param) is comp:
-    #                 param.setvalue(0)
-    #             else:
-    #                 param.setvalue(self.coeff_matrix[islice][ii])
-    #         m.calculate()
-    #         sig.multidata[islice] = m.data
-    #     sig.data = sig.multidata[0,0]
-    #
-    #     return sig
-
     def model_to_multispectrum_without_comps(self, comps):
         """
         Set the parameter values to zero for the components in comps and
@@ -768,7 +734,7 @@ class Fitter:
                     param.setvalue(self.coeff_matrix[islice][ii])
             m.calculate()
             sig.multidata[islice] = m.data
-        sig.data = sig.multidata[0,0]
+        sig.data = sig.multidata[0, 0]
 
         return sig
 
@@ -798,8 +764,8 @@ class Fitter:
         s = self.model_to_multispectrum_without_comps(ncomps)
         return s
 
-
-    def get_experimental_edge(self, component, percentile, plotting=False, other_spectra=[]):
+    def get_experimental_edge(self, component, percentile, plotting=False,
+                              other_spectra=[]):
         """
         Calculate the proposed edge when using a multispectrum. The percentile
         takes the spectra having the highest content of these edges.
@@ -833,15 +799,16 @@ class Fitter:
 
         res = np.sum(avg_ - sig_w_comp.multidata[boolean, :], axis=0)
         spec = Spectrum(self.spectrum.get_spectrumshape(), data=res)
-        avg = Spectrum(self.spectrum.get_spectrumshape(), data=avg_.sum(axis=0))
+        avg = Spectrum(self.spectrum.get_spectrumshape(),
+                       data=avg_.sum(axis=0))
 
         other = []
         for ospec in other_spectra:
             avg_ = ospec.multidata[boolean, :]
-            other.append(Spectrum(ospec.get_spectrumshape(), data=avg_.sum(axis=0)))
+            other.append(
+                Spectrum(ospec.get_spectrumshape(), data=avg_.sum(axis=0)))
 
         return spec, avg, other
-
 
     def plot(self, index=None, externalplt=None, non_components=[], **kwargs):
         """
@@ -856,10 +823,9 @@ class Fitter:
         Returns
         ----------
         fig: Figure
-        
         """
         tempplt = plt
-        if type(externalplt) == type(plt):
+        if isinstance(externalplt, plt):
             tempplt = externalplt
         else:
             # create our own figure
@@ -879,18 +845,22 @@ class Fitter:
         tempplt.plot(self.spectrum.energy_axis, self.spectrum.data,
                      color='black', label='Experiment', linestyle='dotted')
         for comp in self.model.components:
-            if not(comp in non_components):
-                tempplt.plot(self.model.energy_axis, comp.data, label=comp.name,
+            if not (comp in non_components):
+                tempplt.plot(self.model.energy_axis, comp.data,
+                             label=comp.name,
                              **kwargs)
 
             # print(comp.name)
             # print(np.sum(comp.data))
             # print('- - - - - ')
 
-        tempplt.plot(self.model.energy_axis, self.model.data,label='Model',
+        tempplt.plot(self.model.energy_axis, self.model.data, label='Model',
                      **kwargs)  # and the total spectrum
 
-        tempplt.fill_between(self.spectrum.energy_axis, 0,self.spectrum.data.max(), where=self.spectrum.exclude, color='green', alpha=0.5)
+        tempplt.fill_between(self.spectrum.energy_axis, 0,
+                             self.spectrum.data.max(),
+                             where=self.spectrum.exclude, color='green',
+                             alpha=0.5)
 
         tempplt.xlabel(r'Energy Loss [eV]')
         tempplt.ylabel('Counts')
@@ -900,7 +870,7 @@ class Fitter:
 
         return fig
 
-    def likelihood_ratio(self, index=(0,0)):
+    def likelihood_ratio(self, index=(0, 0)):
         """
         Defined likelihood ratio from: 10.1016/j.ultramic.2004.06.004
         The index will be used when using a multispectrum.
@@ -923,7 +893,7 @@ class Fitter:
         data[data <= 0] = 1
         model = self.model.data[np.invert(self.spectrum.exclude)]
 
-        LR = 2*np.sum(-data+data*np.log(data/model)+model)
+        LR = 2 * np.sum(-data + data * np.log(data / model) + model)
         self.LR = LR
 
     def multi_likelihood_ratio(self):
@@ -935,7 +905,6 @@ class Fitter:
             islice = np.s_[index]
             self.likelihood_ratio(index)
             self.LR_map[islice] = self.LR
-
 
     def setcurrentfit(self, index=(0, 0)):
         """
@@ -998,7 +967,7 @@ class Fitter:
                          self.spectrum.ysize))
         names = np.zeros(len(comp_elements), dtype='object')
 
-        #todo ugly way of discriminating between 1 or multiple components
+        # todo ugly way of discriminating between 1 or multiple components
         if len(comp_elements) == 1:
             fig, ax = plt.subplots(1, len(comp_elements), figsize=(8, 3))
             for i in range(len(comp_elements)):
@@ -1036,13 +1005,12 @@ class Fitter:
 
         index = sig_bkg.get_energy_index(onset_energy)
 
-        bkg_int = sig_bkg.multidata[:, :, index:index+interval].sum(2)
-        comp_int = sig_comp.multidata[:, :, index:index+interval].sum(2)
+        bkg_int = sig_bkg.multidata[:, :, index:index + interval].sum(2)
+        comp_int = sig_comp.multidata[:, :, index:index + interval].sum(2)
 
         jump_ratio = comp_int / bkg_int
 
         return jump_ratio, comp_int, bkg_int, sig_bkg, sig_comp
-
 
     def get_map(self, param):
         """
@@ -1065,7 +1033,5 @@ class Fitter:
         if index is None:
             print('Parameter is not optimized during the fit')
             return None
-        param_map = self.coeff_matrix[:,:,index]
+        param_map = self.coeff_matrix[:, :, index]
         return param_map
-
-

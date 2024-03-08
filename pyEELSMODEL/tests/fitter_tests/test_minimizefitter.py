@@ -1,23 +1,23 @@
 import sys
 
-sys.path.append("..")  # Adds higher directory to python modules path.
 import numpy as np
-import matplotlib.pyplot as plt
 from pyEELSMODEL.core.spectrum import Spectrum, Spectrumshape
 from pyEELSMODEL.core.model import Model
 
-from pyEELSMODEL.components.polynomial import Polynomial
 from pyEELSMODEL.components.linear import Linear
 from pyEELSMODEL.components.gaussian import Gaussian
 from pyEELSMODEL.fitters.minimizefitter import MinimizeFitter
 from pyEELSMODEL.components.MScatter.mscatterfft import MscatterFFT
+
+sys.path.append("..")  # Adds higher directory to python modules path.
+
 
 def test_MLE_perform_fit():
     specshape = Spectrumshape(1, 100, 1024)
     pol = Gaussian(specshape, 10000, 400, 50)
     mod = Model(specshape, components=[pol])
     mod.calculate()
-    s = Spectrum(specshape, data = np.random.poisson(mod.data))
+    s = Spectrum(specshape, data=np.random.poisson(mod.data))
 
     # values = [1,110,1]
     values = [10000, 400, 50]
@@ -28,9 +28,10 @@ def test_MLE_perform_fit():
     fit = MinimizeFitter(s, mod)
     fit.perform_fit()
 
-    for  value, coeff in zip(values, fit.coeff):
-        rel_er = np.abs((coeff-value)/value)
+    for value, coeff in zip(values, fit.coeff):
+        rel_er = np.abs((coeff - value) / value)
         assert rel_er < 1e-2
+
 
 def test_LSQ_perform_fit():
     specshape = Spectrumshape(1, 100, 1024)
@@ -50,6 +51,7 @@ def test_LSQ_perform_fit():
         rel_er = np.abs((coeff - value) / value)
         assert rel_er < 1e-2
 
+
 def test_jacobian():
     specshape = Spectrumshape(1, 100, 1024)
     pol = Gaussian(specshape, 10000, 400, 50)
@@ -59,9 +61,9 @@ def test_jacobian():
 
     mod = Model(specshape, components=[pol])
     mod.calculate()
-    s = Spectrum(specshape, data = np.random.poisson(mod.data))
+    s = Spectrum(specshape, data=np.random.poisson(mod.data))
     fit = MinimizeFitter(s, mod)
-    assert fit.jacobian is not '2-point'
+    assert fit.jacobian != '2-point'
 
     mod1 = Model(specshape, components=[pol, ll])
     mod1.calculate()
@@ -78,7 +80,6 @@ def test_CRLB():
     mod = Model(specshape, components=[pol])
     mod.calculate()
     sig = np.copy(mod.data)
-
 
     nsamples = 100
     coeff_matrix = np.zeros((2, nsamples))
@@ -103,8 +104,8 @@ def test_CRLB():
     std_b = np.std(coeff_matrix[1])
     crlb_b = fit.CRLB(pol.parameters[1])
 
-    assert np.abs(std_a-crlb_a)/(std_a+crlb_a)<0.1
-    assert np.abs(std_b-crlb_b)/(std_b+crlb_b)<0.1
+    assert np.abs(std_a - crlb_a) / (std_a + crlb_a) < 0.1
+    assert np.abs(std_b - crlb_b) / (std_b + crlb_b) < 0.1
 
 
 def main():
@@ -113,29 +114,6 @@ def main():
     test_CRLB()
     test_jacobian()
 
+
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

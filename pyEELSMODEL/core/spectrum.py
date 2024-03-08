@@ -15,36 +15,32 @@ from pyEELSMODEL.io_tools.hdf5_io import load_h5py
 
 import copy
 import logging
+
 logger = logging.getLogger(__name__)
 
-class Spectrumshape():
 
+class Spectrumshape():
     """
     Spectrumshape is a class holding the main parameters of a spectrum in order
     to compactly create several spectra with the same size by providing an
     instance of this class
-    
     It holds:
         dispersion: float, dispersion in eV/pixel describing the energy scale
         offset: float, energy of the first pixel in the spectrum in eV
         size: int, the size of a spectrum in number of pixels (eg typ 1024)
     """
-    
+
     def __init__(self, dispersion, offset, size):
         self.dispersion = dispersion
         self.offset = offset
         self.size = size
 
-"""
-    Spectrum class to hold 1D EELS spectra.
-"""
-
 
 class Spectrum:
     """
     Spectrum object which contains the experimental data.
-
     """
+
     def __init__(self, spectrumshape, data=None, acq_time=1, pppc=1):
 
         """
@@ -72,47 +68,40 @@ class Spectrum:
             if data does not have same size as in spectrumshape.size
         TypeError
             if data is neither int or float
-            
+
         Returns
         -------
         An instance of a Spectrum.
 
         """
-
-        #print(repr(spectrumshape.size))
-        
-        self._dispersion = spectrumshape.dispersion #done since we do not know
-        # offset or size
-        self._offset = spectrumshape.offset #done since we do not know size
+        self._dispersion = spectrumshape.dispersion
+        self._offset = spectrumshape.offset
         self.size = spectrumshape.size
         self.eshift = 0
         self._set_energy_axis()
 
         if data is None:
-            #create empy vector of data
             self.data = np.zeros(self.size)
 
         else:
-            #print(len(data))
-            if len(data)!=self.size:
+            if len(data) != self.size:
                 raise ValueError('data needs to be same size as spectrum.')
-            if type(float(data[0]))!= float: #this throws a ValueError before the raise
+            if type(float(data[0])) != float:
                 raise TypeError('data needs to be convertible to float.')
-            self.data=data
-
-        self.exclude = np.zeros(self.size, dtype=bool) #Array which points to exclude
+            self.data = data
+        # Array which points to exclude
+        self.exclude = np.zeros(self.size, dtype=bool)
         self.pppc = pppc
         self.name = 'a spectrum'
         self.acq_time = acq_time
 
         logger.debug('Spectrum init succeeded')
 
-
     @classmethod
     def load(cls, filename, flip_sign=False, **kwargs):
         """
-        Loads different types of data. The possible datatypes are: .hdf5, .hspy,
-        .dm3/.dm4 and .msa.
+        Loads different types of data. The possible datatypes are: .hdf5,
+        .hspy, .dm3/.dm4 and .msa.
 
         Parameters
         ----------
@@ -141,7 +130,6 @@ class Spectrum:
 
         elif ext == '.msa':
             s = cls.loadmsa(filename)
-
 
         else:
             raise ValueError(r'Extension is not valid')
@@ -196,7 +184,7 @@ class Spectrum:
         s: Spectrum
 
         """
-        dispersion = energy_axis[1]-energy_axis[0]
+        dispersion = energy_axis[1] - energy_axis[0]
         offset = energy_axis[0]
         size = energy_axis.size
         specshape = Spectrumshape(dispersion, offset, size)
@@ -210,8 +198,8 @@ class Spectrum:
         -------
         None.
         """
-        self._energy_axis = np.arange(self.size, dtype='float')\
-                            * self._dispersion + self._offset+self.eshift
+        self._energy_axis = np.arange(self.size, dtype='float') * \
+            self._dispersion + self._offset + self.eshift
 
     @property
     def energy_axis(self):
@@ -247,7 +235,6 @@ class Spectrum:
     @acq_time.setter
     def acq_time(self, acq_time):
         self._acq_time = acq_time
-
 
     def setname(self, name):
         """
@@ -336,7 +323,8 @@ class Spectrum:
         Returns
         -------
         s : Spectrum
-            Returns a reference to a -new- spectrum that is the addition result.
+            Returns a reference to a -new- spectrum that is the addition
+            result.
 
         """
         if isinstance(other, Spectrum):
@@ -399,7 +387,7 @@ class Spectrum:
         else:
             raise TypeError('Input should be spectrum object, float or int')
 
-    def __truediv__(self,other): #needed as alternative for div depends on environment?
+    def __truediv__(self, other):
         return self.__div__(other)
 
     def __div__(self, other):
@@ -472,7 +460,7 @@ class Spectrum:
         #TODO add some warining when slicing the energy loss spectrum
         """
 
-        #check if the energy axis is sliced
+        # check if the energy axis is sliced
         print(type(key))
         if type(key) is dict:
             if key.start is None:
@@ -480,7 +468,7 @@ class Spectrum:
             else:
                 ind0 = key.start
         elif type(key) is int:
-            ind0=key
+            ind0 = key
         elif type(key) is slice:
             if key.start is None:
                 ind0 = 0
@@ -494,7 +482,6 @@ class Spectrum:
         sh = Spectrumshape(self.dispersion, noffset, ndata.size)
         s = Spectrum(sh, data=ndata)
         return s
-
 
     def get_interval(self, interval):
         """
@@ -517,7 +504,6 @@ class Spectrum:
         s = self[ind0:ind1]
         return s
 
-
     def _check_not_same_settings(self, other):
         """
         Checks if the other spectrum has the same spectrumshape properties as
@@ -539,7 +525,6 @@ class Spectrum:
         bl2 = self.size != other.size
 
         return bl0 or bl1 or bl2
-
 
     def get_specparameters(self):
         """
@@ -574,7 +559,6 @@ class Spectrum:
         shape = Spectrumshape(self.dispersion, self.offset, self.size)
         return shape
 
-
     def bad_index(self, index: int):
         """
         Check if index is in range otherwise raises a ValueError
@@ -594,7 +578,7 @@ class Spectrum:
         None.
 
         """
-        if index < -1 or index>self.size:
+        if index < -1 or index > self.size:
             raise ValueError('Bad index value')
 
     def set_exclude_region_energy(self, Ei, Ef):
@@ -632,7 +616,8 @@ class Spectrum:
         None.
 
         """
-        self.bad_index(index_i) #if the start or end index are not inside the region, throw error
+        self.bad_index(index_i)
+        # if the start or end index are not inside the region, throw error
         self.bad_index(index_f)
         self.exclude[index_i:index_f] = True
 
@@ -655,7 +640,8 @@ class Spectrum:
         None.
 
         """
-        self.bad_index(index_i)  # if the start or end index are not inside the region, throw error
+        self.bad_index(index_i)
+        # if the start or end index are not inside the region, throw error
         self.bad_index(index_f)
         self.exclude[index_i:index_f] = False
 
@@ -680,7 +666,8 @@ class Spectrum:
         None.
 
         """
-        self.bad_index(index_i) #if the start or end index are not inside the region, throw error
+        self.bad_index(index_i)
+        # if the start or end index are not inside the region, throw error
         self.bad_index(index_f)
         self.exclude[index_i:index_f] = False
 
@@ -713,7 +700,7 @@ class Spectrum:
             if no value higher than x is found
 
         """
-        #todo add type checking of x?
+        # todo add type checking of x?
 
         boolean = self.data > x
         if boolean.any():
@@ -794,7 +781,7 @@ class Spectrum:
         None.
 
         """
-        if p<0:
+        if p < 0:
             raise ValueError('pppc should be >=0')
         self._pppc = p
         # self.data = self.data*p
@@ -812,7 +799,8 @@ class Spectrum:
 
         """
         mask = self.data > 0
-        self.error = np.sqrt(self.pppc*self.data*mask) #only makes sense for positive data
+        self.error = np.sqrt(
+            self.pppc * self.data * mask)  # only makes sense for positive data
 
     def get_energy_index(self, E):
         """
@@ -854,10 +842,10 @@ class Spectrum:
 
         """
         tempplt = plt
-        if type(externalplt) == type(plt):
+        if isinstance(externalplt, plt):
             tempplt = externalplt
         else:
-            #create our own figure
+            # create our own figure
             plt.figure()
 
         if use_e_axis:
@@ -875,8 +863,8 @@ class Spectrum:
 
         fig, ax = plt.subplots()
         ax.plot(self.energy_axis, self.data, color='black')
-        ax.fill_between(self.energy_axis, 0,self.data.max(), where=self.exclude
-                        , color='green', alpha=0.5)
+        ax.fill_between(self.energy_axis, 0, self.data.max(),
+                        where=self.exclude, color='green', alpha=0.5)
 
     def erase(self):
         self.data = np.zeros(self.size)
@@ -896,12 +884,12 @@ class Spectrum:
             no window is provided the sum under the entire spectrum is taken.
 
         """
-        if method=='max':
-            self.data = self.data/self.data.max()
+        if method == 'max':
+            self.data = self.data / self.data.max()
 
-        elif method=='sum':
+        elif method == 'sum':
             if window is None:
-                norm=  np.sum(self.data)
+                norm = np.sum(self.data)
             else:
                 norm = self.integrate(window)
             self.data = self.data / norm
@@ -930,15 +918,17 @@ class Spectrum:
             DESCRIPTION.
 
         """
-        val=0
-        #logger.debug('getmsatag on line=%s and looking for tag=%s',line,tag)
+        val = 0
+        # logger.debug('getmsatag on line=%s and looking for tag=%s',line,tag)
         if line.find(tag) != -1:
-            logger.debug('item found %s',tag)
+            logger.debug('item found %s', tag)
             items = line.split(':')
             try:
                 val = float(items[-1])
             except (ValueError, IndexError):
-                val=0 #if value cant be converted we still want True as this is the case for #SPECTRUM which has no value
+                # if value cant be converted we still want True as
+                # this is the case for #SPECTRUM which has no value
+                val = 0
             return val
         return -1
 
@@ -966,18 +956,17 @@ class Spectrum:
         s = Spectrum(specshape)
         with open(filename, 'r') as f:
             for line in f:
-                if specdata == False:
+                if not specdata:
                     val = s._getmsatag(line, '#NPOINTS')
                     if val != -1:
                         s.size = int(val)
                         s.erase()
-                    val=s._getmsatag(line, '#XPERCHAN')
+                    val = s._getmsatag(line, '#XPERCHAN')
                     if val != -1:
                         s.dispersion = val
-                    val=s._getmsatag(line, '#OFFSET')
+                    val = s._getmsatag(line, '#OFFSET')
                     if val != -1:
                         s.offset = val
-                    dummy=0
                     if s._getmsatag(line, '#SPECTRUM') != -1:
                         specdata = True
                 else:
@@ -1021,10 +1010,10 @@ class Spectrum:
         dmfile = dmReader(filename)
         data = dmfile['data'][:]
         e_axis = dmfile['coords'][0]
-        dispersion = e_axis[1]-e_axis[0]
+        dispersion = e_axis[1] - e_axis[0]
         offset = e_axis[0]
         if flip_sign:
-            offset = -1*offset
+            offset = -1 * offset
         size = e_axis.size
         spc = Spectrumshape(dispersion, offset, size)
         return Spectrum(spc, data)
@@ -1091,10 +1080,9 @@ class Spectrum:
             A smoothed spectrum version of the initial spectrum.
 
         """
-        result=self.copy()
-        result.data=gaussian_filter(self.data, sigma/self.dispersion)
+        result = self.copy()
+        result.data = gaussian_filter(self.data, sigma / self.dispersion)
         return result
-
 
     def getnonexcludedpoints(self):
         """
@@ -1103,10 +1091,9 @@ class Spectrum:
         """
         return np.size(self.exclude) - np.count_nonzero(self.exclude)
 
-
     def integrate(self, window=None, index_type=False):
-        #todo add test for this function
-        #todo add badindex check
+        # todo add test for this function
+        # todo add badindex check
         """
         Integrates the signal over the given energy window or the given index.
 
@@ -1130,7 +1117,7 @@ class Spectrum:
         if window is None:
             window = [0, self.spectrum.size]
             index_type = True
-            
+
         if index_type:
             result = self.data[window[0]:window[1]].sum()
         else:
@@ -1139,8 +1126,7 @@ class Spectrum:
             result = self.data[ind0:ind1].sum()
         return result
 
-
-    def interp_to_other_energy_axis(self, spectrum, constant_values=(0,0)):
+    def interp_to_other_energy_axis(self, spectrum, constant_values=(0, 0)):
         """
         Interpolates the given spectrum to another given spectrum. The region
         which does not overlap with the energy axis of spectrum will be given a
@@ -1162,20 +1148,20 @@ class Spectrum:
         """
 
         disp = self.dispersion
-        dstart = -1*min(spectrum.offset - self.offset, 0)
+        dstart = -1 * min(spectrum.offset - self.offset, 0)
         dend = max(spectrum.energy_axis[-1] - self.energy_axis[-1], 0)
 
-        #elongate the energy axis such the entire area can be interpolated.
+        # elongate the energy axis such the entire area can be interpolated.
         if dstart == 0:
             before = []
         else:
             before = np.arange(np.ceil(dstart / disp)) * disp
-            before += self.offset-before[-1]-disp
+            before += self.offset - before[-1] - disp
 
         if dend == 0:
             after = []
         else:
-            after = np.arange(np.ceil(dend/disp)) * disp \
+            after = np.arange(np.ceil(dend / disp)) * disp \
                     + self.energy_axis[-1] + disp
 
         E_ax = np.concatenate((before, self.energy_axis, after))
@@ -1185,8 +1171,6 @@ class Spectrum:
         int_spec = Spectrum(spectrum.get_spectrumshape(),
                             data=f(spectrum.energy_axis))
         return int_spec
-
-
 
     def rescale_spectrum(self, scale, shift):
         """
@@ -1210,7 +1194,7 @@ class Spectrum:
         """
         cop = self.copy()
         cop.offset += shift
-        cop.dispersion = scale*self.dispersion
+        cop.dispersion = scale * self.dispersion
         int_spec = cop.interp_to_other_energy_axis(self)
         return int_spec
 
@@ -1252,12 +1236,11 @@ class Spectrum:
             element is the constant (b).
 
         """
-        n_en_axis = coefficients[0]*self.energy_axis+coefficients[1]
-        disp = n_en_axis[1]-n_en_axis[0]
+        n_en_axis = coefficients[0] * self.energy_axis + coefficients[1]
+        disp = n_en_axis[1] - n_en_axis[0]
         offset = n_en_axis[0]
         self.dispersion = disp
         self.offset = offset
-
 
     def firstderivative(self):
         """
@@ -1268,12 +1251,11 @@ class Spectrum:
             The first derivative for the spectrum
         """
 
-
         differential = np.zeros_like(self.data)
         differential[0] = self.data[0] - 2 * self.data[1]
         differential[-1] = self.data[-1] - 2 * self.data[-2]
         differential[1:-1] = self.data[0:-2] - 2 * self.data[1:-1] \
-                             + self.data[2:]
+            + self.data[2:]
 
         nspec = Spectrumshape(self.dispersion, self.offset, self.size)
         s = Spectrum(nspec, data=differential)
@@ -1292,15 +1274,13 @@ class Spectrum:
         differential[0] = self.data[0] - 2. * self.data[1] + self.data[2]
         differential[-1] = self.data[-1] - 2. * self.data[-2] + self.data[-3]
         differential[1:-1] = self.data[0:-2] - 2. * self.data[1:-1] \
-                             + self.data[2:]
+            + self.data[2:]
 
         differential /= self.dispersion ** 2
 
         nspec = Spectrumshape(self.dispersion, self.offset, self.size)
         s = Spectrum(nspec, data=differential)
         return s
-
-
 
     def apply_dark_and_gain(self, gain_name, dark_name):
         """
@@ -1320,7 +1300,7 @@ class Spectrum:
         """
         self.apply_dark(dark_name)
         gain = np.load(gain_name, allow_pickle=True)
-        self.data = gain*self.data
+        self.data = gain * self.data
 
     def apply_dark(self, dark_name):
         """
@@ -1356,22 +1336,7 @@ class Spectrum:
                   'peak is not present')
             return None
 
-
         rs = np.abs(self.data - 0.5 * self.data.max())
         co = np.argsort(rs)
         fwhm = np.abs(self.energy_axis[co[1]] - self.energy_axis[co[0]])
         return fwhm
-
-
-
-
-
-
-
-
-
-
-
-
-
-

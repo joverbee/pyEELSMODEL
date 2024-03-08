@@ -4,12 +4,10 @@ author: Jo Verbeeck and Daen Jannis
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import time
 from scipy import stats
 from scipy.optimize import nnls
 
 from pyEELSMODEL.core.fitter import Fitter
-from pyEELSMODEL.core.spectrum import Spectrum
 from pyEELSMODEL.components.MScatter.mscatter import Mscatter
 
 
@@ -46,7 +44,7 @@ class LinearFitter(Fitter):
         An instance of a LinearFitter.
 
         """
-        #model can only be check if it is add
+        # model can only be check if it is add
         if not model.islinear():
             raise ValueError(r'There are non-linear parameters in the model')
 
@@ -55,8 +53,9 @@ class LinearFitter(Fitter):
         self.method = method
         self.A_matrix = None
         self.y_vector = None
-        self.component_list = [] #a list where each component of the A matrix column is saved
-        self.same_A_matrix = True #use the same A matrix all the time
+        # a list where each component of the A matrix column is saved
+        self.component_list = []
+        self.same_A_matrix = True  # use the same A matrix all the time
         self.use_weights = use_weights
 
     @property
@@ -83,29 +82,24 @@ class LinearFitter(Fitter):
         This A matrix needs to be convolved to include the low loss scattering
 
         """
-        nrows = self.spectrum.size - self.spectrum.exclude.sum()
         ncol = self.model.getnumfreeparameters()
         A = np.zeros((self.spectrum.size, ncol))
         component_list = []
 
         for i, param in enumerate(self.model.getfreelinparameters()):
-            #put all parameters to 0 except 1
+            # put all parameters to 0 except 1
             for par in self.model.getfreelinparameters():
                 if par == param:
-                    par.setvalue(1) #this could cause trouble as it ignores any scaling issues
-                    #pass        
+                    # this could cause trouble as it ignores any scaling issues
+                    par.setvalue(1)
                 else:
                     par.setvalue(0)
             self.model.calculate(use_ll=False)
             component_list.append(self.model.getcomponentbyparameter(param))
-            A[:,i] = self.model.data
+            A[:, i] = self.model.data
 
         self.A_matrix = A
         self.component_list = component_list
-
-
-
-
 
     def convolute_A_matrix(self):
         """
@@ -130,17 +124,14 @@ class LinearFitter(Fitter):
         A_matrix_ll = np.empty(self.A_matrix.shape)
         for i in range(self.A_matrix.shape[1]):
             if self.component_list[i].getcanconvolute():
-                ndata = self.A_matrix[:,i]
+                ndata = self.A_matrix[:, i]
                 ll_comp.data = ndata
                 ll_comp.calculate()
-                A_matrix_ll[:,i] = ll_comp.data
+                A_matrix_ll[:, i] = ll_comp.data
             else:
-                A_matrix_ll[:, i] = self.A_matrix[:,i]
-
+                A_matrix_ll[:, i] = self.A_matrix[:, i]
 
         return A_matrix_ll
-
-
 
     def calculate_y_vector(self):
         """
@@ -172,8 +163,7 @@ class LinearFitter(Fitter):
 
         """
         ndata = np.copy(self.y_vector)
-        ndata[ndata<1] = 1
-    
+        ndata[ndata < 1] = 1
         weigths = 1/ndata
         return weigths
 
@@ -182,8 +172,9 @@ class LinearFitter(Fitter):
         Fits the spectrum using the linear least squares method.
         """
 
-
-        if self.A_matrix is None or self.model.ischanged() or not self.same_A_matrix:
+        if self.A_matrix is None or \
+                self.model.ischanged() or \
+                not self.same_A_matrix:
             self.calculate_A_matrix()  # makes it slow
             self.model.setchanged(False)
 
@@ -195,7 +186,6 @@ class LinearFitter(Fitter):
         self.calculate_y_vector()
         y = self.y_vector
 
-
         if self.use_weights:
             weights = self.calculate_weights()
             tmp = np.sqrt(weights)
@@ -205,13 +195,12 @@ class LinearFitter(Fitter):
             AW = A
             yW = y
 
-
         if self.method == 'nnls':
             try:
-                coeff, cost = nnls(AW,yW)
+                coeff, cost = nnls(AW, yW)
                 self.coeff = coeff
                 self.error = cost
-            except:
+            except Exception:
                 self.coeff = np.nan
                 self.error = np.nan
 
@@ -226,16 +215,22 @@ class LinearFitter(Fitter):
         else:
             print('Fitting method is wrong')
 
-
     def pearson_correlation_matrix(self):
+        """
+        Calculates the pearson correlation matrix
+        Returns
+        -------
+        correlation_matrix: 2d numpy array
+            The pearson correlation matrix
+        """
         self.calculate_A_matrix()
-        A =self.A_matrix
+        A = self.A_matrix
 
         correlation_matrix = np.zeros((A.shape[1], A.shape[1]))
         for i in range(A.shape[1]):
             for j in range(A.shape[1]):
                 r = stats.pearsonr(A[:, i], A[:, j])[0]
-                correlation_matrix[i,j]= r
+                correlation_matrix[i, j] = r
 
         return correlation_matrix
 
@@ -243,20 +238,18 @@ class LinearFitter(Fitter):
         correlation = self.pearson_correlation_matrix()
         label_list = self.getlabelist()
         fig, ax = plt.subplots()
-        ax.imshow(correlation, vmin = -1, vmax=1, cmap='bwr')
+        ax.imshow(correlation, vmin=-1, vmax=1, cmap='bwr')
         ax.set_xticks(np.arange(len(label_list)))
         ax.set_yticks(np.arange(len(label_list)))
-        ax.set_xticklabels(label_list, rotation = 45, ha="right")
-        ax.set_yticklabels(label_list, rotation = 45)
+        ax.set_xticklabels(label_list, rotation=45, ha="right")
+        ax.set_yticklabels(label_list, rotation=45)
         fig.set_tight_layout(True)
-
 
     def partial_derivative(self, parameter):
         """
         Calculates the partial derivative of the parameter. When the entire
         model is linear. This is taking the rows (or columns) of the A matrix
         which needs to be convoluted when low loss is used.
-
 
         Parameters
         ----------
@@ -278,5 +271,5 @@ class LinearFitter(Fitter):
         else:
             A_matrix = self.A_matrix
 
-        index  = self.get_param_index(parameter)
+        index = self.get_param_index(parameter)
         return A_matrix[:, index]

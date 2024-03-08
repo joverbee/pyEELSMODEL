@@ -1,6 +1,7 @@
 import numpy as np
 import pyEELSMODEL.api as em
 
+
 # functions to make easy mask to make elemental maps
 def make_circular_mask(xco, yco, Rin, Rout, shape):
     XX, YY = np.meshgrid(np.arange(shape[1]) - yco, np.arange(shape[0]) - xco)
@@ -50,30 +51,26 @@ def simulate_data():
         adf += (Zs[ii] * maps[ii]) ** 2
         tlambda_map += Zs[ii] * maps[ii]
 
-    tlambda_map = tlambda_map / tlambda_map.max()  # maximum t/lambda is 1 for this sample
+    # maximum t/lambda is 1 for this sample
+    tlambda_map = tlambda_map / tlambda_map.max()
+    E0 = 300e3  # acceleration voltage [V]
+    alpha = 1e-9  # convergence angle [rad]
+    beta = 20e-3  # collection angle [rad]
 
-    E0 = 300e3 #acceleration voltage [V]
-    alpha = 1e-9 #convergence angle [rad]
-    beta = 20e-3 #collection angle [rad]
-
-    dispersion = 0.5 #[eV]
-    offset = 200 #[eV]
-    size = 2048 #number of pixel used in simulation [eV]
+    dispersion = 0.5  # [eV]
+    offset = 200  # [eV]
+    size = 2048  # number of pixel used in simulation [eV]
 
     settings = (E0, alpha, beta)
     msh = em.MultiSpectrumshape(dispersion, offset, size, xsize, ysize)
 
-    sim = em.CoreLossSimulator(msh, elements, edges, maps, tlambda_map, settings)
-    sim.use_shift = True #add shift which experimentally arises due to instabilities
+    sim = em.CoreLossSimulator(msh, elements, edges, maps, tlambda_map,
+                               settings)
+    # add shift which experimentally arises due to instabilities
+    sim.use_shift = True
     sim.simulate_multispectrum()
 
     hl = sim.multispectrum
     ll = sim.ll
     ll.multidata = ll.multidata * 1e4
     return hl, ll
-
-
-
-
-
-

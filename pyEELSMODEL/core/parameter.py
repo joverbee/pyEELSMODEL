@@ -4,9 +4,8 @@ author: Jo Verbeeck and Daen Jannis
 """
 import sys
 import copy
-
-
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -20,10 +19,10 @@ class Parameter():
     affects the component in a nonlinear way. Parameters can also be monitored
     by a Monitor class and they can be watched by a Watcher class
     """
+
     def __init__(self, name, val, changeallowed=True):
         """
         Instantiates a Parameter
-        
         Parameters
         ----------
         name : string
@@ -42,9 +41,9 @@ class Parameter():
         self.setdefaults()
         self.setname(name)
         self.setvalue(val)
-        self.setchangeable(changeallowed) 
+        self.setchangeable(changeallowed)
         logger.debug('Parameter init')
-        
+
     def setdefaults(self):
         """
         Sets default values, typically only called in __init__
@@ -54,46 +53,46 @@ class Parameter():
         None.
 
         """
-        self.value=0
-        self.changed=True
-        self.displayed=False
-        self.changeable=True
-        self.couple_fraction=1.0
-        self.bound=False
-        self.monitored=False
-        self.watched=False
-        self.linear=False
-        self.watcher=None
-        self.coupled=False
-        self.coupled_parameter=None
-        self.monitor=0
+        self.value = 0
+        self.changed = True
+        self.displayed = False
+        self.changeable = True
+        self.couple_fraction = 1.0
+        self.bound = False
+        self.monitored = False
+        self.watched = False
+        self.linear = False
+        self.watcher = None
+        self.coupled = False
+        self.coupled_parameter = None
+        self.monitor = 0
         self.setname("")
-        self.sigma=0.0
-        self.setboundaries(-sys.float_info.max,sys.float_info.max)
-        self.hasgradient=False
-        self.valid=True
-        
+        self.sigma = 0.0
+        self.setboundaries(-sys.float_info.max, sys.float_info.max)
+        self.hasgradient = False
+        self.valid = True
+
     def release(self):
         """
         Call this function whenever you no longer need this parameter
         it warns other coupled Parameter, Monitor and Watcher instances
         that might be linked to it that they should no longer count on this
         parameter.
-        
+
         Returns
         -------
         None.
 
         """
-        self.valid=False
-        
+        self.valid = False
+
         self.releasecoupling()
-        #self.releasemonitor()
-        #self.releasewatcher()
-        
+        # self.releasemonitor()
+        # self.releasewatcher()
+
     def sethasgradient(self, b):
-        self.hasgradient=b
-        
+        self.hasgradient = b
+
     def gethasgradient(self):
         return self.hasgradient
 
@@ -102,8 +101,8 @@ class Parameter():
         Returns a copy of the object
         :return:
         """
-        return copy.deepcopy(self)   
-        
+        return copy.deepcopy(self)
+
     def setvalue(self, val):
         """
         Sets the value of the parameter. But only if it is not a coupled slave,
@@ -120,11 +119,12 @@ class Parameter():
         True if value was set.
 
         """
-        #only change when changeable and within boundaries, otherwise do nothing...
+        # only change when changeable and within boundaries,
+        # otherwise do nothing...
         if self.iscoupled():
             logger.info('This parameters cannot be changed since it is '
                         'coupled')
-            return False #this parameter cant'be changed
+            return False  # this parameter cant'be changed
 
         # if self.coupled and self.ismaster():
         #     #mark the slave as changed
@@ -135,19 +135,20 @@ class Parameter():
             self.value = val
             self.changed = True
         if not okbd:
-            try:
-                v = float(val)
-            except:
-                logger.warning('invalid float (prob infinity')
-                return False
-            logger.warning('Hitting the boundary on parameter %s, ub=%e, lb=%e,'
-                           ' requested val=%e. either increase the boundary or'
-                           ' try to find out why the fit is diverging',
-                           self.getname(), self.getupperbound(),
-                           self.getlowerbound(), val)
+            # try:
+            #     v = float(val)
+            # except:
+            #     logger.warning('invalid float (prob infinity')
+            #     return False
+            logger.warning(
+                'Hitting the boundary on parameter %s, ub=%e, lb=%e,'
+                ' requested val=%e. either increase the boundary or'
+                ' try to find out why the fit is diverging',
+                self.getname(), self.getupperbound(),
+                self.getlowerbound(), val)
             return False
         return True
-        
+
     def getvalue(self):
         """
         Gets the current value of the Parameter. If the parameter is a coupled
@@ -162,20 +163,20 @@ class Parameter():
 
         """
         if self.iscoupled():
-            #get the value of the coupled parameter if the master parameter
+            # get the value of the coupled parameter if the master parameter
             # still exists
             coupledval = self.coupled_parameter.getvalue()
-            return coupledval*self.couple_fraction
-        #in normal case, just return the value
+            return coupledval * self.couple_fraction
+        # in normal case, just return the value
         else:
             return self.value
-        
-    def interactivevalue(self, description): # interactive setup of the value
+
+    def interactivevalue(self, description):  # interactive setup of the value
         """
         Not implemented.
         """
-    
-        #not clear what to do here
+
+        # not clear what to do here
         return
 
     def setdisplayed(self, b):
@@ -193,11 +194,11 @@ class Parameter():
         None.
 
         """
-        if b==True:
-            self.displayed=True
+        if b:
+            self.displayed = True
         else:
-            self.displayed=False
-     
+            self.displayed = False
+
     def isdisplayed(self):
         """
         Return whether the parameter is marked as 'displayed'. This can be set
@@ -248,31 +249,31 @@ class Parameter():
         parameters and we don't need to repeat the calculation unless someone
         changes the parameter value.
         """
-        self.changed=False
-        
+        self.changed = False
+
     def setchanged(self):
         """
         Force the parameter to a changed state.
-        This is useful to e.g. set a coupled slave parameter to the changed state 
-        even though that parameter is typically unchangeable as it should follow the master.
-        This is important as a component needs to know that this parameter
-        has changed in order to force a full recalculation when recalculate is called.
-        This can also be used to force a recalculate of a Component as changed parameters will
-        avoid that the Component takes a shortcut because it thinks it already calculated with this
-        parameter value.
-       
+        This is useful to e.g. set a coupled slave parameter to the changed
+        state even though that parameter is typically unchangeable as it should
+        follow the master. This is important as a component needs to know that
+        this parameter has changed in order to force a full recalculation when
+        recalculate is called. This can also be used to force a recalculate of
+        a Component as changed parameters will avoid that the Component takes
+        a shortcut because it thinks it already calculated with this parameter
+        value.
 
         Returns
         -------
         None.
 
         """
-        #this is a warning received by a slave of coupling
-        #that parameter has changed
-        #if self.iscoupled() and self.isslave():
+        # this is a warning received by a slave of coupling
+        # that parameter has changed
+        # if self.iscoupled() and self.isslave():
 
-        self.changed = True #even if a slave is unchangeable...
-        
+        self.changed = True  # even if a slave is unchangeable...
+
     def setboundaries(self, lb, ub, force=False):
         """
         Sets numerical boundaries to the parameter but only if the current
@@ -300,9 +301,9 @@ class Parameter():
             True if bound, False otherwise.
 
         """
-        #check if value fits in range, if not, don't set the boundaries
-        #return false if bounds are not set
-        self.bound=True
+        # check if value fits in range, if not, don't set the boundaries
+        # return false if bounds are not set
+        self.bound = True
         if (self.boundaryOK(self.value, lb, ub)):
             self.lowerbound = lb
             self.upperbound = ub
@@ -314,13 +315,13 @@ class Parameter():
         if force:
             self.lowerbound = lb
             self.upperbound = ub
-            val = (ub + lb)/2
+            val = (ub + lb) / 2
             self.setvalue(val)
 
         logger.info(r'Boundaries are not set')
         self.bound = False
         return self.bound
-        
+
     def setupperbound(self, ub):
         """
         Sets the upper numerical bound on the parameter. No checking is
@@ -337,7 +338,7 @@ class Parameter():
 
         """
         self.upperbound = ub
-     
+
     def setlowerbound(self, lb):
         """
         Sets the lower numerical bound on the parameter. No checking is
@@ -354,7 +355,7 @@ class Parameter():
 
         """
         self.lowerbound = lb
-        
+
     def boundaryOK(self, x, lb, ub):
         """
         Check if a proposed value x is within the bounds given by lower bound
@@ -377,7 +378,7 @@ class Parameter():
 
         """
         return not (self.bound) or ((x >= lb) and (x <= ub))
-    
+
     def getupperbound(self):
         """
         Returns the current upper bound.
@@ -389,7 +390,7 @@ class Parameter():
 
         """
         return self.upperbound
-    
+
     def getlowerbound(self):
         """
         Returns the current lower bound.
@@ -401,7 +402,7 @@ class Parameter():
 
         """
         return self.lowerbound
-    
+
     def setchangeable(self, b):
         """
         Set the changeable state of the parameter. If not changeable, the
@@ -419,15 +420,15 @@ class Parameter():
 
         """
         if b:
-            #only allow to set to changeable if the parameter is not coupled
-            if self.iscoupled()==True:
+            # only allow to set to changeable if the parameter is not coupled
+            if self.iscoupled():
                 logger.warning('Attempt to set a coupled parameter to '
                                'changeable, ignoring this request')
-            else:    
+            else:
                 self.changeable = True
         else:
             self.changeable = False
-    
+
     def setlinear(self, b):
         """
         Sets a boolean variable to indicate whether a parameter is linear or
@@ -446,7 +447,7 @@ class Parameter():
 
         """
         self.linear = b
-    
+
     def islinear(self):
         """
         Returns whether this parameter is indicated as linear. This is used
@@ -460,7 +461,7 @@ class Parameter():
 
         """
         return self.linear
-        
+
     def ischanged(self):
         """
         Returns wether a parameter is indicated as changed (typically since
@@ -472,11 +473,11 @@ class Parameter():
             True if parameter has changed, False otherwise.
 
         """
-        if self.coupled and self.coupled_parameter != None:
+        if self.coupled and self.coupled_parameter is not None:
             return self.coupled_parameter.changed
         else:
             return self.changed
-        
+
     def ischangeable(self):
         """
         Returns wether a parameter is changeable with setvalue().
@@ -488,10 +489,10 @@ class Parameter():
 
         """
         if self.iscoupled():
-            return False #this parameter cant'be changed
+            return False  # this parameter cant'be changed
         else:
             return self.changeable
-    
+
     def isbound(self):
         """
         Returns whether a parameter has active bounds.
@@ -503,7 +504,7 @@ class Parameter():
 
         """
         return self.bound
-    
+
     def iscoupled(self):
         """
         Returns whether a parameter is coupled to another parameter. Checks are
@@ -515,17 +516,17 @@ class Parameter():
             True if coupled, False otherwise.
 
         """
-        if self.coupled and self.coupled_parameter != None:
-            try: 
+        if self.coupled and self.coupled_parameter is not None:
+            try:
                 if not self.coupled_parameter.valid:
                     raise ValueError('invalid coupling reference in Parameter')
-            except:
+            except Exception:
                 logger.warning('coupled parameter doesnt respond, deleting the'
                                'coupling')
-                self.releasecoupling() 
+                self.releasecoupling()
                 return False
             return True
-        else: 
+        else:
             return False
 
     def getcontroller(self):
@@ -546,7 +547,7 @@ class Parameter():
             return self.coupled_parameter
         else:
             return None
-  
+
     def setname(self, name):
         """
         Sets the name of the parameter. name can be any string, preferably a
@@ -563,9 +564,9 @@ class Parameter():
         None.
 
         """
-        self.name=name
-          
-    def getname(self): 
+        self.name = name
+
+    def getname(self):
         """
         Get name string including "coupled to:" in case this parameter is
         coupled.
@@ -583,7 +584,7 @@ class Parameter():
             return totalname
         else:
             return self.name
-    
+
     def printall(self):
         """
         Print some details on the parameter, mostly for debugging and testing.
@@ -593,10 +594,10 @@ class Parameter():
         None.
 
         """
-        print(self.getname(),' val=',self.getvalue(), ' changeable=',
+        print(self.getname(), ' val=', self.getvalue(), ' changeable=',
               self.ischangeable(), ' lb=', self.lowerbound,
               ' ub=', self.upperbound)
-  
+
     def getpurename(self):
         """
         Get the 'pure' name of the parameter. This is the exact name as given
@@ -610,8 +611,8 @@ class Parameter():
 
         """
         return self.name
-        
-    def couple(self, parameter,fraction=1.0):
+
+    def couple(self, parameter, fraction=1.0):
         """
         Couples this parameter to another parameter with a certain coupling
         constant. This will make us into slaves of the master parameter that is
@@ -630,32 +631,35 @@ class Parameter():
         None.
 
         """
-        
+
         logger.info('coupling parameter %s with: %s', self.getname(),
                     parameter.getname())
         self.coupled = True
-        self.coupled_parameter = parameter #pointer to the master
+        self.coupled_parameter = parameter  # pointer to the master
         self.couple_fraction = fraction
-        #test the master parameter to see if it is valid
+        # test the master parameter to see if it is valid
         try:
             if not parameter.valid:
                 raise ValueError('parameter no longer valid')
-        except:
-            #something went wrong
+        except Exception:
+            # something went wrong
             self.releasecoupling()
             logger.warning('failed to access the parameter')
             return
-  
-        #check if the proposed parameter is not yourself
-        #otherwise recursion! and crash
-        if (self==parameter):
-            #something went wrong
+
+        # check if the proposed parameter is not yourself
+        # otherwise recursion! and crash
+        if (self == parameter):
+            # something went wrong
             logger.warning('recursive coupling detected\n')
             self.releasecoupling()
             return
-        self.setchangeable(False)  #we no longer need to be changeable by the user since from now on the master determines our value
+        self.setchangeable(
+            False)
+        # we no longer need to be changeable by the user since from now on
+        # the master determines our value
         logger.info('done coupling')
-             
+
     def getcouplingfactor(self):
         """
         Return the current value of the coupling factor, irrespective of
@@ -668,89 +672,7 @@ class Parameter():
 
         """
         return self.couple_fraction
-    
-    # def setmonitor(self, monitor):
-    #     """
-    #     Attach a Monitor instance to this parameter. A monitor will be warned about e.g. 
-    #     value changes.
 
-    #     Parameters
-    #     ----------
-    #     monitor : TYPE
-    #         DESCRIPTION.
-    #     b : TYPE, optional
-    #         DESCRIPTION. The default is False.
-
-    #     Returns
-    #     -------
-    #     bool.
-    #         True if succesful, False otherwise.
-
-    #     """    	
-    #     self.monitor=monitor
-    #     self.monitored=True
-    #     try:
-    #         #be carefull, test it first
-    #         self.monitor.getresult()
-    #     except:
-    #         #bad reference
-    #         self.monitor=None
-    #         self.monitored=False
-    #         return False
-    #     return True
-    
-	  	# 
-    # def getmonitor(self):
-    #     """
-    #     Returns a reference to a Monitor instance if this parameter is being monitored, return None otherwise.
-
-    #     Returns
-    #     -------
-    #     reference to Monitor instance or None
-        
-    #     """
-    #     if self.monitored==True:
-    #         return monitorptr
-    #     else:
-    #         return None
-
-    # def ismonitored(self):
-    #     """
-    #     Returns whether this Parameter is monitored by a Monitor instance.
-
-    #     Returns
-    #     -------
-    #     boolean 
-
-    #     """
-    #     return self.monitored
-    
-    # def iswatched(self):
-    #     """
-    #     Returns whether this Parameter is watched by a Watcher instance.
-
-    #     Returns
-    #     -------
-    #     boolean 
-
-    #     """
-    #     return self.watched
-    
-    # def setwatched(self, watcher):
-    #     """
-    #     Attaches a Watcher instance to this parameter that wathces its value
-    #     and might do some calculations with it, like determining the ratio between 
-    #     2 parameters, in that case the watcher will watch both parameters and use their value to 
-    #     obtain the result. This watcher needs to know when things are changing in this parameter
-        
-    #     Returns
-    #     -------
-    #     None. 
-
-    #     """
-    #     watched=True
-    #     watcher=watcher
-       
     def __sub__(self, other):
         """
         Subtract parameters.
@@ -786,13 +708,12 @@ class Parameter():
         else:
             raise TypeError('other should either be a Parameter, int or '
                             'float.')
-            
+
     def __add__(self, other):
         """
-        Add parameters. 
-        If other is an int or float, the number is added to the value of the
-        self parameter. The result has no predefined name and default (widest)
-        boundaries.
+        Add parameters. If other is an int or float, the number is added to the
+        value of the self parameter. The result has no predefined name and
+        default (widest) boundaries.
 
         Parameters
         ----------
@@ -822,13 +743,12 @@ class Parameter():
         else:
             raise TypeError('other should either be a Parameter, int or '
                             'float.')
-            
+
     def __mul__(self, other):
         """
-        Multiply parameters. 
-        If other is an int or float, the number multiplied with the value of
-        the self parameter. The result has no predefined name and default
-        (widest) boundaries.
+        Multiply parameters. If other is an int or float, the number multiplied
+        with the value of the self parameter. The result has no predefined
+        name and default (widest) boundaries.
 
         Parameters
         ----------
@@ -847,7 +767,7 @@ class Parameter():
             multiplication result.
 
         """
-        
+
         if type(other) is Parameter:
             s = Parameter('', self.getvalue() * other.getvalue(),
                           changeallowed=True)
@@ -859,15 +779,14 @@ class Parameter():
         else:
             raise TypeError('other should either be a Parameter, int or '
                             'float.')
-            
+
     def __truediv__(self, other):
         return self.__div__(other)
-        
+
     def __div__(self, other):
         """
-        Divide parameter by another parameter or float or int. 
-        The resulting Parameter has no predefined name and default (widest)
-        boundaries.
+        Divide parameter by another parameter or float or int. The resulting
+        Parameter has no predefined name and default (widest) boundaries.
 
         Parameters
         ----------
@@ -896,47 +815,7 @@ class Parameter():
         else:
             raise TypeError('other should either be a Parameter, int or '
                             'float.')
-            
-    # def releasemonitor(self):
-    #     """
-    #     Warns a monitor linked to this parameter that it should unlink
-    #     as we might dissapear. Typically called within Parameter.release()
 
-    #     Returns
-    #     -------
-    #     None.
-
-    #     """
-    #     if ((self.ismonitored())and(self.monitor!=None)):
-    #         try:
-    #             self.monitor.release()
-    #             self.monitor=None
-    #             logger.info('Releasing my own monitor\n')
-    #         except:
-    #             #didn't work
-    #             self.monitor=None
-    #             return
-    # def releasewatcher(self):
-    #     """
-    #     Warns a watcher that might be watching this parameter that it should stop doing so
-    #     as we might dissapear. Typically called within Parameter.release()
-
-    #     Returns
-    #     -------
-    #     None.
-
-    #     """
-    #     if ((self.iswatched())and(self.watcher!=None)):
-    #         try:
-    #             self.watcher.release()
-    #             self.watcher=None
-    #         except:
-    #             #didn't work
-    #             self.watcher=None
-    #             return
-
-
-              
     def releasecoupling(self):
         """
         Stops any coupling of this parameter with another
@@ -946,7 +825,6 @@ class Parameter():
         None.
 
         """
-        self.coupled=False
-        self.coupled_parameter=None
-        self.setchangeable(True) #not sure if this is needed, in principle 
-             
+        self.coupled = False
+        self.coupled_parameter = None
+        self.setchangeable(True)  # not sure if this is needed, in principle
