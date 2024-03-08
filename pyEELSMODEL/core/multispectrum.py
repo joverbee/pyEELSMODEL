@@ -775,7 +775,7 @@ class MultiSpectrum(Spectrum):
               our own matplotlib and create a new figure.
         """
         tempplt = plt
-        if isinstance(externalplt, plt):
+        if isinstance(externalplt, plt.Figure):
             tempplt = externalplt
         else:
             # create our own figure

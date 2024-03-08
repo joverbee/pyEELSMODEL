@@ -842,7 +842,7 @@ class Spectrum:
 
         """
         tempplt = plt
-        if isinstance(externalplt, plt):
+        if isinstance(externalplt, plt.Figure):
             tempplt = externalplt
         else:
             # create our own figure

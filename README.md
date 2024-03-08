@@ -27,6 +27,16 @@ to calculate the atomic cross sections. Two different GOS tables can be used for
 1. The GOS calculated by Zhang Z. *et al.* which can be found at doi:[10.5281/zenodo.7729585](https://doi.org/10.5281/zenodo.7729585).
 2. The GOS calculated by Segger L. *et al.* which can be found at doi:[10.5281/zenodo.7645765](https://doi.org/10.5281/zenodo.7645765).
 
+To know in which directory your pyEELSMODEL package is installed following command can be run
+in a python console:
+
+``` python
+import pyEELSMODEL
+print(pyEELSMODEL.__path__)
+```
+This information is necessary for the proper use of the GOS tables.
+
+
 #### GOS tables from Zhang Z.
 Following steps explain on how the properly setup the GOS array of 
 Zhang Z. 

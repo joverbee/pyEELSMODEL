@@ -448,7 +448,7 @@ class Model(Spectrum):
         """
         self.calculate()
         tempplt = plt
-        if isinstance(externalplt, plt):
+        if isinstance(externalplt, plt.Figure):
             tempplt = externalplt
         else:
             # create our own figure
