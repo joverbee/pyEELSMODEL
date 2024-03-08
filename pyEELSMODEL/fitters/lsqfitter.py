@@ -9,6 +9,7 @@ from pyEELSMODEL.core.fitter import Fitter
 import logging
 logger = logging.getLogger(__name__)
 
+
 class LSQFitter(Fitter):
     """
     The  least squares fitter which can be used to solve non-linear
@@ -59,9 +60,9 @@ class LSQFitter(Fitter):
     def use_bounds(self, b):
         if self.method == 'lm':
             logger.info(r'lm algorithm cannot use bounds')
-            self._use_bounds=False
+            self._use_bounds = False
         else:
-            self._use_bounds=b
+            self._use_bounds = b
 
     def residuals(self, x0, m, s):
         for index, param in enumerate(m.getfreeparameters()):
@@ -76,7 +77,10 @@ class LSQFitter(Fitter):
         else:
             weights = np.ones(s.data[np.invert(s.exclude)].size)
 
-        return np.sqrt(weights)*(s.data[np.invert(s.exclude)] - m.data[np.invert(s.exclude)])
+        inv_ = np.invert(s.exclude)
+
+        res = np.sqrt(weights)*(s.data[inv_] - m.data[inv_])
+        return res
 
     @property
     def method(self):
@@ -84,7 +88,7 @@ class LSQFitter(Fitter):
 
     @method.setter
     def method(self, method):
-        #todo select which methods can be used an tell which needs to have
+        # todo select which methods can be used an tell which needs to have
         methods = ['trf', 'lm', 'dogbox']
         if method in methods:
             self._method = method
@@ -95,8 +99,6 @@ class LSQFitter(Fitter):
         """
         Boundaries for lsq is different as used for the ml fitter
 
-
-        :return:
         """
         bounds = self.get_bounds()
         low = []
@@ -117,24 +119,14 @@ class LSQFitter(Fitter):
         ndata[ndata < 1] = 1
         self.weights = 1/ndata
 
-
         argo = (self.model, self.spectrum)
         if self.use_bounds:
             bounds = self.bounds_lsq()
         else:
             bounds = (-np.Inf), np.Inf
 
-        resLS = least_squares(self.estimator, x0, args=argo, method=self.method,
-                              bounds=bounds, max_nfev=100)
+        resLS = least_squares(self.estimator, x0, args=argo,
+                              method=self.method, bounds=bounds, max_nfev=100)
 
         self.coeff = resLS.x
         self.error = resLS.cost
-
-
-
-
-
-
-
-
-

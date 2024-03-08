@@ -1,15 +1,18 @@
 import sys
-import pytest
-sys.path.append("..") # Adds higher directory to python modules path.
 from pyEELSMODEL.core.component import Component
-from pyEELSMODEL.core.spectrum import Spectrum, Spectrumshape
+from pyEELSMODEL.core.spectrum import Spectrumshape
 from pyEELSMODEL.core.parameter import Parameter
 
-#note that changing the loglevel on anaconde requires at least a kernel restart
+# note that changing the loglevel on anaconde requires at least a kernel
+# restart
 import logging
-#logging.basicConfig(level=logging.DEBUG) #detailed debug reporting
-#logging.basicConfig(level=logging.INFO) #show info on normal working of code
-logging.basicConfig(level=logging.WARNING) #only show warning that help user to avoid an issue
+
+# logging.basicConfig(level=logging.DEBUG) #detailed debug reporting
+# logging.basicConfig(level=logging.INFO) #show info on normal working of code
+# only show warning that help user to avoid an issue
+logging.basicConfig(level=logging.WARNING)
+
+sys.path.append("..")  # Adds higher directory to python modules path.
 
 
 def test_add_parameters():
@@ -23,12 +26,14 @@ def test_add_parameters():
     comp._setparameters(params)
     assert len(comp.parameters) == 2
 
+
 def test_setcanconvolute():
     spec_shape = Spectrumshape(1, 300, 1024)
     comp = Component(spec_shape)
-    assert comp.canconvolute == True
+    assert comp.canconvolute is True
     comp._setcanconvolute(False)
-    assert comp.canconvolute == False
+    assert comp.canconvolute is False
+
 
 def test_changed():
     spec_shape = Spectrumshape(1, 300, 1024)
@@ -62,22 +67,13 @@ def test_has_parameter():
     assert comp.has_parameter(p1)
     assert not comp.has_parameter(p2)
 
+
 def main():
     test_add_parameters()
     test_setcanconvolute()
     test_changed()
     test_has_parameter()
 
+
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-
-
-

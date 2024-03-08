@@ -9,6 +9,7 @@ from pyEELSMODEL.core.fitter import Fitter
 import logging
 logger = logging.getLogger(__name__)
 
+
 class MinimizeFitter(Fitter):
     """
     Fitter class which uses the minimization algorithms of scipy for
@@ -44,7 +45,8 @@ class MinimizeFitter(Fitter):
             self._estimator = self.lsq_function
             self.jacobian = '2-point'
         else:
-            logger.warning(r'Estimator is not known, maximum likelihood is chosen')
+            logger.warning(r'Estimator is not known, maximum'
+                           r' likelihood is chosen')
             self._estimator = self.MLE_function
             self.jacobian = self.jacobian_ML
 
@@ -62,7 +64,6 @@ class MinimizeFitter(Fitter):
         :return:
         """
         return self._jacobian
-
 
     @jacobian.setter
     def jacobian(self, jacobian):
@@ -88,45 +89,49 @@ class MinimizeFitter(Fitter):
             param.setvalue(x0[index])
         m.calculate()
 
-        if any(m.data<0):
+        if any(m.data < 0):
             return np.inf
 
         # boolean1 = (s.data > 1.) & (m.data > 1.)
-        # when the experimental dat is smaller than zero, then the stirling approx will give wrong result
-        boolean1 = m.data>0
+        # when the experimental dat is smaller than zero, then the
+        # stirling approx will give wrong result
+        boolean1 = m.data > 0
         boolean2 = np.invert(s.exclude)
-        boolean = np.logical_and(boolean1,boolean2)
+        boolean = np.logical_and(boolean1, boolean2)
 
-        #paper where factor two is used (https://doi.org/10.1016/S0168-9002(00)00756-7)
-        ML = 2*np.sum(s.data[boolean] * np.log(m.data[boolean]) - m.data[boolean] )
+        # paper where factor two is used
+        # (https://doi.org/10.1016/S0168-9002(00)00756-7)
+        ML = 2*np.sum(s.data[boolean] * np.log(m.data[boolean])
+                      - m.data[boolean])
         return -ML
 
     def jacobian_ML(self, x0, m, s):
-        #todo can still have errors
+        # todo can still have errors
         for index, param in enumerate(m.getfreeparameters()):
             param.setvalue(x0[index])
         m.calculate()
 
-        if any(m.data<0):
+        if any(m.data < 0):
             return np.inf
 
-        boolean1 = m.data>0
+        boolean1 = m.data > 0
         boolean2 = np.invert(s.exclude)
-        boolean = np.logical_and(boolean1,boolean2)
+        boolean = np.logical_and(boolean1, boolean2)
 
         jac = []
         for index, param in enumerate(m.getfreeparameters()):
             comp = m.getcomponentbyparameter(param)
             gradient = comp.getgradient(param)
-            jac.append(2*np.sum((1-s.data[boolean]/m.data[boolean])*(gradient[boolean])))
+            j = 2 * np.sum((1 - s.data[boolean]/m.data[boolean])
+                           * (gradient[boolean]))
+            jac.append(j)
 
         return jac
 
     def jacobian_LSQ(self, x0, m, s):
-        #todo needs to be implemented
+        # todo needs to be implemented
 
         return 1
-
 
     def lsq_function(self, x0, m, s):
         """
@@ -135,26 +140,21 @@ class MinimizeFitter(Fitter):
         for index, param in enumerate(m.getfreeparameters()):
             param.setvalue(x0[index])
         m.calculate()
-
-        return np.sum(np.abs((s.data[np.invert(s.exclude)] - m.data[np.invert(s.exclude)])))
-
+        inv_ = np.invert(s.exclude)
+        res = np.sum(np.abs((s.data[inv_] - m.data[inv_])))
+        return res
 
     def perform_fit(self):
         """
-        Does the fit on a single spectrum where the starting parameters are given by x0.
-        Boundaries can be used to limit the
-        :param use_bounds:
-        :return:
+        Does the fit on a single spectrum where the starting parameters are
+        given by x0.
+
         """
         x0 = self.get_start_parameters()
         bounds = self.get_bounds()
         argo = (self.model, self.spectrum)
 
-        resML = minimize(self.estimator, x0, args=argo, method=self.method, tol=1e-12,
-                         bounds=bounds, jac=self.jacobian)
+        resML = minimize(self.estimator, x0, args=argo, method=self.method,
+                         tol=1e-12, bounds=bounds, jac=self.jacobian)
 
         self.coeff = resML.x
-
-
-
-
