@@ -12,6 +12,7 @@ Welcome to pyEELSMODEL's documentation!
    Tutorial.ipynb
    CorelossExample.ipynb
    pyEELSMODEL
+   acknowledgements
    :maxdepth: 1
    :caption: Contents:
 
