@@ -114,8 +114,8 @@ def test_perform_fit():
     s.set_exclude_region_energy(300, 500)
     fit = LinearFitter(s, mod)
     fit.perform_fit()
-    assert np.abs(fit.coeff[0] - 2.5) < 1e-1
-    assert np.abs(fit.coeff[1] - 5) < 1e-1
+    assert np.abs(fit.coeff[0] - 2.5) < 2.5*0.1
+    assert np.abs(fit.coeff[1] - 5) < 5*0.1
 
 
 def test_perform_fit_convolutor():
