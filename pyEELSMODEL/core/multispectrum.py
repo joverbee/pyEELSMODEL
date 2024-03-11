@@ -176,6 +176,8 @@ class MultiSpectrum(Spectrum):
         ----------
         s: MultiSpectrum
             The multispectrum which is inside the filename
+        df: list
+            List containing other acquired data
 
         """
         params, df, detector_type = load_hspy(filename)
@@ -197,12 +199,12 @@ class MultiSpectrum(Spectrum):
         ----------
         filename : string
               Filename containing the data.
+        flip_sign: boolean
+            Bug when loading in data where the energy axis starts negative.
+            If wrong is set to True, then this bug is worked around.
         dispersion: float
             Sometimes the dispersion in dual EELS is different, this is a
             method to force it to be the same.
-        wrong: boolean
-            Bug when loading in data where the energy axis starts negative.
-            If wrong is set to True, then this bug is worked around.
 
         Returns
         ----------
