@@ -438,9 +438,8 @@ class fileDM:
             self._curGroupAtLevelX[self._curGroupLevel] + 1
         self._curTagAtLevelX[self._curGroupLevel] = 0
 
-        aa = self.fromfile(self.fid, dtype=[('IsOpenSorted', '2<i1'),
-                                            ('nTags', self._specialType)],
-                           count=1)
+        dtp = [('IsOpenSorted', '2<i1'), ('nTags', self._specialType)]
+        aa = self.fromfile(self.fid, dtype=dtp, count=1)
         nTags = aa['nTags'][0]
 
         if self._v:
@@ -506,25 +505,22 @@ class fileDM:
         # Need to read 8 bytes before %%%% delimiter.
         # Unknown part of DM4 tag structure
         if self._dmType == 4:
-            pass
-            # temp1 = \
-            #     self.fromfile(self.fid, dtype=self._specialType, count=1)[0]
+            self.fromfile(self.fid, dtype=self._specialType, count=1)[0]
 
         delim = self.fromfile(self.fid, dtype='<i1', count=4)
         # delim has to be [37,37,37,37] which is %%%% in ASCII.
         assert ((delim == 37).all())
         if self._v:
-            dlm = self._bin2str(delim)
-            print('_readTagType: should be %%%% = {}'.format(dlm))
-
-        # nInTag = self.fromfile(self.fid, dtype=self._specialType, count=1)[
-        #     0]  # nInTag: unnecessary redundant info
+            print('_readTagType: should '
+                  'be %%%% = {}'.format(self._bin2str(delim)))
+        # nInTag: unnecessary redundant info
+        self.fromfile(self.fid, dtype=self._specialType, count=1)[0]
 
         # Determine the type of the data in the tag
         # specifies data type: int8, uint16, float32, etc.
         # big endian
-        encodedType = \
-            self.fromfile(self.fid, dtype=self._specialType, count=1)[0]
+        encodedType = self.fromfile(self.fid,
+                                    dtype=self._specialType, count=1)[0]
 
         etSize = self._encodedTypeSize(encodedType)
 
@@ -539,8 +535,7 @@ class fileDM:
             stringSize = self.fromfile(self.fid, dtype='>u4', count=1)[0]
             # strtemp = '' #in case stringSize == 0
             # read as uint8 little endian
-            strTempBin = self.fromfile(self.fid, dtype='<u1',
-                                       count=stringSize)
+            strTempBin = self.fromfile(self.fid, dtype='<u1', count=stringSize)
             strTemp = self._bin2str(strTempBin)
             self._storeTag(self._curTagName, strTemp)
         elif encodedType == 15:  # struct
@@ -558,8 +553,7 @@ class fileDM:
             # could be recursive if array contains array(s)
             arrayTypes = self._readArrayTypes()
             # only info of the array is read. It is read later if needed
-            arrInfo = self._readArrayData(
-                arrayTypes)
+            arrInfo = self._readArrayData(arrayTypes)
             self._storeTag(self._curTagName, arrInfo)
 
     @staticmethod
