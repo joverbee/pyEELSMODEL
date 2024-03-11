@@ -17,24 +17,22 @@ In general, a model consists out of a background, cross sections and the low los
 After the model is created, the optimal parameters can be found via a least squares
 or maximimum likelihood minimization scheme.
 Via the Cramer-Rao bound, a lower bound on the error can be provided which can be
-used as estimate for the error on the different parameters.
+used as estimate for the error on the different parameters. The Coreloss Example
+notebook shows how the model-based approach is implemented in pyEELSMODEL.
+See `Verbeeck et al. <https://github.com/joverbee/eelsmodel>`_ for more information on
+the methodology.
+
 
 Philosophy
 ++++++++++
-The model based approach tries to setup a correct/physical model for the experimental data.
-The model contains the parameters of interest. For instance, the elemental
-abundance can be retrieved from the core-loss cross sections.
-
 pyEELSMODEL can be thought of as a toolbox to develop novel workflows to optimize
 EELS processing in a transparent way. Moreover, due to the versatility of the methods,
 the novel workflow can be compared to other ones in an easy way.
-
-The workflows defined make it easier for the novice users to start quantifying their own
-data.
-
-pyEELSMODEL is a package which is written mainly in python language to make it
-more readable and understandable this compromises in terms of speed but improves
-understanding of how the data was treated (algorithms are no black box).
+For the more novice users, pyEELSMODEL provide workflows to perform reliable and
+reproducable EELS quantification. Moreover, the structure of the code is mainly
+written in python to make the algorithms more understandable.
+This compromises in terms of speed but improves understanding of how the
+data was treated (algorithms are no black box).
 
 This package uses a minimal amount of dependencies (matplotlib, numpy, h5py and sci-kit)
 which should make the package more stable over time without having conflicts when trying
@@ -43,13 +41,15 @@ to install other packages.
 Structure of pyEELSMODEL
 ++++++++++++++++++++++++
 The package of pyEELSMODEL contains a back-bone structure where spectrums, components
-and fitters are defined. These classes are then used to perform operations on
-the experimental data, the operations are defined as new classes.
+and fitters are defined. These classes are re-used to perform operations on
+the experimental data, these operations are defined as new classes. For instance,
+the BackgroundRemoval class performs the workflow of background subtraction which
+first finds the initial parameters and next uses these to perform the non-linear
+optimization.
 
-Classes help understanding the procedure performed since inbetween results
-can be saved as attributes. Also workflows with many input can be easier
-modified as with function were many argumetns need to be passed with the
-function.
+Classes facilitate comprehension of the procedures undertaken by allowing intermediate
+results to be stored as attributes. Additionally, workflows involving numerous inputs
+can be more readily modified compared to functions where many arguments must be passed explicitly.
 
 Audience
 ++++++++
@@ -59,7 +59,8 @@ The pyEELSMODEL package is aimed at two types of users.
 use the workflows which should work in many cases.
 
 2. The algorithm developers can use this package as reference to compare their
-novel methods to existing algorithms.
+novel methods to existing algorithms and even add novel algorithms to this
+package.
 
 
 .. only:: html
@@ -68,4 +69,4 @@ novel methods to existing algorithms.
 
     .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-      :download:`Download all examples in Jupyter notebooks: examples_jupyter.zip <api.rst>`
+      :download:`Download all examples in Jupyter notebooks: examples_jupyter.zip <https://github.com/joverbee/pyEELSMODEL/blob/main/examples/CorelossExample.ipynb>`
