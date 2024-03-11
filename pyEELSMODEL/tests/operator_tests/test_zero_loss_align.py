@@ -258,8 +258,8 @@ def test_cross_correlation_signal_range():
 
 def main():
     test_init_other()
+    test_fast_align()
     test_fast_align_1()
-    test_fast_align_other()
     test_fast_align_crop()
     test_fit_align()
     test_fit_align_lorentz()
