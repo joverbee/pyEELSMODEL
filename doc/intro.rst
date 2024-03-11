@@ -14,7 +14,10 @@ Model based EELS quantification
 The main focus of pyEELSMODEL is on the quantification of core-loss via a model-based
 approach. The first step is to chose a proper physical model which represents the experimental data.
 In general, a model consists out of a background, cross sections and the low loss.
-The optimal parameters can be found via a least squares or maximimum likelyhood minimization scheme
+After the model is created, the optimal parameters can be found via a least squares
+or maximimum likelihood minimization scheme.
+Via the Cramer-Rao bound, a lower bound on the error can be provided which can be
+used as estimate for the error on the different parameters.
 
 Philosophy
 ++++++++++
