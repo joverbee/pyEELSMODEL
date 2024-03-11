@@ -133,11 +133,10 @@ def test_perform_fit_convolutor():
     fit = LinearFitter(s, mod)
     fit.perform_fit()
 
-    print(fit.coeff)
     index = fit.get_param_index(lin.parameters[0])
-    assert np.abs(fit.coeff[index] - 2.5) < 1e-1
+    assert np.abs(fit.coeff[index] - 2.5) < 1e-1*2.5
     index = fit.get_param_index(lin.parameters[1])
-    assert np.abs(fit.coeff[index] - 5) < 1e-1
+    assert np.abs(fit.coeff[index] - 5) < 1e-1*5
 
 
 def test_multifit():

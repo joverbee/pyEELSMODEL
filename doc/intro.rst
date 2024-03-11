@@ -7,12 +7,14 @@ pyEELSMODEL is an EELS analysis package derived from the former `eelsmodel <http
 was written in c++. This package uses the model-based approach to quantify EEL spectra. Additionally, more traditional
 methods such as power-law subtraction and deconvolution are implemented to have an easy way of comparing the different
 methodologies. Also some preprocessing methods such as zero-loss alignment and visualization tools are available.
+See the example notebooks on how to use the different functionalities of pyEELSMODEL.
 
 Model based EELS quantification
 +++++++++++++++++++++++++++++++
 The main focus of pyEELSMODEL is on the quantification of core-loss via a model-based
-approach. The first step is to chose a physical model which represents the experimental data.
-This model is fitted to the observations.
+approach. The first step is to chose a proper physical model which represents the experimental data.
+In general, a model consists out of a background, cross sections and the low loss.
+The optimal parameters can be found via a least squares or maximimum likelyhood minimization scheme
 
 Philosophy
 ++++++++++
