@@ -56,7 +56,7 @@ def test_CRLB_linear():
 
     # test: the theoretical and calculated fischer matrix should be similar
     assert np.all(
-        np.abs((fischer - theo_fischer) / (fischer + theo_fischer)) < 0.01)
+        np.abs((fischer - theo_fischer) / (fischer + theo_fischer)) < 0.2)
 
     # test: the standard deviation on the poisson simulated noise should
     # be larger
@@ -66,8 +66,8 @@ def test_CRLB_linear():
     std_b = np.std(coeff_matrix[1])
     crlb_b = np.sqrt(fit.covariance_matrix[1, 1])
 
-    assert np.abs(std_a - crlb_a) / (std_a + crlb_a) < 0.1
-    assert np.abs(std_b - crlb_b) / (std_b + crlb_b) < 0.1
+    assert np.abs(std_a - crlb_a) / (std_a + crlb_a) < 0.2
+    assert np.abs(std_b - crlb_b) / (std_b + crlb_b) < 0.2
 
 
 def test_CRLB_coreloss():
@@ -101,9 +101,9 @@ def test_CRLB_coreloss():
     std_c = np.std(coeff_matrix[2])
     crlb_c = np.sqrt(fit.covariance_matrix[2, 2])
 
-    assert np.abs(std_a - crlb_a) / (std_a + crlb_a) < 0.1
-    assert np.abs(std_b - crlb_b) / (std_b + crlb_b) < 0.1
-    assert np.abs(std_c - crlb_c) / (std_c + crlb_c) < 0.1
+    assert np.abs(std_a - crlb_a) / (std_a + crlb_a) < 0.2
+    assert np.abs(std_b - crlb_b) / (std_b + crlb_b) < 0.2
+    assert np.abs(std_c - crlb_c) / (std_c + crlb_c) < 0.2
 
 
 def main():

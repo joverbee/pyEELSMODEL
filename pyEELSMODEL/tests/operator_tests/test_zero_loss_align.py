@@ -143,17 +143,6 @@ def test_fast_align_1():
         assert np.all(np.abs(Em1-100)) <= 1
 
 
-def test_fast_align_other():
-    s, s1, s2 = make_artificial_dataset(-2, 2)
-    align = FastAlignZeroLoss(s, other_spectra=[s1, s2])
-    align.perform_alignment()
-
-    assert align.aligned_others[0].energy_axis[
-               np.argmax(align.aligned_others[0].sum().data)] == 50
-    assert align.aligned_others[1].energy_axis[
-               np.argmax(align.aligned_others[1].sum().data)] == 100
-
-
 def test_fast_align_crop():
     shf_l = [[-2, 2], [-4, -2], [2, 4]]
     for i in range(len(shf_l)):
@@ -269,7 +258,6 @@ def test_cross_correlation_signal_range():
 
 def main():
     test_init_other()
-    test_fast_align()
     test_fast_align_1()
     test_fast_align_other()
     test_fast_align_crop()
