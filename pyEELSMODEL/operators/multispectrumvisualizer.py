@@ -110,8 +110,8 @@ class MultiSpectrumVisualizer(Operator):
         self.plotline = []
 
         for spectra, label in zip(self.multispectra, self.labels):
-            x = [self.sx, self.sx+self.h]
-            y = [self.sy, self.sy+self.w]
+            y = [self.sx, self.sx+self.h]
+            x = [self.sy, self.sy+self.w]
             mydata = spectra.multidata[x[0]:x[1], y[0]:y[1], :].mean((0, 1))
             plotline = ax[1].plot(spectra.energy_axis, mydata, label=label)
             # print('initialize')
@@ -242,8 +242,8 @@ class MultiSpectrumVisualizer(Operator):
         maxy = 0
         for plotline, spectra, label in zip(self.plotline,
                                             self.multispectra, self.labels):
-            x = [self.sx, self.sx+self.h]
-            y = [self.sy, self.sy+self.w]
+            y = [self.sx, self.sx+self.h]
+            x = [self.sy, self.sy+self.w]
             mydata = spectra.multidata[x[0]:x[1], y[0]:y[1], :].mean((0, 1))
             plotline[0].set_ydata(mydata)
             miny = min(mydata.min(), miny)
