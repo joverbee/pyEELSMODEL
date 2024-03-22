@@ -140,7 +140,7 @@ class Parameter():
             # except:
             #     logger.warning('invalid float (prob infinity')
             #     return False
-            logger.warning(
+            logger.info(
                 'Hitting the boundary on parameter %s, ub=%e, lb=%e,'
                 ' requested val=%e. either increase the boundary or'
                 ' try to find out why the fit is diverging',

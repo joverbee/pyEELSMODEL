@@ -71,7 +71,7 @@ class MultiSpectrumVisualizer(Operator):
 
     def get_indextitle(self, x0, y0, w, h):
         title = 'x0, y0: ' + str(int(x0)) + ', '+str(int(y0)) + '; w, h: ' \
-                + str(int(w)) + ', '+str(int(h))
+                + str(int(h)) + ', '+str(int(w))
         return title
 
     def plotrect(self):
@@ -242,8 +242,8 @@ class MultiSpectrumVisualizer(Operator):
         maxy = 0
         for plotline, spectra, label in zip(self.plotline,
                                             self.multispectra, self.labels):
-            y = [self.sx, self.sx+self.h]
-            x = [self.sy, self.sy+self.w]
+            y = [self.sx, self.sx+self.w]
+            x = [self.sy, self.sy+self.h]
             mydata = spectra.multidata[x[0]:x[1], y[0]:y[1], :].mean((0, 1))
             plotline[0].set_ydata(mydata)
             miny = min(mydata.min(), miny)

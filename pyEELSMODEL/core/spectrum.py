@@ -13,7 +13,7 @@ from scipy.ndimage.filters import gaussian_filter
 from pyEELSMODEL.io_tools.dm_ncempy import dmReader
 from pyEELSMODEL.io_tools.hdf5_io import load_h5py
 # from pyEELSMODEL import __file__  # when icon is used
-# from PyQt5 import QtGui  # when icon is used 
+# from PyQt5 import QtGui  # when icon is used
 
 import copy
 import logging

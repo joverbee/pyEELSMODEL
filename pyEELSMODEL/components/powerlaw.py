@@ -230,9 +230,10 @@ class PowerLaw(Component):
         # set the parameters
         p1 = self.parameters[0]
         p2 = self.parameters[1]
-        p1.setvalue(A)
-        p2.setvalue(r)
+        b1 = p1.setvalue(A)
+        b2 = p2.setvalue(r)
         self.calculate()
+        return b1 and b2
 
     def autofit1(self, spectrum, istart, istop):
         """

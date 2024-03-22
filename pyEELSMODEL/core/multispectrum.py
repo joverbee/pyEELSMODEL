@@ -446,7 +446,7 @@ class MultiSpectrum(Spectrum):
 
         """
         if window is None:
-            window = [0, self.spectrum.size]
+            window = [0, self.size]
             index_type = True
 
         if index_type:
