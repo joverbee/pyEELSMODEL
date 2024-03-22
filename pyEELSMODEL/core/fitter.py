@@ -827,6 +827,9 @@ class Fitter:
         tempplt = plt
         if isinstance(externalplt, plt.Figure):
             tempplt = externalplt
+        elif isinstance(externalplt, plt.Axes):
+            tempplt = externalplt
+            print('axes as input')
         else:
             # create our own figure
             fig = plt.figure()
@@ -862,13 +865,20 @@ class Fitter:
                              where=self.spectrum.exclude, color='green',
                              alpha=0.5)
 
-        tempplt.xlabel(r'Energy Loss [eV]')
-        tempplt.ylabel('Counts')
+        if isinstance(externalplt, plt.Axes):
+            tempplt.set_xlabel(r'Energy Loss [eV]')
+            tempplt.set_ylabel('Counts')
+        else:
+            tempplt.xlabel(r'Energy Loss [eV]')
+            tempplt.ylabel('Counts')
         tempplt.legend()
         if isinstance(self.spectrum, MultiSpectrum):
             tempplt.title(self.spectrum.currentspectrumid)
 
-        return fig
+        if externalplt is None:
+            return fig
+        else:
+            return None
 
     def likelihood_ratio(self, index=(0, 0)):
         """

@@ -2,7 +2,7 @@ import os
 
 
 def test_file_exists():
-    filename=os.path.join('pyEELSMODEL', 'element_info.hdf5')
+    filename = os.path.join('pyEELSMODEL', 'element_info.hdf5')
     assert os.path.exists(filename)
 
 
