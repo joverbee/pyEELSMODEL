@@ -1,4 +1,6 @@
-![pyEELSMODEL logo](/doc/pyEELSmodel_Logo.png)
+<p align="center">
+<img src="doc/pyEELSmodel_Logo.png" width="400">
+</p>
 
 # pyEELSMODEL
 pyEELSMODEL is a electron energy loss spectroscopy software based on the former [c++ software](https://github.com/joverbee/eelsmodel).
