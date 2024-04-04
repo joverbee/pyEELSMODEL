@@ -1002,6 +1002,35 @@ class Fitter:
 
         return fig, maps, names
 
+    def get_map_results(self, comp_elements):
+        """
+        Calculates the maps of the elements.
+
+        Parameters
+        ----------
+        comp_elements : list
+              List containing the components used in the model which have been
+              fitted.
+
+        Returns
+        ----------
+        maps: numpy array
+            Contains all the different maps where the indices are the same as
+            the list of components.
+        names: list
+            List containing the name for each map. These returns are mainly
+            used for modifying the images if more advanced figures need to be
+            created for publications or reports.
+        """
+        maps = np.zeros((len(comp_elements), self.spectrum.xsize,
+                         self.spectrum.ysize))
+        names = np.zeros(len(comp_elements), dtype='object')
+        for i in range(len(comp_elements)):
+            index = self.get_param_index(comp_elements[i].parameters[0])
+            maps[i] = self.coeff_matrix[:, :, index]
+            names[i] = comp_elements[i].name
+        return maps, names
+
     def get_jump_ratio_map(self, component, onset_energy, interval=10):
         """
         Returns a map with the jump ratio between the background and edge

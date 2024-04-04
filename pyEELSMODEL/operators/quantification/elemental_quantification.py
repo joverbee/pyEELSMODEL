@@ -84,7 +84,10 @@ class ElementalQuantification(Operator):
 
         # attributes connected to fitter
         self.linear_fitter_method = 'nnls'
-        self.use_weights = True
+        self.use_weights = False
+
+        if ll is not None:
+            self.estimate_sampling()
 
     def align_zlp(self):
         """
@@ -102,7 +105,7 @@ class ElementalQuantification(Operator):
 
         align = FastAlignZeroLoss(self.ll, other_spectra=[self.spectrum])
         align.perform_alignment()
-        align.show_shift()
+        # align.show_shift()
 
         self.align = align
         self.spectrum = align.aligned_others[0]
@@ -199,9 +202,9 @@ class ElementalQuantification(Operator):
 
     def estimate_sampling(self):
         if self.is_multispectrum:
-            self.dE = self.ll.mean().get_numerical_fwhm()
+            self.dE = np.sqrt(2)*self.ll.mean().get_numerical_fwhm()
         else:
-            self.dE = self.ll.get_numerical_fwhm()
+            self.dE = np.sqrt(2)*self.ll.get_numerical_fwhm()
 
     def make_finestructure(self):
         """
@@ -324,6 +327,7 @@ class ElementalQuantification(Operator):
         Returns
         -------
         multimodels: list of MultiSpectrum
+            A list constaining multimodels to visualize how the resulting fit
             A list constaining multimodels to visualize how the resulting fit
             looks like.
 

@@ -32,6 +32,9 @@ class MscatterFFT(Mscatter):
 
         self.padding = llspectrum.size
         self.use_padding = use_padding
+        # some cache to not recalculate fourier transfrom when not needed
+        # for instance in the calculation of convolved A matrix
+        self.new_ll = True
 
     def calculate(self):
         if self.use_padding:
@@ -41,33 +44,58 @@ class MscatterFFT(Mscatter):
 
     def calculate_raw(self):
         fmodel = np.fft.rfft(self.data)  # real fourier transform the model
-        self.llspectrum.normalise()
-        fll = np.fft.rfft(
-            self.llspectrum.data)  # real fourier transform the ll spectrum
-        # shift zl peak position to 0!
-        # need to compensate for zl peak not being at pix 0
-        zlindex = self.llspectrum.getmaxindex()
-        self.data = np.roll(np.fft.irfft(fmodel * fll), -zlindex)
+        if self.new_ll:
+            self.llspectrum.normalise()
+            fll = np.fft.rfft(
+                self.llspectrum.data)  # real fourier transform the ll spectrum
+            # shift zl peak position to 0!
+            # need to compensate for zl peak not being at pix 0
+            self.zlindex = self.llspectrum.getmaxindex()
+            self.fll = fll
+        self.data = np.roll(np.fft.irfft(fmodel * self.fll), -self.zlindex)
 
     def calculate_w_padding(self):
         """
         Function which adds the zero padding to remove the intensity of the
         end of the model to come into the beginning of the model.
         """
-
+        pds = (self.padding, self.padding)
         # real fourier transform the model
-        fmodel = np.fft.fft(np.pad(self.data,
-                                   pad_width=(self.padding, self.padding)))
+        fmodel = np.fft.rfft(np.pad(self.data, pad_width=pds))
+        if self.new_ll:
+            self.llspectrum.normalise()
+            llpad = np.pad(self.llspectrum.data, pad_width=pds)
+            fll = np.fft.rfft(llpad)  # real fourier transform the ll spectrum
+            self.fll = fll
+            self.zlindex = np.argmax(llpad)
+
+        # conv = np.real(np.fft.ifft(fmodel*fll)[self.padding:-self.padding])
+        # conv = np.real(np.fft.ifft(fmodel * self.fll))
+        conv = np.fft.irfft(fmodel * self.fll)
+
+        # shift zl peak position to 0!
+        # need to compensate for zl peak not being at pix 0
+        self.data = np.roll(conv, -self.zlindex)[self.padding:-self.padding]
+
+    def calculate_A_matrix(self, A_matrix):
+        """
+        Convolution via matrices instead of for loop.
+        :param A_matrix:
+        :return:
+        """
+        dpad = ((self.padding, self.padding), (0, 0))
+        A_matrix_pad = np.pad(A_matrix, pad_width=dpad)
+        fftA = np.fft.fft(A_matrix_pad, axis=0)
 
         self.llspectrum.normalise()
         llpad = np.pad(self.llspectrum.data,
                        pad_width=(self.padding, self.padding))
+        self.zlindex = np.argmax(llpad)
+
         fll = np.fft.fft(llpad)  # real fourier transform the ll spectrum
+        fll_matrix = np.tile(fll[:, np.newaxis], (1, A_matrix.shape[1]))
 
-        # conv = np.real(np.fft.ifft(fmodel*fll)[self.padding:-self.padding])
-        conv = np.real(np.fft.ifft(fmodel * fll))
-
-        # shift zl peak position to 0!
-        # need to compensate for zl peak not being at pix 0
-        zlindex = np.argmax(llpad)
-        self.data = np.roll(conv, -zlindex)[self.padding:-self.padding]
+        conv = np.real(np.fft.ifft(fftA * fll_matrix, axis=0))
+        conv_A = np.roll(conv, -self.zlindex,
+                         axis=0)[self.padding:-self.padding, :]
+        return conv_A
