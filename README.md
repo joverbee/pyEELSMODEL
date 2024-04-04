@@ -1,5 +1,5 @@
 <p align="center">
-<img src="doc/pyEELSmodel_Logo.png" width="400">
+<img src="doc/pyEELSmodel_Logo.svg" width="400">
 </p>
 
 # pyEELSMODEL

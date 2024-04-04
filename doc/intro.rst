@@ -56,17 +56,11 @@ Audience
 The pyEELSMODEL package is aimed at two types of users.
 
 1. The electron microscopist who wants to analyze their EELS data. They can
-use the workflows which should work in many cases.
+use the workflows which should work in many cases. If the standard settings fail,
+it is relatively easy to modify them and try other input parameters.
 
 2. The algorithm developers can use this package as reference to compare their
 novel methods to existing algorithms and even add novel algorithms to this
 package.
 
 
-.. only:: html
-
-  .. container:: sphx-glr-footer sphx-glr-footer-gallery
-
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
-
-      :download:`Download all examples in Jupyter notebooks: examples_jupyter.zip <https://github.com/joverbee/pyEELSMODEL/blob/main/examples/CorelossExample.ipynb>`

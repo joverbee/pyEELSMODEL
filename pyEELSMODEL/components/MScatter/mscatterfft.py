@@ -80,8 +80,8 @@ class MscatterFFT(Mscatter):
     def calculate_A_matrix(self, A_matrix):
         """
         Convolution via matrices instead of for loop.
-        :param A_matrix:
-        :return:
+        This function is not faster than the regular convolution and is not
+        used in pyEELSMODEL.
         """
         dpad = ((self.padding, self.padding), (0, 0))
         A_matrix_pad = np.pad(A_matrix, pad_width=dpad)

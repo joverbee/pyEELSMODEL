@@ -49,8 +49,8 @@ pygments_style = 'sphinx'
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme'
-html_logo = 'pyEELSmodel_Logo.png'
-html_favicon = 'pyEELSmodel_Icon.png'
+html_logo = 'pyEELSmodel_Logo.svg'
+html_favicon = 'pyEELSmodel_Icon.svg'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
