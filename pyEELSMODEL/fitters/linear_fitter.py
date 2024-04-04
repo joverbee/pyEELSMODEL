@@ -122,16 +122,34 @@ class LinearFitter(Fitter):
                 ll_comp = comp
 
         A_matrix_ll = np.empty(self.A_matrix.shape)
+        ll_comp.new_ll = True
         for i in range(self.A_matrix.shape[1]):
             if self.component_list[i].getcanconvolute():
                 ndata = self.A_matrix[:, i]
                 ll_comp.data = ndata
                 ll_comp.calculate()
+                ll_comp.new_ll = False
                 A_matrix_ll[:, i] = ll_comp.data
             else:
                 A_matrix_ll[:, i] = self.A_matrix[:, i]
-
+        ll_comp.new_ll = True
         return A_matrix_ll
+
+    def convolute_A_matrix_(self):
+        """
+        Test convolution using the matrix approach however this seems
+        to be slower than the original which loops over A matrix
+        """
+        for comp in self.model.components:
+            if isinstance(comp, Mscatter):
+                ll_comp = comp
+
+        A_matrix_ll = ll_comp.calculate_A_matrix(self.A_matrix)
+        for i in range(self.A_matrix.shape[1]):
+            if not self.component_list[i].getcanconvolute():
+                A_matrix_ll[:, i] = self.A_matrix[:, i]
+        return A_matrix_ll
+
 
     def calculate_y_vector(self):
         """

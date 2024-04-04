@@ -829,7 +829,7 @@ class Spectrum:
             co = np.argmin(np.abs(self.energy_axis - E))
             return co
 
-    def plot(self, externalplt=None, use_e_axis=True, **kwargs):
+    def plot(self, externalplt=None, use_e_axis=True, logscale=False, **kwargs):
         """
         Plot the spectrum
 
@@ -863,6 +863,8 @@ class Spectrum:
             tempplt.plot(self.data, **kwargs)
 
         tempplt.ylabel('Counts')
+        if logscale:
+            tempplt.yscale('log')
 
     def show_excluded_region(self, **kwargs):
         """

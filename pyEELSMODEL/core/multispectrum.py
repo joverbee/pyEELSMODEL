@@ -131,7 +131,7 @@ class MultiSpectrum(Spectrum):
             s = cls.load_hspy(filename)
 
         elif (ext == '.dm3') or (ext == '.dm4'):
-            s = cls.load_dm(filename)
+            s = cls.load_dm(filename, flip_sign=flip_sign)
 
         else:
             raise ValueError(r'Extension is not valid')

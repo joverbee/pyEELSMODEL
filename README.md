@@ -1,3 +1,5 @@
+![pyEELSMODEL logo](/doc/pyEELSMODEL_Logo.png)
+
 # pyEELSMODEL
 pyEELSMODEL is a electron energy loss spectroscopy software based on the former [c++ software](https://github.com/joverbee/eelsmodel).
 This software uses the model-based approach to quantify EEL spectra. 
