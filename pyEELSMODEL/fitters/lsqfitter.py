@@ -31,6 +31,10 @@ class LSQFitter(Fitter):
         use_bounds: bool, optional
             Bool indicating which if the boundaries of the parameters are used
             (default:False)
+        method: string
+            The optimization methods used, candiates are lm, trf and dogbox.
+            See https://docs.scipy.org/doc/scipy/reference/generated/
+            scipy.optimize.least_squares.html for more information.
 
         Returns
         -------

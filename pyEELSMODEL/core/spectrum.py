@@ -599,6 +599,22 @@ class Spectrum:
         index_f = self.get_energy_index(Ef)
         self.set_exclude_region(index_i, index_f)
 
+    def set_include_region_energy(self, Ei, Ef):
+        """
+        Sets the included region using the energy.
+
+        Parameters
+        ----------
+        Ei: float
+            The starting energy of the excluded region.
+        Ef: float
+            The end energy of the excluded region.
+
+        """
+        index_i = self.get_energy_index(Ei)
+        index_f = self.get_energy_index(Ef)
+        self.set_include_region(index_i, index_f)
+
     def set_exclude_region(self, index_i, index_f):
         """
         Set a range of pixels from index_i to index_f (both inclusive) as
@@ -829,7 +845,8 @@ class Spectrum:
             co = np.argmin(np.abs(self.energy_axis - E))
             return co
 
-    def plot(self, externalplt=None, use_e_axis=True, logscale=False, **kwargs):
+    def plot(self, externalplt=None, use_e_axis=True, logscale=False,
+             **kwargs):
         """
         Plot the spectrum
 
@@ -1125,7 +1142,7 @@ class Spectrum:
 
         """
         if window is None:
-            window = [0, self.spectrum.size]
+            window = [0, self.size]
             index_type = True
 
         if index_type:

@@ -11,6 +11,8 @@ from pyEELSMODEL.components.powerlaw import PowerLaw
 from pyEELSMODEL.components.linear_background import LinearBG
 from pyEELSMODEL.components.CLedge.zezhong_coreloss_edgecombined import\
     ZezhongCoreLossEdgeCombined
+from pyEELSMODEL.components.CLedge.kohl_coreloss_edgecombined import \
+    KohlLossEdgeCombined
 from pyEELSMODEL.components.MScatter.mscatterfft import MscatterFFT
 from pyEELSMODEL.components.gdoslin import GDOSLin
 
@@ -85,6 +87,9 @@ class ElementalQuantification(Operator):
         # attributes connected to fitter
         self.linear_fitter_method = 'nnls'
         self.use_weights = False
+
+        # which GOS array to use: zhang or segger
+        self.gos_array = 'zhang'
 
         if ll is not None:
             self.estimate_sampling()
@@ -193,10 +198,16 @@ class ElementalQuantification(Operator):
         # The components of the edges
         comp_elements = []
         for elem, edge, onset in zip(self.elements, self.edges, self.onsets):
-            comp = ZezhongCoreLossEdgeCombined(spsh, 1, self.E0, self.alpha,
-                                               self.beta, elem, edge,
-                                               eshift=onset,
-                                               q_steps=self.qsteps)
+            if self.gos_array == 'zhang':
+                comp = ZezhongCoreLossEdgeCombined(spsh, 1, self.E0,
+                                                   self.alpha, self.beta,
+                                                   elem, edge, eshift=onset,
+                                                   q_steps=self.qsteps)
+            elif self.gos_array == 'kohl':
+                comp = KohlLossEdgeCombined(spsh, 1, self.E0, self.alpha,
+                                            self.beta, elem, edge,
+                                            eshift=onset, q_steps=self.qsteps)
+
             comp_elements.append(comp)
         self.element_components = comp_elements
 
@@ -313,8 +324,12 @@ class ElementalQuantification(Operator):
         """
         Shows the elemental maps.
         """
-
         fig, maps, names = self.fitter.show_map_result(self.element_components)
+
+    def get_elemental_maps(self):
+        maps, names = self.fitter.get_map_results(self.element_components)
+        self.elemental_maps = maps
+        return maps, names
 
     def get_multimodels(self):
         """
