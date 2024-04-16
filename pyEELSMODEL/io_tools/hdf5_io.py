@@ -26,8 +26,10 @@ def load_hspy(filename):
     f = h5py.File(filename, 'r')
     d = f['Experiments']
     params = []
+    haadf = []
     df = []
     detector_type = []
+
     for key in d.keys():
         if 'EELS Spectrum' in key:
             data = d[key]['data'][:]
@@ -44,11 +46,17 @@ def load_hspy(filename):
             stra = 'Acquisition_instrument'
             acq_time = d[key]['metadata'][stra]['TEM'].attrs['exposure']
             params.append([data, dispersion, offset, size, acq_time])
-
-        else:
+        elif 'HAADF' in key:
+            data = d[key]['data'][:]
+            haadf.append(data)
+            detector_type.append(key)
+        elif 'DF4' in key:
             data = d[key]['data'][:]
             df.append(data)
             detector_type.append(key)
-
     f.close()
-    return params, df, detector_type
+
+    if len(haadf) > 0:
+        return params, haadf, detector_type
+    elif len(df) > 0:
+        return params, df, detector_type

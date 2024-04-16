@@ -8,6 +8,7 @@ from scipy import ndimage
 import h5py
 from os.path import exists
 import os
+from tqdm import tqdm
 
 from pyEELSMODEL.io_tools.dm_ncempy import dmReader
 from pyEELSMODEL.io_tools.hdf5_io import load_h5py, load_hspy
@@ -843,6 +844,10 @@ class MultiSpectrum(Spectrum):
         None.
         """
         # todo use fftconvolve and zero padding
+
+        if (factor[0] == 1) & (factor[1] == 1) & (factor[2] == 1):
+            return self
+
         top_hat = np.ones(factor)
         top_hat = top_hat / top_hat.sum()
         # note that this is emperical found and I do not know
@@ -957,6 +962,38 @@ class MultiSpectrum(Spectrum):
                                    self.ysize)
         s = MultiSpectrum(nspec, data=differential)
         return s
+
+    def upsample(self, nn):
+        """
+        Upsamples the spectrum with factor nn.
+
+        Parameters
+        ----------
+        nn : uint
+            The number of times the spectrum needs to be upsampled
+
+        Returns
+        -------
+        spec_up: MultiSpectrum
+            The upsampled multispectrum
+
+
+        """
+        shape = (self.xsize, self.ysize)
+        spc = Spectrumshape(self.dispersion / nn, self.offset,
+                            nn * self.size)
+        s = Spectrum(spc)
+        up = np.zeros(shape + (spc.size,))
+
+        for index in tqdm(np.ndindex(shape)):
+            islice = np.s_[index]
+
+            self.setcurrentspectrum(islice)
+            int_spec = self.interp_to_other_energy_axis(s)
+            up[islice] = int_spec.data
+        spec_up = MultiSpectrum.from_numpy(up, int_spec.energy_axis)
+
+        return spec_up
 
     def map_to_line(self):
         """

@@ -150,7 +150,6 @@ class LinearFitter(Fitter):
                 A_matrix_ll[:, i] = self.A_matrix[:, i]
         return A_matrix_ll
 
-
     def calculate_y_vector(self):
         """
         Calculates the y vector for the linear least squares fitting.
