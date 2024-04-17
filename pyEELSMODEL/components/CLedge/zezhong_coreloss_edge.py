@@ -116,9 +116,7 @@ class ZezhongCoreLossEdge(CoreLossEdge):
                 'N6, N7')
 
     def calculate_cross_section(self):
-        print('jeez louizzz')
         ek = self.onset_energy + self.free_energies[0]
-        print(ek)
 
         E0 = self.parameters[1].getvalue()
         alpha = self.parameters[3].getvalue()
