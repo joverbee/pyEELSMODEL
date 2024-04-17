@@ -2,6 +2,7 @@ from pyEELSMODEL.misc import hs_gdos as hsdos
 from pyEELSMODEL.components.CLedge.coreloss_edge import CoreLossEdge
 import os
 import h5py
+from pyEELSMODEL import __file__
 
 
 class KohlLossEdge(CoreLossEdge):
@@ -52,6 +53,12 @@ class KohlLossEdge(CoreLossEdge):
         Returns
         -------
         """
+        if dir_path is None:
+            dir_ = "/../pyEELSMODEL/database/Segger_Guzzinati_Kohl/"
+            dir_path = os.path.dirname(
+                os.path.dirname(__file__) + dir_
+            )
+
         self.set_dir_path(dir_path)
         super().__init__(specshape, A, E0, alpha, beta, element, edge,
                          eshift=eshift, q_steps=q_steps)

@@ -301,3 +301,160 @@ def dsigma_dE_from_GOSarray_approx(energy_axis, rel_energy_axis, E0, beta,
     dsigma_dE[boolean] = 0
 
     return dsigma_dE
+
+
+def dsigma_dE_from_GOSarray_bound(energy_axis, free_energies, ek, E0, beta,
+                                  alpha, q_axis, GOSmatrix, q_steps=100):
+    """
+    Calculates the cross section from the GOS array. The integral over q-axis
+    is done on a logarithmic scale.
+    This is a new method which is able to take the bounded states into account.
+    Provided by Zezhong Zhang.
+
+    Parameters
+    ----------
+    energy_axis: 1d numpy array
+        The energy axis on which the cross section is calculated. [eV]
+    free_energies: 1d numpy array
+        The energy axis on which the GOS table is calculated without the onset
+        energy [eV]
+    ek: float
+        The onset energy of the calculated edge [eV]
+    E0: float
+        The acceleration voltage of the incoming electrons [V]
+    alpha: float
+        The convergence angle of the incoming probe [rad]
+    beta:
+        The collection angle of the outgoing electrons [rad]
+    q_axis: 1d numpy array
+        The momentum on which the GOS table are calculated. [kg m /s]?
+    GOSmatrix: 2d numpy array
+        The GOS
+    q_steps: uint
+        The number of q points used to numerically calculate the integral
+        over the q direction. (default: 100)
+    swap_axes: boolean
+        The two GOS tables from Segger and Zhang have different axes. So
+        for one, the energy axis is the first one and for the other it is
+        the q-axis. Hence by swapping the axes we can use the same function
+        for both. (default: False)
+
+    Returns
+    -------
+    dsigma_dE: 1d numpy array
+        The calculated cross section in m^2
+
+    """
+    R = pc.R()
+    T = pc.T(E0)
+    gamma = pc.gamma(E0)
+
+    # Define new energy axis which is uses the energies of the discreet
+    # bounded states and in the continuum the usual energy axis.
+
+    bool0 = free_energies < 0
+    bool1 = energy_axis >= ek
+    new_E = np.concatenate((free_energies[bool0], energy_axis[bool1] - ek),
+                           axis=0)
+    new_E += ek
+    dsigma_dE = np.zeros(new_E.size)
+
+    rel_energy_axis = free_energies + ek
+    # check if there are energies larger then the max energy
+    if energy_axis[-1] > rel_energy_axis[-1]:
+        # then calculate a power law dependence of the cross sections
+        powA, powr = get_powerLaw_extrapolation(rel_energy_axis, q_axis,
+                                                GOSmatrix,
+                                                E0, beta, alpha,
+                                                q_steps=q_steps,
+                                                swap_axes=True)
+
+    for i in range(new_E.size):
+        E = new_E[i]
+        integral = 0
+        if E < ek:
+            # the bounded states are differently interpolated
+            qa0sq_min, qa0sq_max = hdos.get_qmin_max(E, E0, beta, alpha=alpha)
+            logqa0sq_axis = np.linspace(np.log(qa0sq_min), np.log(qa0sq_max),
+                                        q_steps)
+            lnqa0sqstep = (logqa0sq_axis[1] - logqa0sq_axis[0])
+            for j in range(logqa0sq_axis.size):
+                q = np.sqrt(np.exp(logqa0sq_axis[j])) / pc.a0()
+                theta = 2. * np.sqrt(np.abs(
+                    R * (np.exp(logqa0sq_axis[j]) - qa0sq_min) / (
+                                4. * gamma ** 2 * T)))
+                GOSarray = GOSmatrix[i, :]
+                df_dE = getinterpolatedq(q, GOSarray, q_axis)
+
+                # integral+= df_dE*lnqa0sqstep
+                integral += df_dE * lnqa0sqstep * hdos.correction_factor_kohl(
+                    alpha, beta, theta)
+            dsigma_dE[i] = 4 * np.pi * pc.a0() ** 2 * (R / E) * (
+                        R / T) * integral
+
+        elif (E >= ek) & (E <= rel_energy_axis[-1]):
+            qa0sq_min, qa0sq_max = hdos.get_qmin_max(E, E0, beta, alpha=alpha)
+            logqa0sq_axis = np.linspace(np.log(qa0sq_min), np.log(qa0sq_max),
+                                        q_steps)
+            lnqa0sqstep = (logqa0sq_axis[1] - logqa0sq_axis[0])
+            for j in range(logqa0sq_axis.size):
+                q = np.sqrt(np.exp(logqa0sq_axis[j])) / pc.a0()
+                theta = 2. * np.sqrt(np.abs(
+                    R * (np.exp(logqa0sq_axis[j]) - qa0sq_min) / (
+                                4. * gamma ** 2 * T)))
+                df_dE = getinterpolatedgos(E, q, rel_energy_axis, q_axis,
+                                           GOSmatrix, swap_axes=True)
+                # integral+= df_dE*lnqa0sqstep
+                integral += df_dE * lnqa0sqstep * hdos.correction_factor_kohl(
+                    alpha, beta, theta)
+            # dsigma_dE[i] = 4*np.pi*pc.a0()**2*(R/E)*(R/T)*integral*dispersion
+            dsigma_dE[i] = 4 * np.pi * pc.a0() ** 2 * (R / E) * (
+                        R / T) * integral
+
+        elif E > rel_energy_axis[-1]:
+            dsigma_dE[i] = powerlaw(E, powA, powr)
+        else:
+            dsigma_dE[i] = 0
+
+        f = interpolate.interp1d(new_E, dsigma_dE, bounds_error=False,
+                                 fill_value=0)
+
+    return f(energy_axis)
+
+
+def getinterpolatedq(q, GOSarray, q_axis):
+    """
+    Gets the interpolated value of the GOS array as a function of q.
+    Usefull for the bounded states
+
+
+    Parameters
+    ----------
+    q: float
+        The q from the GOS should be interpolated
+    GOSarray:
+        dddd
+    q_axis: numpy array
+        The q axis on which the GOS is calculated
+
+
+    Returns
+    -------
+    interpolated GOS matrix
+
+    """
+    index_q = np.searchsorted(q_axis, q, side='left')
+
+    if index_q == 0:
+        return GOSarray[0]
+    if index_q == q_axis.size:
+        return 0.0
+
+    dq = q_axis[index_q] - q_axis[index_q - 1]
+
+    distq = q - q_axis[index_q - 1]
+
+    r0 = GOSarray[index_q - 1] * (1/dq) * (dq-distq)
+    r1 = GOSarray[index_q] * (1/dq) * (distq)
+
+    return r0 + r1

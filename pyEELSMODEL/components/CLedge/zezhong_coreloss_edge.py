@@ -2,6 +2,7 @@ from pyEELSMODEL.misc import hs_gdos as hsdos
 from pyEELSMODEL.components.CLedge.coreloss_edge import CoreLossEdge
 import os
 import h5py
+from pyEELSMODEL import __file__
 
 
 class ZezhongCoreLossEdge(CoreLossEdge):
@@ -115,8 +116,10 @@ class ZezhongCoreLossEdge(CoreLossEdge):
                 'N6, N7')
 
     def calculate_cross_section(self):
+        print('jeez louizzz')
+        ek = self.onset_energy + self.free_energies[0]
+        print(ek)
 
-        ek = self.onset_energy
         E0 = self.parameters[1].getvalue()
         alpha = self.parameters[3].getvalue()
         beta = self.parameters[2].getvalue()
