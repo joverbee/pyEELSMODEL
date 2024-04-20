@@ -60,3 +60,5 @@ def load_hspy(filename):
         return params, haadf, detector_type
     elif len(df) > 0:
         return params, df, detector_type
+    else:
+        return params, df, detector_type

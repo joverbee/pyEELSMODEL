@@ -550,6 +550,14 @@ class Component(Spectrum):
         self.hasmultiplier = False
         self.multiplier = None
 
+    def getfreelinparameters(self):
+        freelinparameters = []
+        for p in self.parameters:
+            if p.ischangeable():
+                if p.islinear():
+                    freelinparameters.append(p)
+        return freelinparameters
+
     def _pullparameter(self):
         """
         Pull last parameter from parameter list and releases that parameter.
