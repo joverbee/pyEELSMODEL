@@ -553,11 +553,10 @@ class Component(Spectrum):
     def getfreelinparameters(self):
         freelinparameters = []
         for p in self.parameters:
-                if p.ischangeable():
-                    if p.islinear():
-                        freelinparameters.append(p)
+            if p.ischangeable():
+                if p.islinear():
+                    freelinparameters.append(p)
         return freelinparameters
-
 
     def _pullparameter(self):
         """

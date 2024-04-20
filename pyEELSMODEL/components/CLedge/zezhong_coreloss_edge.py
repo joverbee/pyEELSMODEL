@@ -134,13 +134,14 @@ class ZezhongCoreLossEdge(CoreLossEdge):
                 self.energy_axis, e_axis + ek, E0, beta, gos)
         else:
             # cs = hsdos.dsigma_dE_from_GOSarray(self.energy_axis, e_axis + ek,
-            #                                    ek+e_axis[0], E0, beta, alpha, q_axis,
+            #                                    ek+e_axis[0], E0, beta, alpha,
+            #                                    q_axis,
             #                                    gos, q_steps=self.q_steps,
             #                                    swap_axes=self.swap_axes)
 
-            cs = hsdos.dsigma_dE_from_GOSarray_bound(self.energy_axis, e_axis, ek,
-                                                  E0, beta, alpha, q_axis, gos,
-                                                  q_steps=100)
+            cs = hsdos.dsigma_dE_from_GOSarray_bound(self.energy_axis, e_axis,
+                                                     ek, E0, beta, alpha,
+                                                     q_axis, gos, q_steps=100)
 
             cross_section = pref * cs
 

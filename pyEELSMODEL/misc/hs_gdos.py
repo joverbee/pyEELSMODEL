@@ -353,14 +353,11 @@ def dsigma_dE_from_GOSarray_bound(energy_axis, free_energies, ek, E0, beta,
     # bounded states and in the continuum the usual energy axis.
 
     bool0 = free_energies < 0
-    bool1 = energy_axis >= ek
     Ebound = free_energies[bool0] + ek
-
-
 
     dsigma_dE = np.zeros(energy_axis.size)
     dsigma_dE_bound = np.zeros(energy_axis.size)
-    sigma =  2*(energy_axis[1] - energy_axis[0])
+    sigma = 2*(energy_axis[1] - energy_axis[0])
 
     rel_energy_axis = free_energies + ek
     # check if there are energies larger then the max energy
@@ -396,7 +393,6 @@ def dsigma_dE_from_GOSarray_bound(energy_axis, free_energies, ek, E0, beta,
         sig = 4 * np.pi * pc.a0() ** 2 * (R / E) * (R / T) * integral
         dsigma_dE_bound += gaussian(energy_axis, sig, E, sigma)
 
-
     # the for loop over the bound states
     for i in range(energy_axis.size):
         E = energy_axis[i]
@@ -411,7 +407,8 @@ def dsigma_dE_from_GOSarray_bound(energy_axis, free_energies, ek, E0, beta,
                 theta = 2. * np.sqrt(np.abs(
                     R * (np.exp(logqa0sq_axis[j]) - qa0sq_min) / (
                             4. * gamma ** 2 * T)))
-                df_dE = getinterpolatedgos(E, q, rel_energy_axis, q_axis, GOSmatrix)
+                df_dE = getinterpolatedgos(E, q, rel_energy_axis, q_axis,
+                                           GOSmatrix)
                 # integral+= df_dE*lnqa0sqstep
                 integral += df_dE * lnqa0sqstep * hdos.correction_factor_kohl(
                     alpha, beta, theta)
