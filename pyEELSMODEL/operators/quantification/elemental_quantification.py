@@ -65,6 +65,7 @@ class ElementalQuantification(Operator):
         # attributes connected to core loss components
         self.elements = elements
         self.edges = edges
+        # onset is defined with respect to the energy of the edge
         self.onsets = np.zeros((len(elements)))
 
         self.E0 = settings[0]

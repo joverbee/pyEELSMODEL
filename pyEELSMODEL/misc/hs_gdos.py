@@ -354,10 +354,13 @@ def dsigma_dE_from_GOSarray_bound(energy_axis, free_energies, ek, E0, beta,
 
     bool0 = free_energies < 0
     bool1 = energy_axis >= ek
-    new_E = np.concatenate((free_energies[bool0], energy_axis[bool1] - ek),
-                           axis=0)
-    new_E += ek
-    dsigma_dE = np.zeros(new_E.size)
+    Ebound = free_energies[bool0] + ek
+
+
+
+    dsigma_dE = np.zeros(energy_axis.size)
+    dsigma_dE_bound = np.zeros(energy_axis.size)
+    sigma =  2*(energy_axis[1] - energy_axis[0])
 
     rel_energy_axis = free_energies + ek
     # check if there are energies larger then the max energy
@@ -368,12 +371,37 @@ def dsigma_dE_from_GOSarray_bound(energy_axis, free_energies, ek, E0, beta,
                                                 E0, beta, alpha,
                                                 q_steps=q_steps,
                                                 swap_axes=True)
+    # the for loop over the bound states
+    for i in range(Ebound.size):
+        E = Ebound[i]
 
-    for i in range(new_E.size):
-        E = new_E[i]
         integral = 0
-        if E < ek:
-            # the bounded states are differently interpolated
+        # the bounded states are differently interpolated
+        qa0sq_min, qa0sq_max = hdos.get_qmin_max(E, E0, beta, alpha=alpha)
+        logqa0sq_axis = np.linspace(np.log(qa0sq_min), np.log(qa0sq_max),
+                                    q_steps)
+        lnqa0sqstep = (logqa0sq_axis[1] - logqa0sq_axis[0])
+        for j in range(logqa0sq_axis.size):
+            q = np.sqrt(np.exp(logqa0sq_axis[j])) / pc.a0()
+            theta = 2. * np.sqrt(np.abs(
+                R * (np.exp(logqa0sq_axis[j]) - qa0sq_min) / (
+                            4. * gamma ** 2 * T)))
+            GOSarray = GOSmatrix[i, :]
+            df_dE = getinterpolatedq(q, GOSarray, q_axis)
+
+            # integral+= df_dE*lnqa0sqstep
+            integral += df_dE * lnqa0sqstep * hdos.correction_factor_kohl(
+                alpha, beta, theta)
+
+        sig = 4 * np.pi * pc.a0() ** 2 * (R / E) * (R / T) * integral
+        dsigma_dE_bound += gaussian(energy_axis, sig, E, sigma)
+
+
+    # the for loop over the bound states
+    for i in range(energy_axis.size):
+        E = energy_axis[i]
+        integral = 0
+        if (E > ek) & (E <= rel_energy_axis[-1]):
             qa0sq_min, qa0sq_max = hdos.get_qmin_max(E, E0, beta, alpha=alpha)
             logqa0sq_axis = np.linspace(np.log(qa0sq_min), np.log(qa0sq_max),
                                         q_steps)
@@ -382,44 +410,28 @@ def dsigma_dE_from_GOSarray_bound(energy_axis, free_energies, ek, E0, beta,
                 q = np.sqrt(np.exp(logqa0sq_axis[j])) / pc.a0()
                 theta = 2. * np.sqrt(np.abs(
                     R * (np.exp(logqa0sq_axis[j]) - qa0sq_min) / (
-                                4. * gamma ** 2 * T)))
-                GOSarray = GOSmatrix[i, :]
-                df_dE = getinterpolatedq(q, GOSarray, q_axis)
-
-                # integral+= df_dE*lnqa0sqstep
-                integral += df_dE * lnqa0sqstep * hdos.correction_factor_kohl(
-                    alpha, beta, theta)
-            dsigma_dE[i] = 4 * np.pi * pc.a0() ** 2 * (R / E) * (
-                        R / T) * integral
-
-        elif (E >= ek) & (E <= rel_energy_axis[-1]):
-            qa0sq_min, qa0sq_max = hdos.get_qmin_max(E, E0, beta, alpha=alpha)
-            logqa0sq_axis = np.linspace(np.log(qa0sq_min), np.log(qa0sq_max),
-                                        q_steps)
-            lnqa0sqstep = (logqa0sq_axis[1] - logqa0sq_axis[0])
-            for j in range(logqa0sq_axis.size):
-                q = np.sqrt(np.exp(logqa0sq_axis[j])) / pc.a0()
-                theta = 2. * np.sqrt(np.abs(
-                    R * (np.exp(logqa0sq_axis[j]) - qa0sq_min) / (
-                                4. * gamma ** 2 * T)))
-                df_dE = getinterpolatedgos(E, q, rel_energy_axis, q_axis,
-                                           GOSmatrix, swap_axes=True)
+                            4. * gamma ** 2 * T)))
+                df_dE = getinterpolatedgos(E, q, rel_energy_axis, q_axis, GOSmatrix)
                 # integral+= df_dE*lnqa0sqstep
                 integral += df_dE * lnqa0sqstep * hdos.correction_factor_kohl(
                     alpha, beta, theta)
             # dsigma_dE[i] = 4*np.pi*pc.a0()**2*(R/E)*(R/T)*integral*dispersion
             dsigma_dE[i] = 4 * np.pi * pc.a0() ** 2 * (R / E) * (
-                        R / T) * integral
+                    R / T) * integral
 
         elif E > rel_energy_axis[-1]:
             dsigma_dE[i] = powerlaw(E, powA, powr)
         else:
             dsigma_dE[i] = 0
 
-        f = interpolate.interp1d(new_E, dsigma_dE, bounds_error=False,
-                                 fill_value=0)
+    return dsigma_dE + dsigma_dE_bound
 
-    return f(energy_axis)
+
+def gaussian(E, integral, x0, sigma):
+    # A = integral / (np.sqrt(2 * np.pi) * sigma)
+    g = np.exp(-0.5 * (E - x0) ** 2 / sigma ** 2)
+    g = integral * g / g.sum()
+    return g
 
 
 def getinterpolatedq(q, GOSarray, q_axis):
