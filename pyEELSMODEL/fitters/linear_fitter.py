@@ -289,4 +289,4 @@ class LinearFitter(Fitter):
             A_matrix = self.A_matrix
 
         index = self.get_param_index(parameter)
-        return A_matrix[:, index]
+        return A_matrix[np.invert(self.spectrum.exclude), index]

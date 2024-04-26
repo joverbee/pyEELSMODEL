@@ -1,8 +1,8 @@
 .. _acknowledgements:
 
 
-Acknowledgements
+Acknowledgments
 ================
 
-We would like to thank Gert De Bont for the design of the pyEELSMODEL logo.
+* Gert De Bont for the design of the pyEELSMODEL logo.
 
