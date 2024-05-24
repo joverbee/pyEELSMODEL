@@ -81,6 +81,7 @@ class ZezhongCoreLossEdgeCombined(CoreLossEdge):
             )
         else:
             self.dir_path = dir_path
+        self.file = os.path.join(self.dir_path, "Dirac_GOS.gosh")
 
         self.xsectionlist = []
         max_edge = self.check_maximum_edge(specshape, element, edge)
@@ -181,12 +182,11 @@ class ZezhongCoreLossEdgeCombined(CoreLossEdge):
             The integer from the edge having the lowest energy onset.
 
         """
-        filename = os.path.join(self.dir_path, element + ".hdf5")
-        with h5py.File(filename, "r") as f:
+        with h5py.File(self.file, "r") as f:
             # print('file is opened')
             edges = list(f[element].keys())
             onset_energy_list = list(
-                f["metadata"]["edges_info"][i].attrs["onset_energy_guess"]
+                f[element][i]["metadata"].attrs["onset_energy_guess"]
                 for i in edges
             )
         sub_edges = []

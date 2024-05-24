@@ -22,8 +22,10 @@ database/Segger_Guzzinati_Kohl/*.gosh
 
 pyEELSMODEL/database/Zhang/*.hdf5
 pyEELSMODEL/database/Segger_Guzzinati_Kohl/*.gosh
+pyEELSMODEL/database/Segger_Guzzinati_Kohl/*.gos
+pyEELSMODEL/database/Segger_Guzzinati_Kohl/*.hdf5
+pyEELSMODEL/database/Zhang/*.gosh
 
 # Sphinx documentation
 doc/_build/
-pyEELSMODEL/database/Segger_Guzzinati_Kohl/Segger_Guzzinati_Kohl_1.0.0.gos
-pyEELSMODEL/database/Segger_Guzzinati_Kohl/onset_energies.hdf5
+

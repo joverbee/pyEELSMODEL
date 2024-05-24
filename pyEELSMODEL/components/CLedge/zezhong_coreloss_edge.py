@@ -55,6 +55,7 @@ class ZezhongCoreLossEdge(CoreLossEdge):
             self.dir_path = os.path.dirname(
                 os.path.dirname(__file__) + "/../pyEELSMODEL/database/Zhang/"
             )
+            self.file = os.path.join(self.dir_path, 'Dirac_GOS.gosh')
 
         else:
             self.set_dir_path(dir_path
@@ -71,23 +72,27 @@ class ZezhongCoreLossEdge(CoreLossEdge):
         self.use_approx = False
 
     def set_gos_energy_q(self):
-        with h5py.File(self.dir_path_element, 'r') as f:
-            self.gos = f[self.element][self.edge]['data'][:]
-            self.free_energies = f[self.element][self.edge]['free_energy'][:][
+        with h5py.File(self.file, 'r') as f:
+            self.gos = f[self.element][self.edge]['data'][:].squeeze().T
+            self.free_energies = f[self.element][self.edge]['free_energies'][:][
                                  :]  # two dimensional array
             self.q_axis = f[self.element][self.edge]['q'][
-                          :] / 1e-10  # in  [1/m]
+                          :] # in  [1/m]
+            self.ionization_energy = f[self.element][self.edge]['metadata'].attrs['ionization_energy']
 
     def set_element(self, element):
-        file = os.path.join(self.dir_path, element + '.hdf5')
-        isExist = os.path.exists(file)
-        if not isExist:
-            raise ValueError('Element you selected is not valid')
         self.element = element
-        self.dir_path_element = file  # the filename to have easy access
+
+        # file = os.path.join(self.dir_path, element + '.hdf5')
+        # isExist = os.path.exists(file)
+        # if not isExist:
+        #     raise ValueError('Element you selected is not valid')
+        # self.element = element
+        # self.dir_path_element = file  # the filename to have easy access
 
     def set_dir_path(self, path):
         self.dir_path = path
+        self.file = os.path.join(path, 'Dirac_GOS.gosh')
 
     def _check_str_in_list(self, list, edge):
         for name in list:
