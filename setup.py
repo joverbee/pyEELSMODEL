@@ -34,7 +34,8 @@ setup(
        "fpdf",
        "pyqt5",
        "pytest",
-       "jupyter"
+       "jupyter",
+       "requests",
    ],
    setup_requires=['flake8'],
    test_requires=['pytest'],

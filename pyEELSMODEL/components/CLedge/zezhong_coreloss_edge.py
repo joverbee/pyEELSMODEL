@@ -1,5 +1,6 @@
 from pyEELSMODEL.misc import hs_gdos as hsdos
 from pyEELSMODEL.components.CLedge.coreloss_edge import CoreLossEdge
+from pyEELSMODEL.database.Zhang.download import download_file
 import os
 import h5py
 from pyEELSMODEL import __file__
@@ -8,7 +9,7 @@ from pyEELSMODEL import __file__
 class ZezhongCoreLossEdge(CoreLossEdge):
     """
     Coreloss edges which are calculated by Zezhong Zhang.
-    https://zenodo.org/records/7729585
+    https://zenodo.org/records/11199911
 
     """
 
@@ -55,12 +56,11 @@ class ZezhongCoreLossEdge(CoreLossEdge):
             self.dir_path = os.path.dirname(
                 os.path.dirname(__file__) + "/../pyEELSMODEL/database/Zhang/"
             )
-            self.file = os.path.join(self.dir_path, 'Dirac_GOS.gosh')
-
+            self.file = os.path.join(self.dir_path, 'Dirac_GOS.gosh')    
         else:
-            self.set_dir_path(dir_path
-                              )
-
+            self.set_dir_path(dir_path)
+        if not os.path.exists(self.file):
+                download_file(filename=self.file)        
         if edge == 'K':
             edge = 'K1'
 
