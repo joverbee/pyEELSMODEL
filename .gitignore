@@ -22,6 +22,10 @@ database/Segger_Guzzinati_Kohl/*.gosh
 
 pyEELSMODEL/database/Zhang/*.hdf5
 pyEELSMODEL/database/Segger_Guzzinati_Kohl/*.gosh
+pyEELSMODEL/database/Segger_Guzzinati_Kohl/*.gos
+pyEELSMODEL/database/Segger_Guzzinati_Kohl/*.hdf5
+pyEELSMODEL/database/Zhang/*.gosh
 
 # Sphinx documentation
 doc/_build/
+

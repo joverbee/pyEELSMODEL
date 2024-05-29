@@ -2,6 +2,7 @@ from pyEELSMODEL.components.CLedge.coreloss_edge import CoreLossEdge
 
 from pyEELSMODEL.components.CLedge.zezhong_coreloss_edge import \
     ZezhongCoreLossEdge
+from pyEELSMODEL.database.Zhang.download import download_file
 import numpy as np
 import logging
 import h5py
@@ -36,7 +37,7 @@ class ZezhongCoreLossEdgeCombined(CoreLossEdge):
     ):
         """
         Coreloss edges which are calculated by Zezhong Zhang.
-        https://zenodo.org/records/7729585
+        https://zenodo.org/records/11199911
 
 
         Parameters
@@ -81,6 +82,9 @@ class ZezhongCoreLossEdgeCombined(CoreLossEdge):
             )
         else:
             self.dir_path = dir_path
+        self.file = os.path.join(self.dir_path, "Dirac_GOS.gosh")
+        if not os.path.exists(self.file):
+            download_file(filename=self.file)
 
         self.xsectionlist = []
         max_edge = self.check_maximum_edge(specshape, element, edge)
@@ -181,12 +185,11 @@ class ZezhongCoreLossEdgeCombined(CoreLossEdge):
             The integer from the edge having the lowest energy onset.
 
         """
-        filename = os.path.join(self.dir_path, element + ".hdf5")
-        with h5py.File(filename, "r") as f:
+        with h5py.File(self.file, "r") as f:
             # print('file is opened')
             edges = list(f[element].keys())
             onset_energy_list = list(
-                f["metadata"]["edges_info"][i].attrs["onset_energy_guess"]
+                f[element][i]["metadata"].attrs["onset_energy_guess"]
                 for i in edges
             )
         sub_edges = []
