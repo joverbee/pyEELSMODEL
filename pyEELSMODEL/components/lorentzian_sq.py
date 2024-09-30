@@ -13,17 +13,17 @@ class Lorentzian_sq(Component):
 
         p1 = Parameter('A', A)
         p1.setlinear(True)
-        p1.setboundaries(0, np.Inf)
+        p1.setboundaries(0, np.inf)
         p1.sethasgradient(False)
         self._addparameter(p1)
 
         p2 = Parameter('centre', centre)
-        p2.setboundaries(-np.Inf, np.Inf)
+        p2.setboundaries(-np.inf, np.inf)
         p2.sethasgradient(False)
         self._addparameter(p2)
 
         p3 = Parameter('FWHM', fwhm)
-        p3.setboundaries(0, np.Inf)
+        p3.setboundaries(0, np.inf)
         p3.sethasgradient(False)
         self._addparameter(p3)
 
