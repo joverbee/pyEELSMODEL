@@ -127,7 +127,7 @@ class LSQFitter(Fitter):
         if self.use_bounds:
             bounds = self.bounds_lsq()
         else:
-            bounds = (-np.Inf), np.Inf
+            bounds = (-np.inf), np.inf
 
         resLS = least_squares(self.estimator, x0, args=argo,
                               method=self.method, bounds=bounds, max_nfev=100)

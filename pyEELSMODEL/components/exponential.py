@@ -34,14 +34,14 @@ class Exponential(Component):
 
         p1 = Parameter('A', A)
         p1.setlinear(True)
-        p1.setboundaries(0, np.Inf)
+        p1.setboundaries(0, np.inf)
         p1.sethasgradient(True)
         self._addparameter(p1)
 
         p2 = Parameter('b', b)
         p2.setlinear(False)
         p2.sethasgradient(True)
-        p2.setboundaries(np.Inf, 0)
+        p2.setboundaries(np.inf, 0)
 
         self._addparameter(p2)
 

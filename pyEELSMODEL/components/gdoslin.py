@@ -68,7 +68,7 @@ class GDOSLin(Component):
         for i in range(self.degree):
             pname = 'a' + str(i)
             p = Parameter(pname, 1.0, True)
-            p.setboundaries(-np.Inf, np.Inf)
+            p.setboundaries(-np.inf, np.inf)
             p.setlinear(True)
             self._addparameter(p)
 

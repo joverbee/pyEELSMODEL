@@ -28,7 +28,7 @@ class Offset(Component):
 
         p1 = Parameter('A', A)
         p1.setlinear(True)
-        p1.setboundaries(-np.Inf, np.Inf)
+        p1.setboundaries(-np.inf, np.inf)
         p1.sethasgradient(True)
         self._addparameter(p1)
         self.name = 'Offset'

@@ -44,7 +44,7 @@ class Plasmon(Component):
 
         p0 = Parameter('A', A)
         p0.setlinear(True)
-        p0.setboundaries(0, np.Inf)
+        p0.setboundaries(0, np.inf)
         p0.sethasgradient(False)
         self._addparameter(p0)  # integral zer
 

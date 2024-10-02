@@ -30,7 +30,7 @@ class LinearBG(Component):
         for i in range(n):
             pname = 'a' + str(i)
             p = Parameter(pname, 1.0, True)
-            p.setboundaries(-np.Inf, np.Inf)
+            p.setboundaries(-np.inf, np.inf)
             # is this true as we will multiply this with another cross section
             p.setlinear(True)
             self._addparameter(p)

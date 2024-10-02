@@ -17,7 +17,7 @@ class FastBG2(Component):
         super().__init__(specshape)
         p0 = Parameter('A1', A1)
         p0.setlinear(True)
-        p0.setboundaries(-np.Inf, np.Inf)
+        p0.setboundaries(-np.inf, np.inf)
         p0.sethasgradient(True)
         self._addparameter(p0)
 
@@ -27,7 +27,7 @@ class FastBG2(Component):
 
         p2 = Parameter('A2', A2)
         p2.setlinear(True)
-        p2.setboundaries(-np.Inf, np.Inf)
+        p2.setboundaries(-np.inf, np.inf)
         p2.sethasgradient(True)
         self._addparameter(p2)
 
@@ -101,7 +101,7 @@ class FastBG3(Component):
         super().__init__(specshape)
         p0 = Parameter('A1', A1)
         p0.setlinear(True)
-        p0.setboundaries(-np.Inf, np.Inf)
+        p0.setboundaries(-np.inf, np.inf)
         p0.sethasgradient(True)
         self._addparameter(p0)
 
@@ -111,7 +111,7 @@ class FastBG3(Component):
 
         p2 = Parameter('A2', A2)
         p2.setlinear(True)
-        p2.setboundaries(-np.Inf, np.Inf)
+        p2.setboundaries(-np.inf, np.inf)
         p2.sethasgradient(True)
         self._addparameter(p2)
 
@@ -121,7 +121,7 @@ class FastBG3(Component):
 
         p4 = Parameter('A3', A3)
         p4.setlinear(True)
-        p4.setboundaries(-np.Inf, np.Inf)
+        p4.setboundaries(-np.inf, np.inf)
         p4.sethasgradient(True)
         self._addparameter(p4)
 

@@ -34,7 +34,7 @@ class Gaussian(Component):
 
         p1 = Parameter('A', A)
         p1.setlinear(True)
-        p1.setboundaries(0, np.Inf)
+        p1.setboundaries(0, np.inf)
         p1.sethasgradient(True)
         self._addparameter(p1)
 
@@ -47,7 +47,7 @@ class Gaussian(Component):
         p3.setlinear(False)
         p3.sethasgradient(True)
         p3.setboundaries(self.dispersion / 10,
-                         np.Inf)  # fwhm << dispersion makes no sense
+                         np.inf)  # fwhm << dispersion makes no sense
         self._addparameter(p3)
 
         self._setname('Gaussian')
