@@ -15,6 +15,7 @@ from pyEELSMODEL.components.MScatter.mscatterfft import MscatterFFT
 #the fitters, mainly linear and least squares optimization
 from pyEELSMODEL.fitters.linear_fitter import LinearFitter
 from pyEELSMODEL.fitters.lsqfitter import LSQFitter
+from pyEELSMODEL.fitters.quadratic_fitter import QuadraticFitter
 
 #operators which are useful
 from pyEELSMODEL.operators.backgroundremoval import BackgroundRemoval
