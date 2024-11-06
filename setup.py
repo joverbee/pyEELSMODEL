@@ -36,6 +36,7 @@ setup(
        "pytest",
        "jupyter",
        "requests",
+       "quadprog"
    ],
    setup_requires=['flake8'],
    test_requires=['pytest'],

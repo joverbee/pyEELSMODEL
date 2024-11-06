@@ -122,7 +122,6 @@ class ZezhongCoreLossEdge(CoreLossEdge):
 
     def calculate_cross_section(self):
         ek = self.onset_energy
-        print('hll')
         E0 = self.parameters[1].getvalue()
         alpha = self.parameters[3].getvalue()
         beta = self.parameters[2].getvalue()

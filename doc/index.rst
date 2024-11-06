@@ -16,3 +16,16 @@ Welcome to pyEELSMODEL's documentation!
    :maxdepth: 1
    :caption: Contents:
 
+
+Constained linear fitting via quadratic programming
+===================================================
+
+The new version includes constrained linear fitting which is used for both the linear
+background model and fine structure in the model-based approach. More in depth information
+be found in `Van den Broek et al. <https://doi.org/10.1016/j.ultramic.2023.113830>`_ and 
+`Jannis et al. <https://arxiv.org/abs/2408.11870>`_. Following notebooks showcase how to 
+use these novel methods.
+1. InequalityBackground.ipynb: Shows how to use the constrained background model
+2. ConstrainedFineStructure.ipynb: Shows how to use the constrained fine structure and 
+its adavantage compared to unconstraiend
+3. TbScO3Example.ipynb: Applies the novel methodologies to an experimental dataset. 
