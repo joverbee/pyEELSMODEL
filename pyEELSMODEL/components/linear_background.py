@@ -51,7 +51,8 @@ class LinearBG(Component):
     -------
     """
 
-    def __init__(self, specshape, rlist=[1, 2, 3, 4, 5], constrains='sufficient'):
+    def __init__(self, specshape, rlist=[1, 2, 3, 4, 5],
+                 constrains='sufficient'):
         super().__init__(specshape)
 
         n = len(rlist)
@@ -136,23 +137,28 @@ class LinearBG(Component):
         if (self.use_approx == None):
             return None
 
-        if (self.use_approx.lower() == 'sufficient') or (self.use_approx.lower() == 'relaxed'):  # 'relaxed' is legacy
+        # 'relaxed' is legacy
+        if (self.use_approx.lower() == 'sufficient') \
+                or (self.use_approx.lower() == 'relaxed'):
             return self.convexity_constraints_sufficient()
-
-        elif (self.use_approx.lower() == 'necessary') or (self.use_approx.lower() == 'approx'):  # 'approx' is legacy
+        # 'approx' is legacy
+        elif (self.use_approx.lower() == 'necessary') \
+                or (self.use_approx.lower() == 'approx'):
             return self.convexity_constraints_necessary()
 
         elif (self.use_approx.lower() == 'non-neg'):
             return self.convexity_constraints_nonneg()
         
         else:
-            print('Error: \'' + self.use_approx + '\' is not a valid mode. Use \'sufficient\', \'necessary\', or \'non-neg\'.')
+            print('Error: \'' + self.use_approx + '\' is not a valid mode.')
+            print('Use \'sufficient\', \'necessary\', or \'non-neg\'.')
             return None
 
     def convexity_constraints_sufficient(self):
         '''
         :param x_01: array with start and endpoint of energy range
-        :param r: array with the exponents, the model is E^-r. So do not forget about the minus sign
+        :param r: array with the exponents, the model is E^-r. So do not forget
+        about the minus sign
         :return: G: matrix with the constraints
         '''
 
@@ -163,7 +169,8 @@ class LinearBG(Component):
         x1 = self.energy_axis[-1]
 
         r_m = np.abs(delta_r[1:])
-        xh = ((r_m + 1.) / r_m) * (x0 ** (-r_m) - x1 ** (-r_m)) / (x0 ** (-r_m - 1.) - x1 ** (-r_m - 1.))
+        xh = ((r_m + 1.) / r_m) * (x0 ** (-r_m) - x1 ** (-r_m)) \
+             / (x0 ** (-r_m - 1.) - x1 ** (-r_m - 1.))
         xh = np.mean(xh)
 
         n = len(r)
@@ -194,17 +201,21 @@ class LinearBG(Component):
                     if ii == (2 ** (n - 1) - 1):
                         G[ii, kk] *= x1 ** delta_r[kk]
                     else:
-                        G[ii, kk] *= x1 ** delta_r[kk] * (1. + (1. - xh / x1) * (r[kk] + 2.))
+                        G[ii, kk] *= x1 ** delta_r[kk] * \
+                                     (1. + (1. - xh / x1) * (r[kk] + 2.))
 
-        G[-1, :] = (x0 ** r) * x1 ** delta_r  # Value at the end of the axis is positive
-        G[-2, :] = r * (G[-1, :] + 0.)  # Derivative at the end of the axis is negative
+        # Value at the end of the axis is positive
+        G[-1, :] = (x0 ** r) * x1 ** delta_r
+        # Derivative at the end of the axis is negative
+        G[-2, :] = r * (G[-1, :] + 0.)
 
         return G
 
     def convexity_constraints_necessary(self):
         '''
         :param x_01: array with start and endpoint of energy range
-        :param r: array with the exponents, the model is E^-r. So do not forget about the minus sign
+        :param r: array with the exponents, the model is E^-r. So do not forget
+         about the minus sign
         :param m: number of constraints.
         :param flag_decr: set to 1 if the 1st derivative
         :return: G: matrix with the constraints
@@ -214,7 +225,8 @@ class LinearBG(Component):
         x0 = self.energy_axis[0]  # can be changed when only fitting a subregion
         x1 = self.energy_axis[-1]
 
-        m = max((self.npoints, 2))  # at least two points for forced convexity in approx method
+        m = max((self.npoints, 2))  # at least two points for forced convexity
+        # in approx method
         x = harmonic_space(x0, x1, m)  # m is guaranteed to be 2 or higher
 
         n = len(r)
@@ -224,16 +236,18 @@ class LinearBG(Component):
 
         for ii in range(0, m):
             G[ii, 1:] *= x[ii] ** delta_r[1:]
-
-        G[-1, :] = (x0 ** r) * x1 ** delta_r  # Value at the end of the axis is positive
-        G[-2, :] = r * (G[-1, :] + 0.)  # Derivative at the end of the axis is negative
+        # Value at the end of the axis is positive
+        G[-1, :] = (x0 ** r) * x1 ** delta_r
+        # Derivative at the end of the axis is negative
+        G[-2, :] = r * (G[-1, :] + 0.)
 
         return G
 
     def convexity_constraints_nonneg(self):
         '''
         :param x_01: array with start and endpoint of energy range
-        :param r: array with the exponents, the model is E^-r. So do not forget about the minus sign
+        :param r: array with the exponents, the model is E^-r. So do not forget
+        about the minus sign
         :param m: number of constraints.
         :param flag_decr: set to 1 if the 1st derivative
         :return: G: matrix with the constraints

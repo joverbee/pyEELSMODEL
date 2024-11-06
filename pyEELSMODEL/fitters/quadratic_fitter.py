@@ -1,15 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import stats
-from pyEELSMODEL.core.fitter import Fitter
 from quadprog import solve_qp
-from pyEELSMODEL.components.gdoslin import GDOSLin
 from pyEELSMODEL.components.CLedge.coreloss_edge import CoreLossEdge
 from pyEELSMODEL.components.fixedpattern import FixedPattern
 from pyEELSMODEL.components.linear_background import LinearBG
 from pyEELSMODEL.components.constrained_gdoslin import ConstrainedGDOSLin
 from pyEELSMODEL.fitters.linear_fitter import LinearFitter
 from pyEELSMODEL.components.powerlaw import PowerLaw
+
 
 class QuadraticFitter(LinearFitter):
     '''
@@ -27,15 +25,16 @@ class QuadraticFitter(LinearFitter):
         spectrum : Spectrum or Multispectrum
             The experimental data used which needs to be fitted
         model : Model
-            The model used to fit the experimental data. Model should only contain
-            linear parameters. The background should also contain the right background parameters
+            The model used to fit the experimental data. Model should only
+            contain linear parameters. The background should also contain the
+            right background parameters
 
         Returns
         -------
         An instance of a QuadraticFitter.
 
         '''
-        #model can only be check if it is add
+        # model can only be check if it is add
         if not model.islinear():
             raise ValueError(r'There are non-linear parameters in the model')
 
@@ -44,7 +43,8 @@ class QuadraticFitter(LinearFitter):
         self.G_matrix = None
         self.h_vector = None
         self.eq_idx = []
-        self.use_constrain_coreloss = True #chose to let the coreloss model to be positive constrained
+        self.use_constrain_coreloss = True  # chose to let the coreloss model
+        # to be positive constrained
 
     @property
     def G_matrix(self):
@@ -83,29 +83,32 @@ class QuadraticFitter(LinearFitter):
 
     def calculate_weights(self, eps=1.):
         """
-        Small function which estimates the weigths used in the quadratic programming.
-        It tries to fit a powerlaw to the spectrum and uses this as input. If that does
-        not work, a linear fit is performed which used this result as input for the weights.
+        Small function which estimates the weigths used in the quadratic
+        programming. It tries to fit a powerlaw to the spectrum and uses this
+        as input. If that does not work, a linear fit is performed which used
+        this result as input for the weights.
 
         Args:
             eps (float):Error terms added to weigths. Defaults to 1..
 
         Returns:
-            wheigths (np.array): Weights used in the quadratic programming dexcribing poisson process
+            weigths (np.array): Weights used in the quadratic programming
+            describing poisson process
         """
-        powlaw_bg = PowerLaw(self.spectrum.get_spectrumshape(), 1., 3.)  # Pass dummies: A = 1. and r = 3.
+        powlaw_bg = PowerLaw(self.spectrum.get_spectrumshape(), 1., 3.)
+        # Pass dummies: A = 1. and r = 3.
         check = powlaw_bg.autofit(self.spectrum, 0, self.spectrum.size)
         ndata = powlaw_bg.data
 
         if not check:
-            #do linear fit on data
+            # do linear fit on data
             x = self.spectrum.energy_axis
             y = self.spectrum.data
             ndata = self._linearfit(x, y)
-            ndata[ndata<0] = 0
+            ndata[ndata < 0] = 0
 
-
-        # powlaw_bg.autofit_twowindow(self.spectrum, 0, self.spectrum.size)  # Quick and dirty fit. ~20% faster overall.
+        # powlaw_bg.autofit_twowindow(self.spectrum, 0, self.spectrum.size)
+        # Quick and dirty fit. ~20% faster overall.
 
         msk_include = np.logical_not(self.spectrum.exclude)
         weights = ndata[msk_include]
@@ -113,14 +116,8 @@ class QuadraticFitter(LinearFitter):
         return 1. / (weights + eps)
 
     def perform_fit(self):
-        #previous implementation which is a bit slower
-        # if self.A_matrix is None or self.model.ischanged() or not self.same_A_matrix or self.model.hasconvolutor():
-        #     self.calculate_A_matrix() #makes it slow
-        #     self.model.setchanged(False)
-        # A = self.A_matrix
-
-
-        if self.A_matrix is None or self.model.ischanged() or not self.same_A_matrix:
+        Am = self.A_matrix
+        if Am is None or self.model.ischanged() or not self.same_A_matrix:
             self.calculate_A_matrix()  # makes it slow
             self.model.setchanged(False)
             self.get_quadratic_bounds()
@@ -149,10 +146,6 @@ class QuadraticFitter(LinearFitter):
         q = -np.dot(np.transpose(AW), yW)
         result = solve_qp(P, -q, G.T, h, self.number_equality)[0]
 
-        # print(np.sum(result * (G[0, :] > 0)))  # Proof the equality constraint works
-        # print(np.sum(result * G[0, :]))  # Proof the equality constraint works
-        # print(result[-1] - 1)  # Active constraints. Subtract one, as the indexing appears to be 1-based.
-
         self.coeff = result
 
     def get_quadratic_bounds(self):
@@ -161,43 +154,42 @@ class QuadraticFitter(LinearFitter):
         :return:
         """
         if self.A_matrix is None:
-            raise ValueError(r'A matrix should first be calculated before G can be determined')
+            raise ValueError(r'A matrix should first be calculated before G'
+                             r' can be determined')
 
-        #following the convention of the quadratic programming, the equality constrains should
-        #be placed before the inequality ones
+        # following the convention of the quadratic programming, the equality
+        # constrains should
+        # be placed before the inequality ones
 
-        inequality_arrays = [] #array stores the inequality conditions
-        equality_arrays = [] #array stores the equality conditions
+        inequality_arrays = []  # array stores the inequality conditions
+        equality_arrays = []  # array stores the equality conditions
 
-        used_comp = [] #list to make sure that the same component with different
-        #parameters does not contribute redundant rows to the constrains
+        used_comp = []  # list to make sure that the same component with
+        # different
+        # parameters does not contribute redundant rows to the constrains
         for param in (self.model.getfreelinparameters()):
             comp = self.model.getcomponentbyparameter(param)
 
             already_used = comp in used_comp
             is_bg = (type(comp) is LinearBG) & (not already_used)
             is_constrained_gdoslin = (type(comp) is ConstrainedGDOSLin) & (not already_used)
-            # print('is constrained gdoslin')
-            # print(is_constrained_gdoslin)
+
             is_coreloss = (isinstance(comp, CoreLossEdge)) & self.use_constrain_coreloss
             is_fixed = (isinstance(comp, FixedPattern)) & self.use_constrain_coreloss
 
             if is_coreloss or is_fixed:
-                cst_array = np.zeros((1,self.A_matrix.shape[1]))  # the (in)equality constrain
+                cst_array = np.zeros((1, self.A_matrix.shape[1]))
                 indey = self.get_param_index(param)
-                cst_array[:,indey] = 1
+                cst_array[:, indey] = 1
                 used_comp.append(comp)
                 inequality_arrays.append(cst_array)
-
 
             elif is_bg:
                 indey = self.get_param_index(param)
                 bgG = comp.get_convex_boundaries()
-                
-                #if no constrains are given it should skip the rest
+                # if no constrains are given it should skip the rest
                 if bgG is None:
                     continue
-                
                 cst_array = np.zeros((bgG.shape[0], self.A_matrix.shape[1]))
                 # cst_array[:, indey:indey+bgG.shape[1]] = bgG
                 # used_comp.append(comp)
@@ -206,22 +198,11 @@ class QuadraticFitter(LinearFitter):
             elif is_constrained_gdoslin:
                 indey = self.get_param_index(param)
 
-                if comp.use_equality:
-                    g_mtrx = comp.get_equality_constraints()
-                    cst_array = np.zeros((g_mtrx.shape[0], self.A_matrix.shape[1]))
-                    cst_array[:, indey:(indey + g_mtrx.shape[1])] = g_mtrx
-                    used_comp.append(comp)
-                    equality_arrays.append(cst_array)
-
-                else:
-                    at_indey = self.get_param_index(comp.connected_edge.parameters[0]) #index of the atomic cross section
-                    g_mtrx, at_mtrx = comp.get_inequality_constraints()  # both the
-                    cst_array = np.zeros(
-                        (g_mtrx.shape[0], self.A_matrix.shape[1]))
-                    cst_array[:, indey:(indey + g_mtrx.shape[1])] = g_mtrx
-                    cst_array[:, at_indey] = at_mtrx
-                    used_comp.append(comp)
-                    inequality_arrays.append(cst_array)
+                g_mtrx = comp.get_equality_constraints()
+                cst_array = np.zeros((g_mtrx.shape[0], self.A_matrix.shape[1]))
+                cst_array[:, indey:(indey + g_mtrx.shape[1])] = g_mtrx
+                used_comp.append(comp)
+                equality_arrays.append(cst_array)
 
         if len(equality_arrays) == 0:
             self.G_matrix = np.concatenate(inequality_arrays, axis=0)
@@ -255,9 +236,11 @@ class QuadraticFitter(LinearFitter):
 
         fig, ax = plt.subplots()
         Eax = self.spectrum.energy_axis
-        ax.plot(Eax, self.spectrum.data, color='black', label='Experimental data')
+        ax.plot(Eax, self.spectrum.data, color='black',
+                label='Experimental data')
         for ii in range(len(indices)-1):
-            prod = conv_A_matrix[:,indices[ii]:indices[ii+1]]*self.coeff[indices[ii]:indices[ii+1]]
+            prod = conv_A_matrix[:, indices[ii]:indices[ii+1]]\
+                   * self.coeff[indices[ii]:indices[ii+1]]
             ax.plot(Eax, prod.sum(1), label=names[ii])
         ax.plot(Eax, self.model.data, label='Model')
         ax.legend()

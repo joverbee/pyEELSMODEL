@@ -1,13 +1,13 @@
 from pyEELSMODEL.components.gdoslin import GDOSLin
 from pyEELSMODEL.components.CLedge.coreloss_edge import CoreLossEdge
 import pyEELSMODEL.misc.physical_constants as pc
-import matplotlib.pyplot as plt
 import numpy as np
 
 
 class ConstrainedGDOSLin(GDOSLin):
-    def __init__(self,  specshape, estart, ewidth=50, degree=21, interpolationtype='quadratic', beta=50e-3, alpha=1e-9, E0=300e3,
-                 connected_edge=None, use_equality=True):
+    def __init__(self,  specshape, estart, ewidth=50, degree=21,
+                 interpolationtype='quadratic', beta=50e-3, alpha=1e-9,
+                 E0=300e3, connected_edge=None):
 
         super().__init__(specshape, estart, ewidth, degree, interpolationtype)
 
@@ -15,17 +15,15 @@ class ConstrainedGDOSLin(GDOSLin):
         self.beta = beta
         self.E0 = E0
         self.alpha = alpha
-        self.use_equality = use_equality #use the equality or inequality constrains
-        self.inequality_factor = 0.05 #how the inequality boundaries are defined
 
         self.calculate_integral()
 
     @classmethod
-    def gdoslin_from_edge(cls, specshape, component, pre_e=5, ewidth=50, degree=21,
-                          interpolationtype='quadratic'):
+    def gdoslin_from_edge(cls, specshape, component, pre_e=5, ewidth=50,
+                          degree=21, interpolationtype='quadratic'):
         """
-        Class method is made to create an gdoslin which is connected to a coreloss edge.
-        No need to input the onset energy
+        Class method is made to create an gdoslin which is connected to a
+        coreloss edge. No need to input the onset energy
         """
 
         if not isinstance(component, CoreLossEdge):
@@ -37,9 +35,11 @@ class ConstrainedGDOSLin(GDOSLin):
         alpha = component.parameters[3].getvalue()
         E0 = component.parameters[1].getvalue()
 
-        comp = ConstrainedGDOSLin(specshape, estart, ewidth=ewidth, degree=degree,
-                           interpolationtype=interpolationtype, beta=beta,
-                           alpha=alpha, E0=E0, connected_edge=component)
+        comp = ConstrainedGDOSLin(specshape, estart, ewidth=ewidth,
+                                  degree=degree,
+                                  interpolationtype=interpolationtype,
+                                  beta=beta, alpha=alpha, E0=E0,
+                                  connected_edge=component)
         comp.set_gdos_name()
         return comp
 
@@ -49,9 +49,11 @@ class ConstrainedGDOSLin(GDOSLin):
         our work
         """
 
-        theta_E = pc.characteristic_angle(self.energy_axis, self.E0, use_rel=True)
+        theta_E = pc.characteristic_angle(self.energy_axis, self.E0,
+                                          use_rel=True)
         print('collection angle is: ' + str(self.beta))
-        prefactor = self.energy_axis / np.log(1 + self.beta ** 2 / theta_E ** 2)
+        prefactor = self.energy_axis \
+                    / np.log(1 + self.beta ** 2 / theta_E ** 2)
         prefactor = prefactor / prefactor[0]
         self.prefactor = prefactor #de behoudswet voor onze GOS
 
@@ -63,12 +65,14 @@ class ConstrainedGDOSLin(GDOSLin):
         """
 
         F, theta = self.connected_edge.get_convergence_correction_factor(nsamples=1000)
-        theta_E = pc.characteristic_angle(self.energy_axis, self.E0, use_rel=True)
+        theta_E = pc.characteristic_angle(self.energy_axis, self.E0,
+                                          use_rel=True)
 
         int_angle = np.zeros_like(self.energy_axis)
         for ii in range(self.energy_axis.size):
             dtheta = np.diff(theta)
-            int_angle[ii] = np.sum(F[:-1]*dtheta*2*np.pi*theta[:-1]/(theta[:-1]**2 + theta_E[ii]**2))
+            int_angle[ii] = np.sum(F[:-1]*dtheta*2*np.pi*theta[:-1]
+                                   /(theta[:-1]**2 + theta_E[ii]**2))
 
         print('convergence angle is: ' + str(self.alpha))
         print('collection angle is: ' + str(self.beta))
@@ -82,9 +86,9 @@ class ConstrainedGDOSLin(GDOSLin):
     def calculate_integral(self):
         """
         Test case when bethe sum rule says that  NOT the total cross section
-        is conserved but (Ei-En)*sigma(E) integrated is conserved. This modifies
-        the constrains in a straightforward why but needs to know the integral
-        of each basis function x dE. This is what gets calculated
+        is conserved but (Ei-En)*sigma(E) integrated is conserved. This
+        modifies the constrains in a straightforward why but needs to know the
+        integral of each basis function x dE. This is what gets calculated
 
         :return:
         """
@@ -123,7 +127,8 @@ class ConstrainedGDOSLin(GDOSLin):
         inequality constrains.
         """
         index0 = self.get_energy_index(self.parameters[0].getvalue())
-        index1 = self.get_energy_index(self.parameters[0].getvalue() + self.parameters[1].getvalue())
+        index1 = self.get_energy_index(self.parameters[0].getvalue()
+                                       + self.parameters[1].getvalue())
 
         if self.alpha > 1e-6:
             atomic_sum = np.sum(self.convergent_prefactor[index0:index1] *
@@ -136,25 +141,6 @@ class ConstrainedGDOSLin(GDOSLin):
 
 
         self.atomic_sum = atomic_sum
-
-
-    def get_inequality_constraints(self):
-        """
-        + The sum of component and edge could not be smaller than 0
-        :return:
-        """
-
-        g_mtrx = np.tile(self.integral, (2,1))
-        g_mtrx[1,:] = -1*g_mtrx[0]
-
-        print(g_mtrx.shape)
-
-        self.total_atomic_cross_section()
-        at_mtrx = np.zeros(2)
-        at_mtrx[0] = self.atomic_sum*self.inequality_factor
-        at_mtrx[1] = self.atomic_sum*self.inequality_factor
-
-        return g_mtrx, at_mtrx
 
     def get_equality_constraints(self):
         '''
@@ -172,11 +158,13 @@ class ConstrainedGDOSLin(GDOSLin):
         onset = self.parameters[0].getvalue()
         interval = self.parameters[1].getvalue()
 
-        shadowed = ConstrainedGDOSLin(specshape, estart=onset + onset_shift, ewidth=interval, degree=self.degree,
-                               interpolationtype=self.interpolationtype)
+        shadowed = ConstrainedGDOSLin(specshape, estart=onset + onset_shift,
+                                      ewidth=interval, degree=self.degree,
+                                      interpolationtype=self.interpolationtype)
 
         for ii in range(self.degree):
-            shadowed.parameters[ii + 2].couple(self.parameters[ii + 2], fraction=ratio)
+            shadowed.parameters[ii + 2].couple(self.parameters[ii + 2],
+                                               fraction=ratio)
 
         return shadowed
 
@@ -191,4 +179,5 @@ class ConstrainedGDOSLin(GDOSLin):
 
         sum_rule = np.sum(values * self.integral[0])
 
-        print('The equality constrain should put the value to zero: ' + str(sum_rule))
+        print('The equality constrain should put the value to '
+              'zero: {}'.format(sum_rule))
