@@ -7,7 +7,7 @@ class MscatterFFT(Mscatter):
     Mutiple scattering using FFT (e.g. to concolve model with LL spectrum)
     """
 
-    def __init__(self, specshape, llspectrum, use_padding=True):
+    def __init__(self, specshape, llspectrum, use_padding=True,padding_mode_data="constant",padding_mode_llspectrum="constant"):
         """
         Parameters
         ----------
@@ -29,7 +29,8 @@ class MscatterFFT(Mscatter):
                             " fourier transform convolution.\nThis simulates"
                             " the effect of multiple scattering\nwhich is an "
                             "important effect in experimental spectra ")
-
+        self.padding_mode_data=padding_mode_data
+        self.padding_mode_llspectrum = padding_mode_llspectrum
         self.padding = llspectrum.size
         self.use_padding = use_padding
         # some cache to not recalculate fourier transfrom when not needed
@@ -61,10 +62,10 @@ class MscatterFFT(Mscatter):
         """
         pds = (self.padding, self.padding)
         # real fourier transform the model
-        fmodel = np.fft.rfft(np.pad(self.data, pad_width=pds))
+        fmodel = np.fft.rfft(np.pad(self.data, pad_width=pds,mode = self.padding_mode_data))
         if self.new_ll:
             self.llspectrum.normalise()
-            llpad = np.pad(self.llspectrum.data, pad_width=pds)
+            llpad = np.pad(self.llspectrum.data, pad_width=pds,mode = self.padding_mode_llspectrum)
             fll = np.fft.rfft(llpad)  # real fourier transform the ll spectrum
             self.fll = fll
             self.zlindex = np.argmax(llpad)
