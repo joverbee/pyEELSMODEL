@@ -74,13 +74,7 @@ jobs:
           run: |
             echo "Workspace contents after download:"
             ls -l
-            echo "Contents of dist directory:"
-            ls -l dist/
-        - name: Unzip the dist.zip artifact
-          run: |
-            mkdir dist
-            unzip '*.zip' -d dist
-            ls -l dist/
+            
         - name: Publish package distributions to PyPI
           uses: pypa/gh-action-pypi-publish@release/v1
 
