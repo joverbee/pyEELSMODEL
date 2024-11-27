@@ -10,6 +10,11 @@ from scipy.optimize import nnls
 from pyEELSMODEL.core.fitter import Fitter
 from pyEELSMODEL.components.MScatter.mscatter import Mscatter
 
+try:
+    import jax
+except:
+    pass
+
 
 class LinearFitter(Fitter):
     """
@@ -228,6 +233,15 @@ class LinearFitter(Fitter):
                 self.error = np.inf
             else:
                 self.error = resi[0]
+
+        elif self.method =="jax_ols":
+            coeff, resi, rank, sing = jax.numpy.linalg.lstsq(AW, yW, rcond=-1)
+            self.coeff = np.array(coeff)
+            if resi.size == 0:
+                self.error = np.inf
+            else:
+                self.error = np.array(resi[0])
+
 
         else:
             print('Fitting method is wrong')
