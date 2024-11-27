@@ -14,12 +14,16 @@ See [https://pyeelsmodel.readthedocs.io/](https://pyeelsmodel.readthedocs.io/) f
 
 Installing
 ----------
-At this point, pyEELSMODEL is installed by cloning this repository to your
+The easiest way to install pyEELSMODEL is through the [release](https://pypi.org/project/pyEELSMODEL/) hosted on PyPI:
+``` bash
+pip install pyEELSMODEL
+```
+or by first cloning this repository to your
 computer via:
 ``` bash
 git clone https://github.com/joverbee/pyEELSMODEL.git
 ```
-The next step is to navigate to the pyEELMODEL directory and type 
+and then navigate to the pyEELMODEL directory and type 
 following into the command line:
 ``` bash
 pip install .
@@ -28,16 +32,14 @@ If you want to create an editable install one needs to do following:
 ``` bash
 pip install -e .
 ```
-**In the future, the package will be published on PyPI simplifying the
-installation procedure.** 
 
-After installation, the generalized oscillator strengths (GOS) tables should be imported.
+When they are first needed, the generalized oscillator strengths (GOS) tables will be automatically imported.
 The GOS tables are necessary to perform EEL quantification since they are used
-to calculate the atomic cross sections. Two different GOS tables can be used for quantification:
+to calculate the atomic cross sections. Two different GOS tables can be used for quantification: 
 1. The GOS calculated by Zhang Z. *et al.* which can be found at doi:[10.5281/zenodo.7729585](https://doi.org/10.5281/zenodo.7729585).
 2. The GOS calculated by Segger L. *et al.* which can be found at doi:[10.5281/zenodo.7645765](https://doi.org/10.5281/zenodo.7645765).
 
-To know in which directory your pyEELSMODEL package is installed following command can be run
+The GOS tables can also be manually imported. To know in which directory your pyEELSMODEL package is installed, following command can be run
 in a python console:
 
 ``` python
@@ -48,7 +50,7 @@ This information is necessary for the proper use of the GOS tables.
 
 
 #### GOS tables from Zhang Z.
-Following steps explain on how the properly setup the GOS array of 
+Following steps explain how to manually setup the GOS array of 
 Zhang Z. 
 1. Download the Dirac_GOS_database.zip file
 2. Unzip the file
@@ -56,12 +58,12 @@ Zhang Z.
 
 
 #### GOS tables from Segger L.
-Following steps explain on how the properly setup the GOS array of 
+Following steps explain how to manually setup the GOS array of 
 Segger L.
 1. Download the Segger_Guzzinati_Kohl_1.5.0.gosh (depends on version) file
 2. Copy the .gosh file to .pyEELSMODEL\database\Segger_Guzzinati_Kohl folder which is found in the pyEELSMODEL folder
 
-**The GOS tables are used in the quantification workflows so they are necessary to run the example notebooks.**
+**The GOS tables are used in the quantification workflows so they are necessary to run the example notebooks, but they should be automatically installed the first time they are needed.**
 
 
 Using
