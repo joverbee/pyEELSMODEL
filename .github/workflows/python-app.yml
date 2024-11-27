@@ -70,8 +70,11 @@ jobs:
           uses: actions/download-artifact@v4
           with:
             name: dist
-        - name: Debug downloaded artifacts
-          run: ls -l dist/
+        - name: Unzip the dist.zip artifact
+          run: |
+            mkdir dist
+            unzip dist.zip -d dist
+            ls -l dist/
         - name: Publish package distributions to PyPI
           uses: pypa/gh-action-pypi-publish@release/v1
 
