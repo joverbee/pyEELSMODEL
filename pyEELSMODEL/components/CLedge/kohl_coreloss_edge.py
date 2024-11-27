@@ -13,7 +13,7 @@ class KohlLossEdge(CoreLossEdge):
     """
 
     def __init__(self, specshape, A, E0, alpha, beta, element, edge, eshift=0,
-                 q_steps=100, dir_path=None):
+                 q_steps=100, dir_path=None,fast=False):
         """
 
         Parameters
@@ -50,6 +50,10 @@ class KohlLossEdge(CoreLossEdge):
         dir_path: string
             The filepath indicating where the GOS tables can be found.
             If None, the default path is used.
+
+        fast: bool
+        Use vectorized operations for the crossection calculation.
+
         Returns
         -------
         """
@@ -64,6 +68,7 @@ class KohlLossEdge(CoreLossEdge):
                          eshift=eshift, q_steps=q_steps)
 
         self.set_gos_energy_q()
+        self._fast = fast
 
     def set_gos_energy_q(self):
         if int(self.edge[-1]) == 1:
@@ -159,10 +164,18 @@ class KohlLossEdge(CoreLossEdge):
         gos = self.gos
 
         prf = 1e28 * self.prefactor  # prefactor and convert to barns
-        css = prf * hsdos.dsigma_dE_from_GOSarray(self.energy_axis,
+
+        if self._fast:
+            css = prf * hsdos.dsigma_dE_from_GOSarray_FastKohl(self.energy_axis,
                                                   e_axis + ek, ek, E0, beta,
                                                   alpha, q_axis, gos,
-                                                  q_steps=100,
-                                                  swap_axes=True)
+                                                  q_steps=100)
+
+        else:
+            css = prf * hsdos.dsigma_dE_from_GOSarray(self.energy_axis,
+                                                      e_axis + ek, ek, E0, beta,
+                                                      alpha, q_axis, gos,
+                                                      q_steps=100,
+                                                      swap_axes=True)
 
         return css

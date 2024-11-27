@@ -19,7 +19,7 @@ class KohlLossEdgeCombined(CoreLossEdge):
     """
 
     def __init__(self, specshape, A, E0, alpha, beta, element, edge, eshift=0,
-                 q_steps=100, dir_path=None):
+                 q_steps=100, dir_path=None, fast=False):
         """
 
          Parameters
@@ -56,6 +56,10 @@ class KohlLossEdgeCombined(CoreLossEdge):
          dir_path: string
              The filepath indicating where the GOS tables can be found.
              If None, the default path is used.
+
+        fast: bool
+        Use vectorized operations for the crossection calculation.
+
          Returns
          -------
          """
@@ -72,7 +76,7 @@ class KohlLossEdgeCombined(CoreLossEdge):
         if edge == 'K':
             xsectionK = KohlLossEdge(specshape, A, E0, alpha, beta, element,
                                      'K1', eshift=eshift, q_steps=q_steps,
-                                     dir_path=self.dir_path)
+                                     dir_path=self.dir_path,fast = fast)
 
             self.xsectionlist.append(xsectionK)
             super().__init__(specshape, A, E0, alpha, beta, element, 'K1',
@@ -86,7 +90,7 @@ class KohlLossEdgeCombined(CoreLossEdge):
             xsection_op = KohlLossEdge(specshape, A, E0, alpha, beta, element,
                                        start_edge,
                                        eshift=eshift, q_steps=q_steps,
-                                       dir_path=self.dir_path)
+                                       dir_path=self.dir_path,fast = fast)
             self.xsectionlist.append(xsection_op)
             for i in range(max_edge - 1):
                 try:
@@ -94,7 +98,7 @@ class KohlLossEdgeCombined(CoreLossEdge):
                     xsection = KohlLossEdge(specshape, A, E0, alpha, beta,
                                             element, next_edge,
                                             eshift=eshift, q_steps=q_steps,
-                                            dir_path=self.dir_path)
+                                            dir_path=self.dir_path,fast = fast)
                     xsection.parameters[0].couple(xsection_op.parameters[0])
                     xsection.parameters[1].couple(xsection_op.parameters[1])
                     xsection.parameters[2].couple(xsection_op.parameters[2])

@@ -22,6 +22,13 @@ class MscatterFFT(Mscatter):
             reducde artifacts coming from the FFT. If True, the calculations
             take longer but are more precise. (default: True)
 
+        padding_mode_data: string
+        Padding mode to use on data, see the different modes in np.pad. (Recommended: "edge")
+
+        padding_mode_llspectrum: string
+        Padding mode to use on llspectrum, see the different modes in np.pad. (Recommended: "constant")
+
+
         """
         super().__init__(specshape, llspectrum)
         self._setname("Multiple scattering (FFT)")

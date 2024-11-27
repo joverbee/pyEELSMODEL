@@ -3,6 +3,7 @@ from scipy import interpolate
 
 import pyEELSMODEL.misc.physical_constants as pc
 import pyEELSMODEL.misc.hydrogen_gdos as hdos
+import warnings
 
 
 def getgosq(info1_1, info1_2, n):
@@ -467,3 +468,147 @@ def getinterpolatedq(q, GOSarray, q_axis):
     r1 = GOSarray[index_q] * (1/dq) * (distq)
 
     return r0 + r1
+
+
+def dsigma_dE_from_GOSarray_FastKohl(energy_axis, rel_energy_axis_, ek, E0, beta, alpha,
+    q_axis, GOSmatrix_, q_steps=100):
+    """
+    Calculates the cross section from the GOS array. The integral over q-axis
+    is done on a logarithmic scale.
+    Note the speed of the calculation is imporved by a proper
+    implementation of the interpolation and integration.
+
+    Parameters
+    ----------
+    energy_axis: 1d numpy array
+        The energy axis on which the cross section is calculated. [eV]
+    rel_energy_axis: 1d numpy array
+        The energy axis on which the GOS table is calculated. [eV]
+    ek: float
+        The onset energy of the calculated edge [eV]
+    E0: float
+        The acceleration voltage of the incoming electrons [V]
+    alpha: float
+        The convergence angle of the incoming probe [rad]
+    beta:
+        The collection angle of the outgoing electrons [rad]
+    q_axis: 1d numpy array
+        The momentum on which the GOS table are calculated. [kg m /s]?
+    GOSmatrix: 2d numpy array
+        The GOS
+    q_steps: uint
+        The number of q points used to numerically calculate the integral
+        over the q direction. (default: 100)
+
+    Returns
+    -------
+    dsigma_dE: 1d numpy array
+        The calculated cross section in m^2
+
+    """
+
+    #add 0 for proper interpolation using the scipy method
+    rel_energy_axis = np.pad(rel_energy_axis_-ek,(1,0))+ek #add 0 for proper interpolation using scipy method
+    GOSmatrix = np.pad(GOSmatrix_,((0,0),(1,0),(0,0)))
+    R = pc.R()
+    T = pc.T(E0)
+    gamma = pc.gamma(E0)
+
+    dsigma_dE = np.zeros(energy_axis.size)
+
+    # check if there are energies larger then the max energy
+    if energy_axis[-1] > rel_energy_axis[-1]:
+        # then calculate a power law dependence of the cross sections
+        powA, powr = get_powerLaw_extrapolation(rel_energy_axis, q_axis,
+                                                GOSmatrix,
+                                                E0, beta, alpha,
+                                                q_steps=q_steps,
+                                                swap_axes=True)
+
+    regime1 = np.logical_and(energy_axis > ek, energy_axis <= rel_energy_axis[-1])
+    regime2 = energy_axis > rel_energy_axis[-1]
+    regime3 = energy_axis <= ek
+
+
+    dsigma_dE [regime1] = _FastKohl(energy_axis[regime1], E0, beta, alpha,q_steps,pc,T,gamma,rel_energy_axis,q_axis,GOSmatrix,R)
+
+    if regime2.any():
+            dsigma_dE[regime2]=powerlaw(energy_axis[regime2], powA, powr)
+
+    dsigma_dE[regime3]=0
+
+    return dsigma_dE
+
+def _FastKohl(E, E0, beta, alpha,q_steps,pc,T,gamma,rel_energy_axis,q_axis,GOSmatrix,R):
+
+    qa0sq_min, qa0sq_max = hdos.get_qmin_max(E, E0, beta, alpha=alpha)
+
+    logqa0sq_axis = np.linspace(np.log(qa0sq_min), np.log(qa0sq_max),
+                                q_steps)
+    lnqa0sqstep = (logqa0sq_axis[1] - logqa0sq_axis[0])
+    qs = np.sqrt(np.exp(logqa0sq_axis)) / pc.a0()
+    
+    thetas = 2. * np.sqrt(np.abs(R * (np.exp(logqa0sq_axis) - qa0sq_min) / (4. * gamma ** 2 * T)))
+
+    rgi = interpolate.RegularGridInterpolator((q_axis,rel_energy_axis),GOSmatrix[:,:,0],)
+    
+    es = np.repeat(E[np.newaxis,:],q_steps,0)
+    points = np.dstack((qs,es)).reshape((-1,2))
+    out = rgi(points)
+
+
+    integral=out.reshape(qs.shape)*_Fast_correction_factor_kohl(alpha, beta, thetas)
+
+    integral=integral.sum(0)
+    integral*=lnqa0sqstep
+
+
+    integral[E<rel_energy_axis[1]]=0# gos and e_axis are padded for a proper behaviour of RegularGridInterpolator. This sets to 0 values affected by this.
+
+    return 4 * np.pi * pc.a0() ** 2 * (R / E) * (R / T) * integral
+
+def _Fast_correction_factor_kohl(alpha, beta, theta, min_alpha=1e-6):
+    """
+    STILL NEEDS TO BE VALIDATED
+    Calculates the correction factor when using a convergent
+    probe. For probes having is convergence angle smaller than
+    min_alpha no correction is applied.
+    Ultramicroscopy 16 (1985) 265-268:
+    https://doi.org/10.1016/0304-3991(85)90081-6
+     Parameters
+     ----------
+     alpha : float
+         Convergence angle in radians
+     beta : float
+         Collection angle in radians
+     theta : float
+         The angle for which the correction factor should be calculated
+     min_alpha : float
+        Minimum convergence angle for which the correction is applied
+
+     Returns
+     -------
+     corr_factor : float
+        correction factor used in the integration
+    """
+    thetasq = theta ** 2
+    alphasq = alpha ** 2
+    betasq = beta ** 2
+
+    
+    if alpha < min_alpha:
+        corr_factor = 1.
+    else:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")# invalid values for the correction are calculated, but tossed by np.where.
+            corr_factor = np.where(theta <= np.abs(alpha - beta),min(alphasq, betasq)/ alphasq, _Fast_Fcorr_factor(alpha,beta,theta,thetasq,alphasq,betasq))
+    return corr_factor
+    
+def _Fast_Fcorr_factor(alpha,beta,theta,thetasq,alphasq,betasq):
+    x = (alphasq + thetasq - betasq) / (2. * alpha * theta)
+    y = (betasq + thetasq - alphasq) / (2. * beta * theta)
+    wortel = np.sqrt(4 * alphasq * betasq - (alphasq + betasq - thetasq) ** 2)
+    corr_factor = (1 / np.pi) * (np.arccos(x) + (betasq / alphasq * np.arccos(y)) - (1 / (2 * alphasq) * wortel))
+    return corr_factor
+
+
