@@ -74,6 +74,16 @@ jobs:
           run: |
             echo "Workspace contents after download:"
             ls -l
+
+        - name: Create dist directory and move files
+          run: |
+            mkdir -p dist
+            mv *.whl *.tar.gz dist/
+    
+        - name: List contents of dist directory
+          run: |
+            echo "Contents of dist directory:"
+            ls -l dist/
             
         - name: Publish package distributions to PyPI
           uses: pypa/gh-action-pypi-publish@release/v1
