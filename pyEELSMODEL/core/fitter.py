@@ -288,7 +288,7 @@ class Fitter:
 
         shape = (self.spectrum.xsize, self.spectrum.ysize)
         crlb_map = np.zeros(shape)
-        for index in tqdm(np.ndindex(shape)):
+        for index in tqdm(np.ndindex(shape),total=np.prod(shape),leave=True,position=0):
             islice = np.s_[index]
             ii = (islice[0], islice[1])
             crlb = self.CRLB(par, index=ii)
@@ -391,7 +391,7 @@ class Fitter:
 
         self.confidence_map = np.zeros(shape)
 
-        for index in tqdm(np.ndindex(shape)):
+        for index in tqdm(np.ndindex(shape),total=np.prod(shape),leave=True,position=0):
             islice = np.s_[index]
             self.confidence_map[islice] = self.LRtestconfidence(index)
 
@@ -608,7 +608,7 @@ class Fitter:
         initialindex = self.spectrum.currentspectrumid
 
         step = 100 / (self.spectrum.xsize * self.spectrum.ysize)
-        for index in tqdm(np.ndindex(shape)):
+        for index in tqdm(np.ndindex(shape),total=np.prod(shape),leave=True,position=0):
             islice = np.s_[index]
             self.spectrum.setcurrentspectrum(index)
 
@@ -683,7 +683,7 @@ class Fitter:
         sig = self.spectrum.copy()
         m = self.model
         shape = (sig.xsize, sig.ysize)
-        for index in tqdm(np.ndindex(shape)):
+        for index in tqdm(np.ndindex(shape),total=np.prod(shape),leave=True,position=0):
             islice = np.s_[index]
 
             if conv is not None:
@@ -720,7 +720,7 @@ class Fitter:
         sig = self.spectrum.copy()
         m = self.model
         shape = (sig.xsize, sig.ysize)
-        for index in tqdm(np.ndindex(shape)):
+        for index in tqdm(np.ndindex(shape),total=np.prod(shape),leave=True,position=0):
             islice = np.s_[index]
 
             if conv is not None:
@@ -911,7 +911,7 @@ class Fitter:
 
         self.LR_map = np.zeros(shape)
 
-        for index in tqdm(np.ndindex(shape)):
+        for index in tqdm(np.ndindex(shape),total=np.prod(shape),leave=True,position=0):
             islice = np.s_[index]
             self.likelihood_ratio(index)
             self.LR_map[islice] = self.LR

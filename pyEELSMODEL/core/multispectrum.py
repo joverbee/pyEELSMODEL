@@ -985,7 +985,7 @@ class MultiSpectrum(Spectrum):
         s = Spectrum(spc)
         up = np.zeros(shape + (spc.size,))
 
-        for index in tqdm(np.ndindex(shape)):
+        for index in tqdm(np.ndindex(shape),total=np.prod(shape),leave=True,position=0):
             islice = np.s_[index]
 
             self.setcurrentspectrum(islice)
