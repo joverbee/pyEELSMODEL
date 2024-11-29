@@ -1,5 +1,6 @@
 from pyEELSMODEL.misc import hs_gdos as hsdos
 from pyEELSMODEL.components.CLedge.coreloss_edge import CoreLossEdge
+from pyEELSMODEL.database.Segger_Guzzinati_Kohl.download import download_file
 import os
 import h5py
 from pyEELSMODEL import __file__
@@ -62,6 +63,12 @@ class KohlLossEdge(CoreLossEdge):
             dir_path = os.path.dirname(
                 os.path.dirname(__file__) + dir_
             )
+        else:
+            self.set_dir_path(dir_path)
+        self.file = os.path.join(dir_path, 'Segger_Guzzinati_Kohl_1.5.0.gosh')
+        if not os.path.exists(self.file):
+            download_file(filename=self.file)
+            
 
         self.set_dir_path(dir_path)
         super().__init__(specshape, A, E0, alpha, beta, element, edge,
