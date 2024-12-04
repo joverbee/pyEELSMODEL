@@ -53,6 +53,10 @@ class Gaussian(Component):
         self._setname('Gaussian')
 
     def calculate(self):
+        if self.suppress:
+            self.data[:]=0
+            self.setunchanged()
+            return
         p1 = self.parameters[0]
         p2 = self.parameters[1]
         p3 = self.parameters[2]

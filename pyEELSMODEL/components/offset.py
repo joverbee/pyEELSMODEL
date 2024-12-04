@@ -34,6 +34,10 @@ class Offset(Component):
         self.name = 'Offset'
 
     def calculate(self):
+        if self.suppress:
+            self.data[:]=0
+            self.setunchanged()
+            return
         p1 = self.parameters[0]
         if p1.ischanged():
             A = p1.getvalue()

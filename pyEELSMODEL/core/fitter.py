@@ -715,33 +715,23 @@ class Fitter:
             The fitted multispectrum at each probe position without the given
             components in comp.
         """
-        conv = self.model.getconvolutor()
-
-        sig = self.spectrum.copy()
-        m = self.model
-        shape = (sig.xsize, sig.ysize)
-        for index in tqdm(np.ndindex(shape),total=np.prod(shape),leave=True,position=0):
-            islice = np.s_[index]
-
-            if conv is not None:
-                if isinstance(conv.llspectrum, MultiSpectrum):
-                    conv.llspectrum.setcurrentspectrum(index)
-
-            for ii, param in enumerate(m.getfreeparameters()):
-                if self.model.getcomponentbyparameter(param) in comps:
-                    param.setvalue(0)
-                else:
-                    param.setvalue(self.coeff_matrix[islice][ii])
-            m.calculate()
-            sig.multidata[islice] = m.data
-        sig.data = sig.multidata[0, 0]
+        #suppress the components you don't want
+        for comp in comps:
+            comp.setsuppress(True)
+        self.model.setchanged(True)
+        sig=self.model_to_multispectrum()
+        
+        #release the suppress to not confuse things
+        for comp in comps:
+            comp.setsuppress(False)
 
         return sig
-
+    
     def model_to_multispectrum_with_comps(self, comps):
         """
         Only uses the components in comps to calculate the fitted model.
         Similar to model_to_multispectrum_without_comps but the exact opposite
+        Note that this only works 1st level components and not with subcomponents owned by these 1st level components
 
         Parameters
         ----------

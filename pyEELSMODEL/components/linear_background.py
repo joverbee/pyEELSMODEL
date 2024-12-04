@@ -78,8 +78,13 @@ class LinearBG(Component):
 
         self.npoints = 3
         self.use_approx = constrains #which approximation for convexity to use
+        self._setname('Linear constrained background')
 
     def calculate(self):
+        if self.suppress:
+            self.data[:]=0
+            self.setunchanged()
+            return
         changes = False
         for param in self.parameters:
             changes = changes or param.ischanged()

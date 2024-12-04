@@ -143,6 +143,10 @@ class GDOSLin(Component):
             self._setname(' '.join([s1, s2, s3, self.connected_edge.name[:2]]))
 
     def calculate(self):
+        if self.suppress:
+            self.data[:]=0
+            self.setunchanged()
+            return
         p0 = self.parameters[0]
         p1 = self.parameters[1]
         Estart = p0.getvalue()
