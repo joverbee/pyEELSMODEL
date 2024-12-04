@@ -129,7 +129,10 @@ class DummyEdgeCombined(CoreLossEdge):
     def calculate_cross_section(self):
         cross_section = np.zeros(self.size)
         for xsection in self.xsectionlist:
-            cross_section += xsection.calculate_cross_section()
+            if xsection.suppress==False:
+                cross_section += xsection.calculate_cross_section()
+            else:
+                print('subcomponent is suppressed, to unset call setsuppress(False) on the specific subcomponent:',xsection.name)            
         return cross_section
 
     def calculate(self):

@@ -181,9 +181,10 @@ class KohlLossEdgeCombined(CoreLossEdge):
         """
         cross_section = np.zeros(self.size)
         for xsection in self.xsectionlist:
-            print('test i am supressed:',xsection.name,' ',xsection.suppress)
             if xsection.suppress==False:
                 cross_section += xsection.calculate_cross_section()
+            else:
+                print('subcomponent is suppressed, to unset call setsuppress(False) on the specific subcomponent:',xsection.name)
         return cross_section
 
     def calculate(self):
