@@ -40,6 +40,10 @@ class FastBG2(Component):
         self._setshifter(False)  # it is not a shifter type of component
 
     def calculate(self):
+        if self.suppress:
+            self.data[:]=0
+            self.setunchanged()
+            return
         p0 = self.parameters[0]
         p1 = self.parameters[1]
         p2 = self.parameters[2]

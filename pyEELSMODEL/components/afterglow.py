@@ -72,6 +72,10 @@ class AfterGlow(Component):
         self.fixeddata = zlpdata
 
     def calculate(self):
+        if self.suppress:
+            self.data[:]=0
+            self.setunchanged()
+            return
         p1 = self.parameters[0]
 
         if p1.ischanged():

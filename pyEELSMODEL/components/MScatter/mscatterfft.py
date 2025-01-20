@@ -45,6 +45,10 @@ class MscatterFFT(Mscatter):
         self.new_ll = True
 
     def calculate(self):
+        if self.suppress:
+            self.data[:]=0
+            self.setunchanged()
+            return
         if self.use_padding:
             self.calculate_w_padding()
         else:

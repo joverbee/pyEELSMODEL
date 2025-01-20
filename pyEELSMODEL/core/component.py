@@ -45,8 +45,8 @@ class Component(Spectrum):
             params)  # use preloaded parameters if given in params
         self.spectrumshape = spectrumshape
 
-        # indicates a special type of component that can shift the energies
-        self._isshifter = False
+        
+        self._isshifter = False # indicates a special type of component that can shift the energies
         self._multiplier = None
         self._ismultiplier = False
         self._hasmultiplier = False
@@ -55,6 +55,7 @@ class Component(Spectrum):
         self.description = ""
         self._name = ""
         self.visible = True
+        self.suppress = False
 
         self._setshifter(False)
         self._setcanconvolute(True)
@@ -91,6 +92,31 @@ class Component(Spectrum):
 
         for p in self.parameters:
             p.release()
+    
+    def setsuppress(self,b):
+        """
+        Sets the suppress state of the component. Allows to switch of a component in the sense that calling
+        calculate will return a zero spectrum. Use with caution as forgetting to disable this function
+        may lead to hard to interpret behaviour
+
+        Parameters
+        ----------
+        b : bool
+            suppress state.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.suppress=b
+        self.setchanged()
+        #if you have parameters that are coupled, than also that component needs to know that something changed
+        for p in self.parameters:
+            if p.iscoupled():
+                cp=p.getcontroller()
+                cp.setchanged()
+
 
     def setvisible(self, b):
         """

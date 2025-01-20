@@ -158,6 +158,10 @@ class CoreLossEdge(Component):
               'calculate_cross_section')
 
     def calculate(self):
+        if self.suppress:
+            self.data[:]=0
+            self.setunchanged()
+            return
         pA = self.parameters[0]
         p2 = self.parameters[1]
         p3 = self.parameters[2]

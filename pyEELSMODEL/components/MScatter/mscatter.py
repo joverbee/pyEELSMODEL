@@ -108,4 +108,4 @@ class Mscatter(Component):
     def calculate(self):
         print(
             'if this statement is printed, it means that no '
-            'calculte function exists for other MScatter components')
+            'calculate function exists for other MScatter components')

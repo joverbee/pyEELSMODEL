@@ -54,6 +54,10 @@ class Lorentzian(Component):
         """
         Calculates the lorentzian function
         """
+        if self.suppress:
+            self.data[:]=0
+            self.setunchanged()
+            return
         E = self.energy_axis
         self.data = self.lorentz(E, self.parameters[0].getvalue(),
                                  self.parameters[1].getvalue(),

@@ -78,6 +78,10 @@ class Plasmon(Component):
         self._addparameter(p7)  # height zero loss peak
 
     def calculate(self):
+        if self.suppress:
+            self.data[:]=0
+            self.setunchanged()
+            return
         self.data = self.plasmon_function()
 
     def plasmon_function(self):

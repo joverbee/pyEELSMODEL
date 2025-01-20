@@ -49,6 +49,10 @@ class Polynomial(Component):
         self._setname('Polynomial')
 
     def calculate(self):
+        if self.suppress:
+            self.data[:]=0
+            self.setunchanged()
+            return
         is_changed = False
         for param in self.parameters:
             if param.ischanged():

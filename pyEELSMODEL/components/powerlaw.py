@@ -51,6 +51,10 @@ class PowerLaw(Component):
         self._setname('Powerlaw')
 
     def calculate(self):
+        if self.suppress:
+            self.data[:]=0
+            self.setunchanged()
+            return
         p1 = self.parameters[0]
         p2 = self.parameters[1]
         if p1.ischanged() or p2.ischanged():

@@ -61,6 +61,10 @@ class Voigt(Component):
         self._addparameter(p4)
 
     def calculate(self):
+        if self.suppress:
+            self.data[:]=0
+            self.setunchanged()
+            return
         E = self.energy_axis
         self.data = self.voigt(E, self.parameters[0].getvalue(),
                                self.parameters[1].getvalue(),

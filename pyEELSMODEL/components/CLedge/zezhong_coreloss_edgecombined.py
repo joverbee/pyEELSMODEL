@@ -245,10 +245,17 @@ class ZezhongCoreLossEdgeCombined(CoreLossEdge):
         """
         cross_section = np.zeros(self.size)
         for xsection in self.xsectionlist:
-            cross_section += xsection.calculate_cross_section()
+            if xsection.suppress==False:
+                cross_section += xsection.calculate_cross_section()
+            else:
+                print('subcomponent is suppressed, to unset call setsuppress(False) on the specific subcomponent:',xsection.name)            
         return cross_section
 
     def calculate(self):
+        if self.suppress:
+            self.data[:]=0
+            self.setunchanged()
+            return
         pA = self.parameters[0]
         p2 = self.parameters[1]
         p3 = self.parameters[2]
