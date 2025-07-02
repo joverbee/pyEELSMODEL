@@ -248,10 +248,11 @@ class MultiSpectrumVisualizer(Operator):
             plotline[0].set_ydata(mydata)
             miny = min(mydata.min(), miny)
             maxy = max(mydata.max(), maxy)
-            # print('hello')
+
         ax[1].set_title(self.get_indextitle(self.sy, self.sx, self.w, self.h))
 
-        ax[1].set_ylim([miny, maxy])
+        if self.fig.canvas.manager.toolbar.mode == '':
+            ax[1].set_ylim([miny, maxy])
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
 
