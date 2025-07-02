@@ -6,11 +6,15 @@ Installing
 
 Installing via Conda
 ^^^^^^^^^^^^^^^^^^^^^^
-In progress
+To do
 
 Installing via pip
 ^^^^^^^^^^^^^^^^^^
-In progress
+The easiest way to install pyEELSMODEL is through the release hosted on PyPI:
+
+.. code-block:: bash
+
+    $ pip install pyEELSMODEL
 
 Installing from source
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -34,18 +38,17 @@ If you want to create an editable install one needs to do following:
 
     $ pip3 install -e .
 
-**In the future, the package will be published on PyPI simplifying the
-installation procedure.**
-
 Setting up GOS tables
 ^^^^^^^^^^^^^^^^^^^^^
-After installation, the generalized oscillator strengths (GOS) tables should be imported.
+**When they are first needed, the generalized oscillator strengths (GOS) tables will be automatically imported.**
 The GOS tables are necessary to perform EEL quantification since they are used
 to calculate the atomic cross sections. Two different GOS tables can be used for quantification:
 
 1. The GOS tables calculated by Zhang Z. *et al.* which can be found at doi:`10.5281/zenodo.7729585 <https://doi.org/10.5281/zenodo.7729585>`_.
 2. The GOS tables calculated by Segger L. *et al.* which can be found at doi:`10.5281/zenodo.7645765 <https://doi.org/10.5281/zenodo.7645765>`_.
 
+
+The GOS tables can also be manually imported. 
 To know where your pyEELSMODEL package is installed following command can be run
 in a python console:
 
