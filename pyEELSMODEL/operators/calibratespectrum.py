@@ -97,7 +97,7 @@ class CalibrateSpectrum(Operator):
             if event.button is MouseButton.LEFT:
                 pass
             else:
-                global ix, iy, coords
+                global ix, iy
                 ix, iy = event.xdata, event.ydata
                 ylim = ax.get_ylim()
                 ax.plot([event.xdata, event.xdata], [ylim[0], ylim[1]],
@@ -113,6 +113,7 @@ class CalibrateSpectrum(Operator):
 
                 return coords
 
+        print('right click the edge')
         cte = 1.1
         fig, ax = plt.subplots()
         if isinstance(self.spectrum, MultiSpectrum):

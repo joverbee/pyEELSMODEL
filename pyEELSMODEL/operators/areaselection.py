@@ -142,7 +142,7 @@ class AreaSelection(Operator):
             if event.button is MouseButton.LEFT:
                 pass
             else:
-                global ix, iy, xcoords, ycoords
+                global ix, iy
                 ix, iy = event.xdata, event.ydata
                 xcoords.append(ix)
                 ycoords.append(iy)
@@ -157,6 +157,8 @@ class AreaSelection(Operator):
                     ax.fill(xcoords, ycoords, alpha=0.5, color='black')
                     print('the shape is drawn, this will be used to determine '
                           'the average spectrum')
+                    self.xcoords = xcoords
+                    self.ycoords = ycoords
 
                 fig.canvas.draw()
 
