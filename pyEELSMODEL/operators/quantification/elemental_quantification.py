@@ -15,9 +15,11 @@ from pyEELSMODEL.components.CLedge.kohl_coreloss_edgecombined import \
     KohlLossEdgeCombined
 from pyEELSMODEL.components.MScatter.mscatterfft import MscatterFFT
 from pyEELSMODEL.components.gdoslin import GDOSLin
+from pyEELSMODEL.components.constrained_gdoslin import ConstrainedGDOSLin
 
 from pyEELSMODEL.fitters.linear_fitter import LinearFitter
 from pyEELSMODEL.fitters.lsqfitter import LSQFitter
+from pyEELSMODEL.fitters.quadratic_fitter import QuadraticFitter
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +59,7 @@ class ElementalQuantification(Operator):
         self.is_multispectrum = isinstance(spectrum, MultiSpectrum)
         self.ll = ll
 
-        self.do_align = True
+        self.do_align = False
 
         # show feedback
         self.feedback = True  # inidicates if inbetween results are shown
@@ -75,6 +77,7 @@ class ElementalQuantification(Operator):
 
         # attributes connected to fine structure
         self.use_fine = False  # indicates if fine structure will be used.
+        self.constrained_fine_structure = True #indicate if constrained fine structure is used
         self.fine_components = []
         self.fine_intervals = []
         # how much the fine structure should be fitter before onset energy
@@ -83,7 +86,8 @@ class ElementalQuantification(Operator):
 
         # attributes connected to background
         self.background_model = 'linear'
-        self.n_bgterms = 4  # number of terms in the linear background
+        self.use_convex = True #indicate to use convexity constrains
+        self.rlist = [1,2,3,4]  # number of terms in the linear background
 
         # attributes connected to fitter
         self.linear_fitter_method = 'nnls'
@@ -184,8 +188,12 @@ class ElementalQuantification(Operator):
                 self.visualize_autofit(bg)
 
         elif self.background_model == 'linear':
-            rlist = np.linspace(1, 5, self.n_bgterms)
-            bg = LinearBG(specshape=spsh, rlist=rlist)
+            # rlist = np.linspace(1, 5, self.n_bgterms)
+            bg = LinearBG(specshape=spsh, rlist=self.rlist)
+            if self.use_convex:
+                print("Using convexity constrains for linear background")
+                bg.use_approx = "sufficient"
+
         self.bg = bg
 
     def make_coreloss(self):
@@ -208,6 +216,8 @@ class ElementalQuantification(Operator):
                 comp = KohlLossEdgeCombined(spsh, 1, self.E0, self.alpha,
                                             self.beta, elem, edge,
                                             eshift=onset, q_steps=self.qsteps)
+            else:
+                raise ValueError('gos_array should be zhang or kohl')
 
             comp_elements.append(comp)
         self.element_components = comp_elements
@@ -231,21 +241,27 @@ class ElementalQuantification(Operator):
         # if no dE is given then estimate it from zero loss peak
         if self.dE is None:
             self.estimate_sampling()
+            print(f"Estimated sampling from ZLP: {self.dE} eV")
 
-        print(self.dE)
         for ii, comp in enumerate(self.element_components):
             n = int(self.fine_intervals[ii]/self.dE)
-            print(n)
             if self.pre_fine is None:
                 pre_fine = 0
             else:
                 pre_fine = self.pre_fine[ii]
-            fine = GDOSLin.gdoslin_from_edge(spsh, comp,
-                                             ewidth=self.fine_intervals[ii],
-                                             degree=n,
-                                             interpolationtype='cubic',
-                                             pre_e=pre_fine)
-
+            if self.constrained_fine_structure:
+                fine = ConstrainedGDOSLin.gdoslin_from_edge(spsh,
+                                                            comp,
+                                                            ewidth=self.fine_intervals[ii],
+                                                            degree=n,
+                                                            interpolationtype='nearest',
+                                                            pre_e=pre_fine)
+            else:
+                fine = GDOSLin.gdoslin_from_edge(spsh, comp,
+                                                 ewidth=self.fine_intervals[ii],
+                                                 degree=n,
+                                                 interpolationtype='cubic',
+                                                 pre_e=pre_fine)
             self.fine_components.append(fine)
 
     def make_mscatter(self):
@@ -288,9 +304,16 @@ class ElementalQuantification(Operator):
 
         """
         if self.background_model == 'linear':
-            self.fitter = LinearFitter(self.spectrum, self.model,
-                                       method=self.linear_fitter_method,
-                                       use_weights=self.use_weights)
+            check_quadratic = self.use_convex or self.constrained_fine_structure
+            if check_quadratic:
+                print("Using quadratic fitter to use constraints")
+                self.fitter = QuadraticFitter(self.spectrum, self.model)  # The fitter object
+
+
+            else:
+                self.fitter = LinearFitter(self.spectrum, self.model,
+                                        method=self.linear_fitter_method,
+                                        use_weights=self.use_weights)
 
         else:
             for comps in self.element_components:

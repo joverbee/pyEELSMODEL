@@ -12,6 +12,7 @@ from tqdm import tqdm
 
 from pyEELSMODEL.io_tools.dm_ncempy import dmReader
 from pyEELSMODEL.io_tools.hdf5_io import load_h5py, load_hspy
+from pyEELSMODEL.io_tools.emd_reader import open_emd
 from pyEELSMODEL.core.spectrum import Spectrum, Spectrumshape
 
 import copy
@@ -133,7 +134,8 @@ class MultiSpectrum(Spectrum):
 
         elif (ext == '.dm3') or (ext == '.dm4'):
             s = cls.load_dm(filename, flip_sign=flip_sign)
-
+        elif ext == '.emd':
+            s = cls.load_emd(filename)
         else:
             raise ValueError(r'Extension is not valid')
 
@@ -190,6 +192,57 @@ class MultiSpectrum(Spectrum):
             s = MultiSpectrum(specshape, data=param[0], acq_time=param[4])
             specs.append(s)
         return specs, df
+
+    @classmethod
+    def load_emd(cls, filename):
+        """
+        Loads emd data file format.
+
+        Parameters
+        ----------
+        filename : string
+              Filename containing the data.
+
+        Returns
+        ----------
+        s: MultiSpectrum
+            The multispectrum which is inside the filename
+        E0: float
+            The beam energy in V
+        beta: float
+            The collection angle in radians
+
+        """
+        cubes, metadata = open_emd(filename)
+        specs = []
+        offsets = []
+        for cube, meta in zip(cubes, metadata):
+            dispersion = meta['dispersion']
+            offset = meta['offset']
+            Esize = cube.shape[2]
+            xsize = cube.shape[0]
+            ysize = cube.shape[1]
+            exposure_time = meta['exposureTime']
+
+            specshape = MultiSpectrumshape(dispersion, offset, Esize, xsize, ysize)
+            s = MultiSpectrum(specshape, data=cube, acq_time=exposure_time)
+            specs.append(s)
+            offsets.append(offset)
+
+        #order the spectra such that the lowest offset is first
+        sorted_indices = np.argsort(offsets)
+        specs = [specs[i] for i in sorted_indices]
+
+        try:
+            E0 = metadata[0]['beam_voltage']
+            beta = metadata[0]['collection_angle_end']
+        except:
+            E0 = None
+            beta = None
+            print(f"Could not retrieve E0 and beta from metadata")
+
+        return specs, E0, beta
+
 
     @classmethod
     def load_dm(cls, filename, flip_sign=False, dispersion=None):
