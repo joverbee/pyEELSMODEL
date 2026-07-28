@@ -1,6 +1,15 @@
-from fpdf import FPDF
 import time
 import os
+
+try:
+    from fpdf import FPDF
+except ImportError:
+    class FPDF:
+        def __init__(self, *args, **kwargs):
+            raise ImportError(
+                "fpdf is required for PDF generation. "
+                "Please install it using 'pip install pyEELSMODEL[pdf]' or 'pip install fpdf'."
+            )
 
 
 class PDF(FPDF):
