@@ -13,7 +13,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
    name='pyEELSMODEL',
-   version='1.0.8',
+   version='1.0.9',
    author='Jo Verbeeck and Daen Jannis',
    author_email='jo.verbeeck@uantwerpen.be',
    package_dir={'': '.'},
@@ -33,6 +33,7 @@ setup(
        "tqdm",
    ],
    extras_require={
+       'qt': ["pyqt5"],
        'pdf': ["fpdf"],
        'test': ["pytest"],
        'dev': ["pytest", "jupyter", "flake8"],
