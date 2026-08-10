@@ -18,7 +18,11 @@ The easiest way to install pyEELSMODEL is through the [release](https://pypi.org
 ``` bash
 pip install pyEELSMODEL
 ```
-or by first cloning this repository to your
+If you want to use the interactive MultiSpectrumVisualizer in notebooks, the installation can include pyqt5
+``` bash
+pip install pyEELSMODEL[qt]
+```
+Installation can also be done by first cloning this repository to your
 computer via:
 ``` bash
 git clone https://github.com/joverbee/pyEELSMODEL.git
