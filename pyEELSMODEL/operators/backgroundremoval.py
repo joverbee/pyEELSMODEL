@@ -523,6 +523,8 @@ class BackgroundRemoval(Operator):
         self.set_indices()
         self.include_areas()
 
+        max = 1.1*self.spectrum.mean().data.max() if use_mean else 1.1*self.spectrum.data.max()
+
         if isinstance(self.spectrum, MultiSpectrum):
             self.fitter.setcurrentfit(index)
 
@@ -541,7 +543,7 @@ class BackgroundRemoval(Operator):
                     color='red', label='Background model')
 
         ax.fill_between(self.spectrum.energy_axis, 0,
-                        1.1*self.spectrum.data.max(),
+                        max,
                         where=np.invert(self.spectrum.exclude), color='green',
                         alpha=0.5, label='Background region')
         ax.set_xlabel(r'Energy Loss [eV]')
@@ -554,7 +556,7 @@ class BackgroundRemoval(Operator):
                             color='blue', alpha=0.5,
                             label='Integration region')
         ax.legend()
-        ax.set_ylim([0, 1.1*self.spectrum.data.max()])
+        ax.set_ylim([0, max])
         if isinstance(self.spectrum, MultiSpectrum):
             ax.set_title(self.spectrum.currentspectrumid)
 
